@@ -1,0 +1,102 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.game-bg {
+    background: linear-gradient(#6ec6ff, #b3e5fc);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.welcome-box {
+    text-align: center;
+    background: rgba(255,255,255,0.3);
+    padding: 40px 60px;
+    border-radius: 15px;
+}
+
+.welcome-box input {
+    display: block;
+    margin: 10px auto;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+}
+
+.btn-group button {
+    margin: 10px;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    background: #f5f5b5;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.dashboard-bg {
+    display: flex;
+    height: 100vh;
+    background: #e3f2fd;
+}
+
+.sidebar {
+    width: 220px;
+    background: #bbdefb;
+    padding: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+}
+
+.sidebar li.active {
+    background: white;
+    border-radius: 8px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.top-bar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.game-menu {
+    display: flex;
+    gap: 20px;
+}
+
+.game-menu button {
+    padding: 15px 40px;
+    border-radius: 12px;
+    border: none;
+    background: #f5f5b5;
+    font-size: 18px;
+}
+
+.contact-btn {
+    position: absolute;
+    bottom: 40px;
+}
+

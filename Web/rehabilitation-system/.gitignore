@@ -1,0 +1,23 @@
+# Backend - dependencies and environment
+backend/node_modules/
+backend/.env
+
+# Log files
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database - keep only init.sql
+database/*.sql
+!database/init.sql
+
+# IDE settings
+.vscode/
+.idea/
+
+# Frontend (if using React)
+frontend/node_modules/
+frontend/build/

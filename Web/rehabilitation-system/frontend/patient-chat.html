@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Doctor - Rehabilitation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .doctor-avatar-large {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #667eea;
+        }
+        
+        .chat-header-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .chat-header-info p {
+            opacity: 0.9;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .message.doctor {
+            justify-content: flex-start;
+        }
+        
+        .message.patient {
+            justify-content: flex-end;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.doctor .message-content {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message.patient .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+        
+        .chat-input {
+            padding: 20px 30px;
+            background: white;
+            border-top: 2px solid #f1f5f9;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .chat-input input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .chat-input button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .chat-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-back {
+            margin: 20px 30px 30px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .message-status {
+            font-size: 11px;
+            margin-top: 2px;
+            text-align: right;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="doctor-avatar-large">👨‍⚕️</div>
+            <div class="chat-header-info">
+                <h2>Dr. Ahmad</h2>
+                <p><span class="online-dot"></span> Online • Usually replies within an hour</p>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="loading" id="loading" style="display: none;">Loading messages...</div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" placeholder="Type your message..." id="messageInput" onkeypress="if(event.key === 'Enter') sendPatientMessage()">
+            <button onclick="sendPatientMessage()">Send</button>
+        </div>
+
+        <button class="btn-back" onclick="goBack()">
+            <span>←</span> Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        // Check if patient is logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const patientId = localStorage.getItem('patientId') || 'PT001';
+        const patientName = localStorage.getItem('patientName') || 'Ali';
+
+        if (!token || !user.id) {
+            window.location.href = 'gamer-login.html';
+        }
+
+        // Mock data for messages
+        let messages = [
+            { sender: 'doctor', text: 'Hello! How are you feeling today?', time: '10:30 AM' },
+            { sender: 'patient', text: 'I am feeling much better!', time: '10:32 AM' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMessages();
+        });
+        
+        function renderMessages() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.sender === 'patient' ? 'patient' : 'doctor'}`;
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        ${msg.text}
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                chatMessages.appendChild(messageDiv);
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function sendPatientMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            // Add message to UI
+            messages.push({
+                sender: 'patient',
+                text: message,
+                time: timeString
+            });
+            
+            renderMessages();
+            input.value = '';
+            
+            // Simulate doctor's reply after 2 seconds
+            setTimeout(() => {
+                const replyTime = new Date();
+                const replyTimeString = replyTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                
+                messages.push({
+                    sender: 'doctor',
+                    text: 'Thank you for your message. I will review it and get back to you soon.',
+                    time: replyTimeString
+                });
+                
+                renderMessages();
+            }, 2000);
+        }
+        
+        function goBack() {
+            window.location.href = 'patient.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Rehabilitation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .doctor-info {
+            text-align: center;
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .doctor-info h4 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .doctor-info p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            flex: 1;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .sidebar li.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #60a5fa;
+            font-weight: 600;
+        }
+        
+        .sidebar li:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-bottom p {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+        
+        .sidebar-bottom p:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h2 {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .new-message-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .new-message-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .conversations-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+            min-height: 600px;
+        }
+        
+        .conversations-list {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+        
+        .list-header {
+            padding: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-header h3 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 18px;
+        }
+        
+        .patient-selector {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+        
+        .patient-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .patient-selector select:focus {
+            border-color: #3b82f6;
+        }
+        
+        .start-chat-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .start-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .conversation-item {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .conversation-item:hover {
+            background: #f8fafc;
+        }
+        
+        .conversation-item.active {
+            background: #e0f2fe;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .conv-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        
+        .conv-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .conv-name {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .conv-last {
+            color: #64748b;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conv-time {
+            font-size: 12px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+        
+        .unread-badge {
+            background: #3b82f6;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .chat-window {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            height: 700px;
+        }
+        
+        .chat-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .chat-header-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+        
+        .chat-header-info h3 {
+            margin: 0 0 5px 0;
+            color: #1e293b;
+        }
+        
+        .chat-header-info p {
+            margin: 0;
+            color: #10b981;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .message.doctor {
+            justify-content: flex-end;
+        }
+        
+        .message.patient {
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.patient .message-content {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message.doctor .message-content {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.7;
+            text-align: right;
+        }
+        
+        .chat-input {
+            padding: 20px 25px;
+            border-top: 2px solid #f1f5f9;
+            display: flex;
+            gap: 15px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .chat-input input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .chat-input button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .chat-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-back {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .no-chat-selected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            font-size: 18px;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .avatar-color-1 { background: linear-gradient(135deg, #4299e1, #63b3ed); }
+        .avatar-color-2 { background: linear-gradient(135deg, #48bb78, #68d391); }
+        .avatar-color-3 { background: linear-gradient(135deg, #ed8936, #f6ad55); }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 18px;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #ef4444;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="doctor-info">
+                <div class="avatar">👨‍⚕️</div>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Therapist • #TH001</p>
+            </div>
+            <ul>
+                <li onclick="window.location.href='doctor.html'">🏠 Home</li>
+                <li onclick="window.location.href='doctor-patients.html'">👥 Patients List</li>
+                <li onclick="window.location.href='doctor-performance.html'">📊 Patients Performance</li>
+                <li class="active">💬 Messages</li>
+                <li onclick="window.location.href='profile.html'">👤 User Profile</li>
+            </ul>
+            <div class="sidebar-bottom">
+                <p onclick="window.location.href='settings.html'">⚙ Settings</p>
+                <p onclick="logout()">🚪 Log Out</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Messages from Patients</h2>
+                <button class="new-message-btn" onclick="showNewMessageModal()">
+                    <span>✏️</span> New Message
+                </button>
+            </div>
+
+            <div class="conversations-container">
+                <!-- Conversations List -->
+                <div class="conversations-list">
+                    <div class="list-header">
+                        <h3>Active Conversations</h3>
+                    </div>
+                    
+                    <!-- Patient Selector for New Chat -->
+                    <div class="patient-selector">
+                        <select id="patientSelect">
+                            <option value="">-- Select a patient --</option>
+                            <option value="PT001">Ali Ahmed (PT001)</option>
+                            <option value="PT002">Sara Khaled (PT002)</option>
+                            <option value="PT003">Omar Hassan (PT003)</option>
+                        </select>
+                        <button class="start-chat-btn" onclick="startNewChat()">
+                            <span>💬</span> Start New Conversation
+                        </button>
+                    </div>
+                    
+                    <div id="conversationsList">
+                        <div class="loading">Loading conversations...</div>
+                    </div>
+                </div>
+
+                <!-- Chat Window -->
+                <div class="chat-window" id="chatWindow">
+                    <div class="no-chat-selected" id="noChatSelected">
+                        <div style="font-size: 60px;">💬</div>
+                        <div>Select a conversation or start a new one</div>
+                    </div>
+                    
+                    <div id="activeChat" style="display: none; height: 100%; flex-direction: column;">
+                        <div class="chat-header" id="chatHeader"></div>
+                        <div class="chat-messages" id="chatMessages"></div>
+                        <div class="chat-input">
+                            <input type="text" id="replyMessage" placeholder="Type your reply...">
+                            <button onclick="sendReply()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-back" onclick="window.location.href='doctor.html'">
+                <span>←</span> Back to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- New Message Modal -->
+    <div id="newMessageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; width: 400px;">
+            <h3 style="margin-bottom: 20px;">New Message</h3>
+            <select id="modalPatientSelect" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                <option value="">Select Patient</option>
+                <option value="PT001">Ali Ahmed (PT001)</option>
+                <option value="PT002">Sara Khaled (PT002)</option>
+                <option value="PT003">Omar Hassan (PT003)</option>
+            </select>
+            <textarea id="modalMessage" placeholder="Type your message..." rows="4" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e2e8f0; border-radius: 10px;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="sendNewMessage()" style="flex: 2; padding: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px;">Send</button>
+                <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check login
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || !user.id || user.role !== 'doctor') {
+            window.location.href = 'doctor-login.html';
+        }
+
+        // Mock data for conversations (will be replaced with API calls)
+        let conversations = {
+            'PT001': {
+                patientName: 'Ali Ahmed',
+                avatar: 'A',
+                avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)',
+                messages: [
+                    { sender: 'patient', text: 'I feel better today. The exercises are helping a lot!', time: '2:30 PM' },
+                    { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
+                ]
+            },
+            'PT002': {
+                patientName: 'Sara Khaled',
+                avatar: 'S',
+                avatarColor: 'linear-gradient(135deg, #48bb78, #68d391)',
+                messages: [
+                    { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
+                ]
+            }
+        };
+
+        let currentPatientId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDoctorInfo();
+            renderConversationsList();
+        });
+
+        function loadDoctorInfo() {
+            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+            const doctorId = localStorage.getItem('doctorId') || 'TH001';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
+            
+            document.getElementById('doctorName').textContent = doctorName;
+            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
+        }
+
+        function renderConversationsList() {
+            const list = document.getElementById('conversationsList');
+            list.innerHTML = '';
+
+            Object.keys(conversations).forEach(patientId => {
+                const conv = conversations[patientId];
+                const lastMsg = conv.messages[conv.messages.length - 1];
+
+                const item = document.createElement('div');
+                item.className = `conversation-item ${currentPatientId === patientId ? 'active' : ''}`;
+                item.setAttribute('data-patient-id', patientId);
+                item.onclick = () => selectConversation(patientId);
+                
+                item.innerHTML = `
+                    <div class="conv-avatar" style="background: ${conv.avatarColor}">${conv.avatar}</div>
+                    <div class="conv-info">
+                        <div class="conv-name">${conv.patientName}</div>
+                        <div class="conv-last">${lastMsg.text}</div>
+                    </div>
+                    <div class="conv-time">${lastMsg.time}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function selectConversation(patientId) {
+            currentPatientId = patientId;
+            
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-patient-id') === patientId) {
+                    item.classList.add('active');
+                }
+            });
+
+            const conv = conversations[patientId];
+            
+            document.getElementById('noChatSelected').style.display = 'none';
+            document.getElementById('activeChat').style.display = 'flex';
+
+            document.getElementById('chatHeader').innerHTML = `
+                <div class="chat-header-avatar" style="background: ${conv.avatarColor}">${conv.avatar}</div>
+                <div class="chat-header-info">
+                    <h3>${conv.patientName}</h3>
+                    <p><span class="online-indicator"></span> Online</p>
+                </div>
+            `;
+
+            renderMessages(conv.messages);
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.sender}`;
+                div.innerHTML = `
+                    <div class="message-content">
+                        ${msg.text}
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function startNewChat() {
+            const patientId = document.getElementById('patientSelect').value;
+            if (!patientId) {
+                alert('Please select a patient');
+                return;
+            }
+
+            if (!conversations[patientId]) {
+                const patientName = patientId === 'PT001' ? 'Ali Ahmed' : 
+                                   patientId === 'PT002' ? 'Sara Khaled' : 'Omar Hassan';
+                const avatar = patientId === 'PT001' ? 'A' : patientId === 'PT002' ? 'S' : 'O';
+                const color = patientId === 'PT001' ? 'linear-gradient(135deg, #4299e1, #63b3ed)' :
+                             patientId === 'PT002' ? 'linear-gradient(135deg, #48bb78, #68d391)' :
+                             'linear-gradient(135deg, #ed8936, #f6ad55)';
+                
+                conversations[patientId] = {
+                    patientName: patientName,
+                    avatar: avatar,
+                    avatarColor: color,
+                    messages: []
+                };
+            }
+
+            selectConversation(patientId);
+        }
+
+        function sendReply() {
+            const input = document.getElementById('replyMessage');
+            const message = input.value.trim();
+            
+            if (!message || !currentPatientId) return;
+
+            const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            conversations[currentPatientId].messages.push({
+                sender: 'doctor',
+                text: message,
+                time: time
+            });
+
+            renderMessages(conversations[currentPatientId].messages);
+            renderConversationsList();
+            input.value = '';
+        }
+
+        function showNewMessageModal() {
+            document.getElementById('newMessageModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('newMessageModal').style.display = 'none';
+        }
+
+        function sendNewMessage() {
+            const patientId = document.getElementById('modalPatientSelect').value;
+            const message = document.getElementById('modalMessage').value.trim();
+
+            if (!patientId || !message) {
+                alert('Please select a patient and enter a message');
+                return;
+            }
+
+            startNewChat();
+            
+            setTimeout(() => {
+                document.getElementById('replyMessage').value = message;
+                sendReply();
+            }, 100);
+
+            closeModal();
+            document.getElementById('modalMessage').value = '';
+        }
+
+        document.getElementById('replyMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendReply();
+            }
+        });
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
