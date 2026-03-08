@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -38,16 +39,15 @@
         .avatar {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: transparent;
             border-radius: 50%;
             margin: 0 auto 15px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border: 4px solid #60a5fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
+            font-size: 60px;
+            color: #60a5fa;
         }
         
         .doctor-info h4 {
@@ -256,15 +256,14 @@
         .conv-avatar {
             width: 50px;
             height: 50px;
+            background: transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            flex-shrink: 0;
-            text-transform: uppercase;
+            font-size: 40px;
+            color: #60a5fa;
+            border: 2px solid #60a5fa;
         }
         
         .conv-info {
@@ -328,14 +327,14 @@
         .chat-header-avatar {
             width: 50px;
             height: 50px;
+            background: transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            text-transform: uppercase;
+            font-size: 40px;
+            color: #60a5fa;
+            border: 2px solid #60a5fa;
         }
         
         .chat-header-info h3 {
@@ -489,23 +488,15 @@
             text-align: center;
             color: #94a3b8;
         }
-
-        .avatar-color-1 { background: linear-gradient(135deg, #4299e1, #63b3ed); }
-        .avatar-color-2 { background: linear-gradient(135deg, #48bb78, #68d391); }
-        .avatar-color-3 { background: linear-gradient(135deg, #ed8936, #f6ad55); }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 18px;
-        }
-        
-        .error-message {
-            text-align: center;
-            padding: 20px;
-            color: #ef4444;
-            font-size: 16px;
+        @media (max-width: 768px) {
+            .conversations-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chat-window {
+                height: 500px;
+            }
         }
     </style>
 </head>
@@ -514,20 +505,22 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar">👨‍⚕️</div>
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #TH001</p>
+                <p id="doctorInfo">Therapist • #DR003</p>
             </div>
             <ul>
-                <li onclick="window.location.href='doctor.html'">🏠 Home</li>
-                <li onclick="window.location.href='doctor-patients.html'">👥 Patients List</li>
-                <li onclick="window.location.href='doctor-performance.html'">📊 Patients Performance</li>
-                <li class="active">💬 Messages</li>
-                <li onclick="window.location.href='profile.html'">👤 User Profile</li>
+                <li onclick="window.location.href='doctor.html'">Home</li>
+                <li onclick="window.location.href='doctor-patients.html'">Patients List</li>
+                <li onclick="window.location.href='doctor-performance.html'">Patients Performance</li>
+                <li class="active">Messages</li>
+                <li onclick="window.location.href='profile.html'">User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'">⚙ Settings</p>
-                <p onclick="logout()">🚪 Log Out</p>
+                <p onclick="window.location.href='settings.html'">Settings</p>
+                <p onclick="logout()">Log Out</p>
             </div>
         </div>
 
@@ -608,7 +601,6 @@
     </div>
 
     <script>
-        // Check login
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -616,12 +608,18 @@
             window.location.href = 'doctor-login.html';
         }
 
-        // Mock data for conversations (will be replaced with API calls)
+        const patients = {
+            'PT001': { id: 2, name: 'Ali Ahmed', avatar: 'A', color: '#4299e1' },
+            'PT002': { id: 3, name: 'Sara Khaled', avatar: 'S', color: '#48bb78' },
+            'PT003': { id: 4, name: 'Omar Hassan', avatar: 'O', color: '#ed8936' }
+        };
+
+        let currentPatientId = null;
         let conversations = {
             'PT001': {
                 patientName: 'Ali Ahmed',
                 avatar: 'A',
-                avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)',
+                avatarColor: '#4299e1',
                 messages: [
                     { sender: 'patient', text: 'I feel better today. The exercises are helping a lot!', time: '2:30 PM' },
                     { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
@@ -630,14 +628,13 @@
             'PT002': {
                 patientName: 'Sara Khaled',
                 avatar: 'S',
-                avatarColor: 'linear-gradient(135deg, #48bb78, #68d391)',
+                avatarColor: '#48bb78',
                 messages: [
                     { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
                 ]
             }
         };
-
-        let currentPatientId = null;
+        let currentMessages = [];
 
         document.addEventListener('DOMContentLoaded', function() {
             loadDoctorInfo();
@@ -646,8 +643,8 @@
 
         function loadDoctorInfo() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'TH001';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
+            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
             
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
@@ -667,7 +664,9 @@
                 item.onclick = () => selectConversation(patientId);
                 
                 item.innerHTML = `
-                    <div class="conv-avatar" style="background: ${conv.avatarColor}">${conv.avatar}</div>
+                    <div class="conv-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
                     <div class="conv-info">
                         <div class="conv-name">${conv.patientName}</div>
                         <div class="conv-last">${lastMsg.text}</div>
@@ -694,21 +693,24 @@
             document.getElementById('activeChat').style.display = 'flex';
 
             document.getElementById('chatHeader').innerHTML = `
-                <div class="chat-header-avatar" style="background: ${conv.avatarColor}">${conv.avatar}</div>
+                <div class="chat-header-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
                 <div class="chat-header-info">
                     <h3>${conv.patientName}</h3>
                     <p><span class="online-indicator"></span> Online</p>
                 </div>
             `;
 
-            renderMessages(conv.messages);
+            currentMessages = conv.messages;
+            renderMessages();
         }
 
-        function renderMessages(messages) {
+        function renderMessages() {
             const container = document.getElementById('chatMessages');
             container.innerHTML = '';
 
-            messages.forEach(msg => {
+            currentMessages.forEach(msg => {
                 const div = document.createElement('div');
                 div.className = `message ${msg.sender}`;
                 div.innerHTML = `
@@ -733,15 +735,11 @@
             if (!conversations[patientId]) {
                 const patientName = patientId === 'PT001' ? 'Ali Ahmed' : 
                                    patientId === 'PT002' ? 'Sara Khaled' : 'Omar Hassan';
-                const avatar = patientId === 'PT001' ? 'A' : patientId === 'PT002' ? 'S' : 'O';
-                const color = patientId === 'PT001' ? 'linear-gradient(135deg, #4299e1, #63b3ed)' :
-                             patientId === 'PT002' ? 'linear-gradient(135deg, #48bb78, #68d391)' :
-                             'linear-gradient(135deg, #ed8936, #f6ad55)';
                 
                 conversations[patientId] = {
                     patientName: patientName,
-                    avatar: avatar,
-                    avatarColor: color,
+                    avatar: patientId.charAt(0),
+                    avatarColor: patientId === 'PT001' ? '#4299e1' : patientId === 'PT002' ? '#48bb78' : '#ed8936',
                     messages: []
                 };
             }
@@ -763,7 +761,8 @@
                 time: time
             });
 
-            renderMessages(conversations[currentPatientId].messages);
+            currentMessages = conversations[currentPatientId].messages;
+            renderMessages();
             renderConversationsList();
             input.value = '';
         }

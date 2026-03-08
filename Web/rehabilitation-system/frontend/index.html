@@ -91,9 +91,13 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
-        .role-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+        .role-btn:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .role-btn:active {
+            transform: translateY(0);
         }
         
         .doctor-btn {
@@ -106,15 +110,6 @@
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .role-btn:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .role-btn:active {
-            transform: translateY(0);
         }
         
         .floating-shapes {
@@ -175,13 +170,11 @@
             
             <div class="role-buttons">
                 <button class="role-btn patient-btn" onclick="window.location.href='gamer-login.html'">
-                    <span class="role-icon">🎮</span>
                     <span>A GAMER</span>
                     <span style="font-size: 14px; opacity: 0.8;">Patient Interface</span>
                 </button>
                 
                 <button class="role-btn doctor-btn" onclick="window.location.href='doctor-login.html'">
-                    <span class="role-icon">👨‍⚕️</span>
                     <span>A DOCTOR</span>
                     <span style="font-size: 14px; opacity: 0.8;">Therapist Interface</span>
                 </button>

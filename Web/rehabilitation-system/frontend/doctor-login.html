@@ -112,10 +112,6 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
         
         .login-btn:hover {
@@ -178,9 +174,7 @@
             <div class="error-message" id="errorMessage">Invalid email or password</div>
             <div class="loading" id="loading">Logging in...</div>
             
-            <button class="login-btn" onclick="loginDoctor()">
-                <span>👨‍⚕️</span> Login to Dashboard
-            </button>
+            <button class="login-btn" onclick="loginDoctor()">Login to Dashboard</button>
             
             <button class="back-btn" onclick="window.location.href='index.html'">
                 <span>←</span> Back to Main Menu
@@ -213,7 +207,6 @@
                 const data = await response.json();
 
                 if (data.success && data.user.role === 'doctor') {
-                    // Save doctor data to localStorage
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('userType', 'doctor');

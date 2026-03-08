@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -38,16 +39,15 @@
         .avatar {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: transparent;
             border-radius: 50%;
             margin: 0 auto 15px;
             border: 4px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
+            font-size: 60px;
+            color: #60a5fa;
         }
         
         .doctor-info h4 {
@@ -307,13 +307,6 @@
             color: white;
         }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 18px;
-        }
-        
         @media (max-width: 768px) {
             .dashboard-layout {
                 flex-direction: column;
@@ -330,7 +323,9 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar">👨‍⚕️</div>
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
                 <p id="doctorInfo">Therapist • #TH001</p>
             </div>
@@ -351,21 +346,21 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Dashboard Overview</h2>
-                <p>👥 <span id="totalPatientsCount">0</span> Patients</p>
+                <p>👥 3 Active Patients</p>
             </div>
 
             <!-- Stats Cards -->
             <div class="stats-cards">
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="totalPatients">0</div>
+                    <div class="stat-number-large" id="totalPatients">3</div>
                     <div class="stat-label-small">Total Patients</div>
                 </div>
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="inProgressCount">0</div>
+                    <div class="stat-number-large" id="inProgressCount">2</div>
                     <div class="stat-label-small">In Progress</div>
                 </div>
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="completedCount">0</div>
+                    <div class="stat-number-large" id="completedCount">1</div>
                     <div class="stat-label-small">Completed</div>
                 </div>
             </div>
@@ -373,35 +368,68 @@
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <button class="filter-tab active" onclick="filterPatients('all', this)">
-                    All patients <span class="tab-count" id="allCount">0</span>
+                    All patients <span class="tab-count" id="allCount">3</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('progress', this)">
-                    In Progress <span class="tab-count" id="progressCount">0</span>
+                    In Progress <span class="tab-count" id="progressCount">2</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('completed', this)">
-                    Completed <span class="tab-count" id="completedFilterCount">0</span>
+                    Completed <span class="tab-count" id="completedFilterCount">1</span>
                 </button>
             </div>
 
             <!-- Patients Table -->
             <div class="patients-table-container">
                 <div id="patientsList"></div>
-                <div class="loading" id="loading" style="display: none;">Loading patients...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Check if doctor is logged in
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-        if (!token || !user.id || user.role !== 'doctor') {
-            window.location.href = 'doctor-login.html';
-        }
-
+        // Patient data
+        const patients = [
+            {
+                id: 'PT001',
+                name: 'Ali Ahmed',
+                age: 8,
+                condition: 'Motor Disability',
+                status: 'in-progress',
+                level: 4,
+                accuracy: 82,
+                speed: 70,
+                sessions: 15,
+                avatar: 'A',
+                avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)'
+            },
+            {
+                id: 'PT002',
+                name: 'Sara Khaled',
+                age: 7,
+                condition: 'Arm Weakness',
+                status: 'in-progress',
+                level: 3,
+                accuracy: 74,
+                speed: 65,
+                sessions: 12,
+                avatar: 'S',
+                avatarColor: 'linear-gradient(135deg, #48bb78, #68d391)'
+            },
+            {
+                id: 'PT003',
+                name: 'Omar Hassan',
+                age: 9,
+                condition: 'Movement Disorder',
+                status: 'completed',
+                level: 5,
+                accuracy: 90,
+                speed: 85,
+                sessions: 28,
+                avatar: 'O',
+                avatarColor: 'linear-gradient(135deg, #ed8936, #f6ad55)'
+            }
+        ];
+        
         let currentFilter = 'all';
-        let allPatients = [];
         
         document.addEventListener('DOMContentLoaded', function() {
             // Load doctor data from localStorage
@@ -416,68 +444,9 @@
             // Set user type
             localStorage.setItem('userType', 'doctor');
             
-            // Load patients from API
-            loadPatients();
+            renderPatients();
+            updateCounts();
         });
-        
-        async function loadPatients() {
-            try {
-                document.getElementById('loading').style.display = 'block';
-                
-                // In a real app, you would fetch from API
-                // For now, we'll use the existing patient data
-                allPatients = [
-                    {
-                        id: 'PT001',
-                        name: 'Ali Ahmed',
-                        age: 8,
-                        condition: 'Motor Disability',
-                        status: 'in-progress',
-                        level: 4,
-                        accuracy: 82,
-                        speed: 70,
-                        sessions: 15,
-                        avatar: 'A',
-                        avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)'
-                    },
-                    {
-                        id: 'PT002',
-                        name: 'Sara Khaled',
-                        age: 7,
-                        condition: 'Arm Weakness',
-                        status: 'in-progress',
-                        level: 3,
-                        accuracy: 74,
-                        speed: 65,
-                        sessions: 12,
-                        avatar: 'S',
-                        avatarColor: 'linear-gradient(135deg, #48bb78, #68d391)'
-                    },
-                    {
-                        id: 'PT003',
-                        name: 'Omar Hassan',
-                        age: 9,
-                        condition: 'Movement Disorder',
-                        status: 'completed',
-                        level: 5,
-                        accuracy: 90,
-                        speed: 85,
-                        sessions: 28,
-                        avatar: 'O',
-                        avatarColor: 'linear-gradient(135deg, #ed8936, #f6ad55)'
-                    }
-                ];
-                
-                renderPatients();
-                updateCounts();
-                
-            } catch (error) {
-                console.error('Error loading patients:', error);
-                document.getElementById('patientsList').innerHTML = '<div class="loading">Error loading patients</div>';
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
         
         function renderPatients() {
             const filteredPatients = filterPatientsData();
@@ -485,11 +454,6 @@
             if (!list) return;
             
             list.innerHTML = '';
-            
-            if (filteredPatients.length === 0) {
-                list.innerHTML = '<div class="loading">No patients found</div>';
-                return;
-            }
             
             filteredPatients.forEach(patient => {
                 const statusText = patient.status === 'in-progress' ? 'In Progress' : 'Completed';
@@ -530,10 +494,10 @@
         }
         
         function filterPatientsData() {
-            if (currentFilter === 'all') return allPatients;
-            if (currentFilter === 'progress') return allPatients.filter(p => p.status === 'in-progress');
-            if (currentFilter === 'completed') return allPatients.filter(p => p.status === 'completed');
-            return allPatients;
+            if (currentFilter === 'all') return patients;
+            if (currentFilter === 'progress') return patients.filter(p => p.status === 'in-progress');
+            if (currentFilter === 'completed') return patients.filter(p => p.status === 'completed');
+            return patients;
         }
         
         function filterPatients(filter, element) {
@@ -550,17 +514,12 @@
         }
         
         function updateCounts() {
-            const total = allPatients.length;
-            const inProgress = allPatients.filter(p => p.status === 'in-progress').length;
-            const completed = allPatients.filter(p => p.status === 'completed').length;
-            
-            document.getElementById('totalPatients').textContent = total;
-            document.getElementById('inProgressCount').textContent = inProgress;
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('allCount').textContent = total;
-            document.getElementById('progressCount').textContent = inProgress;
-            document.getElementById('completedFilterCount').textContent = completed;
-            document.getElementById('totalPatientsCount').textContent = total;
+            document.getElementById('totalPatients').textContent = patients.length;
+            document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
+            document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;
+            document.getElementById('allCount').textContent = patients.length;
+            document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
+            document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
         }
         
         function viewPatientDetails(patientId) {
@@ -573,7 +532,15 @@
         
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
+                // Clear doctor data from localStorage
+                localStorage.removeItem('userType');
+                localStorage.removeItem('doctorId');
+                localStorage.removeItem('doctorName');
+                localStorage.removeItem('doctorEmail');
+                localStorage.removeItem('doctorSpecialty');
+                localStorage.removeItem('doctorPhone');
+                
+                // Redirect to home page
                 window.location.href = 'index.html';
             }
         }
