@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patients Performance - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -38,16 +39,15 @@
         .avatar {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: transparent;
             border-radius: 50%;
             margin: 0 auto 15px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border: 4px solid #60a5fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
+            font-size: 60px;
+            color: #60a5fa;
         }
         
         .doctor-info h4 {
@@ -104,6 +104,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            font-size: 15px;
         }
         
         .sidebar-bottom p:hover {
@@ -153,7 +154,6 @@
             font-weight: 600;
         }
         
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -196,7 +196,6 @@
             font-weight: 700;
         }
         
-        /* Patient Selector */
         .patient-selector {
             background: white;
             border-radius: 16px;
@@ -222,11 +221,6 @@
             outline: none;
         }
         
-        .patient-selector select:focus {
-            border-color: #3b82f6;
-        }
-        
-        /* Games Grid */
         .games-section {
             margin-bottom: 40px;
         }
@@ -297,7 +291,6 @@
             line-height: 1.5;
         }
         
-        /* Muscle Groups */
         .muscle-groups {
             margin: 20px 0;
             padding: 15px;
@@ -307,10 +300,6 @@
         
         .muscle-group {
             margin-bottom: 15px;
-        }
-        
-        .muscle-group:last-child {
-            margin-bottom: 0;
         }
         
         .muscle-group h4 {
@@ -342,7 +331,6 @@
             color: #1d4ed8;
         }
         
-        /* Progress Bars */
         .progress-section {
             margin: 20px 0;
         }
@@ -377,7 +365,6 @@
         .fill-blue { background: linear-gradient(90deg, #4299e1, #3182ce); }
         .fill-orange { background: linear-gradient(90deg, #ed8936, #dd6b20); }
         
-        /* Warning Box */
         .warning-box {
             margin-top: 20px;
             padding: 12px;
@@ -388,11 +375,6 @@
             color: #92400e;
         }
         
-        .warning-box strong {
-            color: #b45309;
-        }
-        
-        /* Game Stats */
         .game-stats {
             display: flex;
             justify-content: space-between;
@@ -417,7 +399,6 @@
             font-size: 12px;
         }
         
-        /* Performance Table */
         .performance-table {
             background: white;
             border-radius: 20px;
@@ -545,29 +526,31 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar">👨‍⚕️</div>
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #TH001</p>
+                <p id="doctorInfo">Therapist • #DR003</p>
             </div>
             <ul>
-                <li onclick="window.location.href='doctor.html'">🏠 Home</li>
-                <li onclick="window.location.href='doctor-patients.html'">👥 Patients List</li>
-                <li class="active">📊 Patients Performance</li>
-                <li onclick="window.location.href='doctor-messages.html'">💬 Messages</li>
-                <li onclick="window.location.href='profile.html'">👤 User Profile</li>
+                <li onclick="window.location.href='doctor.html'">Home</li>
+                <li onclick="window.location.href='doctor-patients.html'">Patients List</li>
+                <li class="active">Patients Performance</li>
+                <li onclick="window.location.href='doctor-messages.html'">Messages</li>
+                <li onclick="window.location.href='profile.html'">User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'">⚙ Settings</p>
-                <p onclick="logoutDoctor()">🚪 Log Out</p>
+                <p onclick="window.location.href='settings.html'">Settings</p>
+                <p onclick="logoutDoctor()">Log Out</p>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="page-header">
-                <h2>📊 Patients Performance</h2>
+                <h2>Patients Performance</h2>
                 <div class="date-filter">
-                    <input type="date" id="dateFilter" value="2026-02-22">
+                    <input type="date" id="dateFilter" value="2026-03-08">
                     <button class="filter-btn" onclick="filterByDate()">Apply Filter</button>
                 </div>
             </div>
@@ -585,21 +568,21 @@
                     <div class="stat-icon">🎮</div>
                     <div class="stat-content">
                         <h3>Active Sessions</h3>
-                        <div class="stat-number" id="activeSessions">28</div>
+                        <div class="stat-number" id="activeSessions">45</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">💪</div>
                     <div class="stat-content">
                         <h3>Avg Muscle Activation</h3>
-                        <div class="stat-number" id="avgActivation">82%</div>
+                        <div class="stat-number" id="avgActivation">84%</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-content">
                         <h3>Completion Rate</h3>
-                        <div class="stat-number" id="completionRate">78%</div>
+                        <div class="stat-number" id="completionRate">85%</div>
                     </div>
                 </div>
             </div>
@@ -616,9 +599,7 @@
 
             <!-- Games Performance Section -->
             <div class="games-section">
-                <h3 class="section-title">
-                    <span>🎯</span> Game-Specific Performance
-                </h3>
+                <h3 class="section-title">Game-Specific Performance</h3>
 
                 <div class="games-grid" id="gamesGrid">
                     <!-- Game 1: Catching Stars -->
@@ -632,7 +613,7 @@
                         
                         <div class="muscle-groups">
                             <div class="muscle-group">
-                                <h4>🎯 Shoulder Muscles</h4>
+                                <h4>Shoulder Muscles</h4>
                                 <div class="muscle-tags">
                                     <span class="muscle-tag primary">Deltoid</span>
                                     <span class="muscle-tag primary">Rotator Cuff</span>
@@ -640,17 +621,10 @@
                                 </div>
                             </div>
                             <div class="muscle-group">
-                                <h4>💪 Elbow Muscles</h4>
+                                <h4>Elbow Muscles</h4>
                                 <div class="muscle-tags">
                                     <span class="muscle-tag">Biceps</span>
                                     <span class="muscle-tag">Triceps</span>
-                                </div>
-                            </div>
-                            <div class="muscle-group">
-                                <h4>🖐️ Wrist & Fingers</h4>
-                                <div class="muscle-tags">
-                                    <span class="muscle-tag">Wrist Flexors</span>
-                                    <span class="muscle-tag">Finger Flexors</span>
                                 </div>
                             </div>
                         </div>
@@ -672,15 +646,6 @@
                                 </div>
                                 <div class="progress-bar-bg">
                                     <div class="progress-bar-fill fill-green" id="starElbowBar" style="width: 78%"></div>
-                                </div>
-                            </div>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Grasping Strength</span>
-                                    <span id="starGraspScore">82%</span>
-                                </div>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-orange" id="starGraspBar" style="width: 82%"></div>
                                 </div>
                             </div>
                         </div>
@@ -712,7 +677,7 @@
                         
                         <div class="muscle-groups">
                             <div class="muscle-group">
-                                <h4>🎯 Full Upper Extremity</h4>
+                                <h4>Full Upper Extremity</h4>
                                 <div class="muscle-tags">
                                     <span class="muscle-tag primary">Shoulder Muscles</span>
                                     <span class="muscle-tag primary">Elbow Muscles</span>
@@ -744,15 +709,6 @@
                                     <div class="progress-bar-fill fill-green" id="matchGripBar" style="width: 76%"></div>
                                 </div>
                             </div>
-                            <div class="progress-item">
-                                <div class="progress-label">
-                                    <span>Trapezius Overuse</span>
-                                    <span id="matchTrapScore" style="color: #e53e3e;">12%</span>
-                                </div>
-                                <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill" style="width: 12%; background: #f56565;"></div>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="game-stats">
@@ -782,7 +738,7 @@
                         
                         <div class="muscle-groups">
                             <div class="muscle-group">
-                                <h4>🔄 External Rotators</h4>
+                                <h4>External Rotators</h4>
                                 <div class="muscle-tags">
                                     <span class="muscle-tag primary">Infraspinatus</span>
                                     <span class="muscle-tag primary">Teres Minor</span>
@@ -832,7 +788,7 @@
 
             <!-- Therapeutic Benefits Summary -->
             <div class="performance-table">
-                <h3>📋 Therapeutic Benefits Summary</h3>
+                <h3>Therapeutic Benefits Summary</h3>
                 <table>
                     <thead>
                         <tr>
@@ -845,34 +801,33 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>⭐ Catching Stars</strong></td>
+                            <td><strong>Catching Stars</strong></td>
                             <td>
                                 <span class="muscle-indicator indicator-high"></span> Deltoid<br>
                                 <span class="muscle-indicator indicator-high"></span> Rotator Cuff
                             </td>
                             <td>Shoulder elevation & stability</td>
                             <td>82%</td>
-                            <td><span style="color: #48bb78;">● Improving</span></td>
+                            <td><span style="color: #48bb78;">Improving</span></td>
                         </tr>
                         <tr>
-                            <td><strong>🎨 Matching Game</strong></td>
+                            <td><strong>Matching Game</strong></td>
                             <td>
-                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity<br>
-                                <span class="muscle-indicator indicator-low"></span> Trapezius (avoid)
+                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity
                             </td>
                             <td>Active range & strength</td>
                             <td>79%</td>
-                            <td><span style="color: #ecc94b;">● Monitor shrug</span></td>
+                            <td><span style="color: #ecc94b;">Monitor shrug</span></td>
                         </tr>
                         <tr>
-                            <td><strong>🧺 Catching Objects</strong></td>
+                            <td><strong>Catching Objects</strong></td>
                             <td>
                                 <span class="muscle-indicator indicator-high"></span> Infraspinatus<br>
                                 <span class="muscle-indicator indicator-high"></span> Teres Minor
                             </td>
                             <td>Prevent contracture, improve alignment</td>
                             <td>92%</td>
-                            <td><span style="color: #48bb78;">● Excellent</span></td>
+                            <td><span style="color: #48bb78;">Excellent</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -888,9 +843,8 @@
     <script>
         let currentPatient = 'PT001';
         
-        // Patient data with game performance
         const patientsData = {
-            'PT001': { // Ali
+            'PT001': {
                 name: 'Ali Ahmed',
                 games: {
                     stars: { shoulder: 85, elbow: 78, grasp: 82, sessions: 15, caught: 142, accuracy: 82 },
@@ -898,7 +852,7 @@
                     rotation: { external: 92, alignment: 85, sessions: 18, caught: 156, prevention: 94 }
                 }
             },
-            'PT002': { // Sara
+            'PT002': {
                 name: 'Sara Khaled',
                 games: {
                     stars: { shoulder: 92, elbow: 88, grasp: 90, sessions: 18, caught: 178, accuracy: 90 },
@@ -906,7 +860,7 @@
                     rotation: { external: 88, alignment: 82, sessions: 14, caught: 132, prevention: 86 }
                 }
             },
-            'PT003': { // Omar
+            'PT003': {
                 name: 'Omar Hassan',
                 games: {
                     stars: { shoulder: 78, elbow: 72, grasp: 75, sessions: 12, caught: 108, accuracy: 75 },
@@ -917,16 +871,14 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Load doctor info
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'TH001';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
+            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
             
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
             localStorage.setItem('userType', 'doctor');
             
-            // Load default patient
             loadPatientPerformance();
         });
 
@@ -941,28 +893,22 @@
             const match = data.games.match;
             const rotation = data.games.rotation;
             
-            // Update Catching Stars
             document.getElementById('starShoulderScore').textContent = stars.shoulder + '%';
             document.getElementById('starShoulderBar').style.width = stars.shoulder + '%';
             document.getElementById('starElbowScore').textContent = stars.elbow + '%';
             document.getElementById('starElbowBar').style.width = stars.elbow + '%';
-            document.getElementById('starGraspScore').textContent = stars.grasp + '%';
-            document.getElementById('starGraspBar').style.width = stars.grasp + '%';
             document.getElementById('starSessions').textContent = stars.sessions;
             document.getElementById('starStars').textContent = stars.caught;
             document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
             
-            // Update Matching Game
             document.getElementById('matchRangeScore').textContent = match.range + '%';
             document.getElementById('matchRangeBar').style.width = match.range + '%';
             document.getElementById('matchGripScore').textContent = match.grip + '%';
             document.getElementById('matchGripBar').style.width = match.grip + '%';
-            document.getElementById('matchTrapScore').textContent = match.trap + '%';
             document.getElementById('matchSessions').textContent = match.sessions;
             document.getElementById('matchMatches').textContent = match.matches;
             document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
             
-            // Update Catching Objects
             document.getElementById('rotationScore').textContent = rotation.external + '%';
             document.getElementById('rotationBar').style.width = rotation.external + '%';
             document.getElementById('alignmentScore').textContent = rotation.alignment + '%';
@@ -971,7 +917,6 @@
             document.getElementById('rotationCaught').textContent = rotation.caught;
             document.getElementById('rotationPrevention').textContent = rotation.prevention + '%';
             
-            // Update overall stats
             updateOverallStats(data);
         }
 
@@ -981,43 +926,20 @@
             const rotation = data.games.rotation;
             
             const totalSessions = stars.sessions + match.sessions + rotation.sessions;
-            const avgActivation = Math.round((stars.shoulder + stars.elbow + stars.grasp + 
+            const avgActivation = Math.round((stars.shoulder + stars.elbow + 
                                             match.range + match.grip + 
-                                            rotation.external + rotation.alignment) / 7);
+                                            rotation.external + rotation.alignment) / 6);
             
             document.getElementById('activeSessions').textContent = totalSessions;
             document.getElementById('avgActivation').textContent = avgActivation + '%';
             
-            // Calculate completion rate
             const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.prevention) / 3);
             document.getElementById('completionRate').textContent = completionRate + '%';
         }
 
         function filterByDate() {
             const date = document.getElementById('dateFilter').value;
-            showNotification(`Showing data for: ${new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
-        }
-
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            alert(`Showing data for: ${new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
         }
 
         function logoutDoctor() {
