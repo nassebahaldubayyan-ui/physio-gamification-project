@@ -32,3 +32,6 @@ The interface will be available at:
 http://127.0.0.1:8080
 ```
 
+## 3. View the DataBase inside VScode:
+
+ctrl + shift + p 🡢 sqlite: open database 🡢 choose database
