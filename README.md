@@ -20,7 +20,7 @@ pip install sqlite-web
 
 ## 2. Run SQLite_web
 
-To start the web interface for your database, run:
+To start the web interface for your database, run this line in vscode:
 
 ```bash
 sqlite_web database.db
@@ -30,14 +30,5 @@ The interface will be available at:
 
 ```
 http://127.0.0.1:8080
-```
-
-
-## 6. Stopping SQLite_web
-
-To stop the server, press:
-
-```
-CTRL + C
 ```
 
