@@ -56,19 +56,14 @@
             font-weight: bold;
             border: 3px solid white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            object-fit: cover;
         }
         
-        .doctor-avatar {
-            width: 60px;
-            height: 60px;
-            background: transparent;
+        .patient-avatar img {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: #a78bfa;
-            border: 2px solid #a78bfa;
+            object-fit: cover;
         }
         
         .patient-details h2 {
@@ -371,6 +366,56 @@
             padding: 50px;
         }
         
+        .camera-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .camera-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(59, 130, 246, 0.3);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -409,13 +454,19 @@
         <!-- Header -->
         <div class="patient-header">
             <div class="patient-info">
-                <div class="patient-avatar" id="patientAvatar">A</div>
+                <div class="patient-avatar" id="patientAvatar">
+                    <span id="avatarText">A</span>
+                    <img id="patientPhoto" style="display: none;" alt="Patient photo">
+                </div>
                 <div class="patient-details">
                     <h2 id="patientName">Ali Ahmed</h2>
                     <p>
                         <span>ID: <span id="patientId">PT001</span></span>
                         <span class="level-badge" id="patientCondition">Motor Disability</span>
                     </p>
+                    <button class="camera-btn" onclick="takePhoto()" id="cameraBtn">
+                        <i class="fas fa-camera"></i> Take Profile Photo
+                    </button>
                 </div>
             </div>
             <div class="header-actions">
@@ -462,7 +513,6 @@
         </h2>
         
         <div class="games-grid">
-            <!-- Game 1: Catching Stars -->
             <div class="game-card" onclick="window.location.href='game-catching-stars.html'">
                 <div class="game-icon">⭐</div>
                 <h3>Catching Stars</h3>
@@ -473,7 +523,6 @@
                 </div>
             </div>
 
-            <!-- Game 2: Matching Game -->
             <div class="game-card" onclick="window.location.href='game-matching.html'">
                 <div class="game-icon">🎨</div>
                 <h3>Matching Game</h3>
@@ -484,7 +533,6 @@
                 </div>
             </div>
 
-            <!-- Game 3: Catching Falling Objects -->
             <div class="game-card" onclick="window.location.href='game-catching-objects.html'">
                 <div class="game-icon">🧺</div>
                 <h3>Catching Falling Objects</h3>
@@ -515,7 +563,6 @@
             </button>
         </div>
 
-        <!-- Logout -->
         <button class="logout-btn" onclick="logoutPatient()">
             <span>🚪</span> Log Out
         </button>
@@ -534,25 +581,146 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
+            checkFirstLogin();
+            checkPatientPhoto();
         });
+
+        // ============================================
+        // Camera Permission Functions
+        // ============================================
+        
+        async function requestCameraPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                showNotification('✅ Camera permission granted', 'success');
+                localStorage.setItem('cameraPermission', 'granted');
+                return true;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                showNotification('❌ Camera permission denied', 'error');
+                localStorage.setItem('cameraPermission', 'denied');
+                return false;
+            }
+        }
+
+        function checkFirstLogin() {
+            const hasAskedForCamera = localStorage.getItem('cameraPermission');
+            
+            if (!hasAskedForCamera) {
+                setTimeout(() => {
+                    if (confirm('Welcome! Would you like to enable camera access for profile photos?')) {
+                        requestCameraPermission();
+                    } else {
+                        localStorage.setItem('cameraPermission', 'skipped');
+                    }
+                }, 1500);
+            }
+        }
+
+        // ============================================
+        // Photo Check Functions
+        // ============================================
+        
+        async function checkPatientPhoto() {
+            const patientId = localStorage.getItem('patientId');
+            
+            if (!patientId || !token) return;
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}/has-photo`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && !data.hasPhoto) {
+                    document.getElementById('cameraBtn').style.display = 'inline-flex';
+                } else if (data.success && data.hasPhoto) {
+                    document.getElementById('cameraBtn').textContent = '📸 Update Photo';
+                    loadPatientPhoto();
+                }
+            } catch (error) {
+                console.error('Error checking patient photo:', error);
+            }
+        }
+
+        async function loadPatientPhoto() {
+            const patientId = localStorage.getItem('patientId');
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data.photo_url) {
+                    const avatarDiv = document.getElementById('patientAvatar');
+                    const avatarText = document.getElementById('avatarText');
+                    const photoImg = document.getElementById('patientPhoto');
+                    
+                    avatarText.style.display = 'none';
+                    photoImg.style.display = 'block';
+                    photoImg.src = `http://localhost:5000${data.data.photo_url}`;
+                }
+            } catch (error) {
+                console.error('Error loading patient photo:', error);
+            }
+        }
+
+        function takePhoto() {
+            window.location.href = 'capture-photo.html';
+        }
+
+        // ============================================
+        // Notification Function
+        // ============================================
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Add slideOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // ============================================
+        // Patient Data Loading Functions
+        // ============================================
 
         async function loadPatientData() {
             try {
-                // Show loading
                 document.getElementById('loading').style.display = 'block';
                 document.getElementById('dashboard').style.display = 'none';
 
-                // Get patient data from localStorage first
                 const patientId = localStorage.getItem('patientId') || 'PT002';
                 const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
                 
-                // Update basic info
                 document.getElementById('patientName').textContent = patientName;
                 document.getElementById('patientId').textContent = patientId;
-                document.getElementById('patientAvatar').textContent = patientName.charAt(0);
+                document.getElementById('avatarText').textContent = patientName.charAt(0);
                 
-                // Set default values based on patient ID
-                if (patientId === 'PT001') { // Ali
+                if (patientId === 'PT001') {
                     document.getElementById('patientCondition').textContent = 'Motor Disability';
                     document.getElementById('patientAccuracy').textContent = '82%';
                     document.getElementById('shoulderStrength').textContent = '85%';
@@ -564,7 +732,7 @@
                     document.getElementById('game2Progress').textContent = '79%';
                     document.getElementById('game3Level').textContent = 'Level 5';
                     document.getElementById('game3Progress').textContent = '92%';
-                } else if (patientId === 'PT002') { // Sara
+                } else if (patientId === 'PT002') {
                     document.getElementById('patientCondition').textContent = 'Arm Weakness';
                     document.getElementById('patientAccuracy').textContent = '89%';
                     document.getElementById('shoulderStrength').textContent = '92%';
@@ -576,7 +744,7 @@
                     document.getElementById('game2Progress').textContent = '89%';
                     document.getElementById('game3Level').textContent = 'Level 4';
                     document.getElementById('game3Progress').textContent = '88%';
-                } else if (patientId === 'PT003') { // Omar
+                } else if (patientId === 'PT003') {
                     document.getElementById('patientCondition').textContent = 'Movement Disorder';
                     document.getElementById('patientAccuracy').textContent = '94%';
                     document.getElementById('shoulderStrength').textContent = '88%';
@@ -590,7 +758,6 @@
                     document.getElementById('game3Progress').textContent = '96%';
                 }
 
-                // Hide loading, show dashboard
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
 

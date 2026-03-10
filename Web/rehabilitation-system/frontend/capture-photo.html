@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Profile Photo - Rehabilitation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .camera-container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        h2 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .instructions h3 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            color: #475569;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+        }
+        
+        .quality-indicator {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 10px auto;
+        }
+        
+        .green { background: #10b981; }
+        .red { background: #ef4444; }
+        
+        .camera-frame {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #3b82f6;
+        }
+        
+        video, canvas {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        
+        .btn-primary, .btn-secondary, .btn-success {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-primary:hover, .btn-secondary:hover, .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-back {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="camera-container">
+        <h2>📸 Capture Profile Photo</h2>
+        
+        <div class="instructions">
+            <h3>Instructions for best photo:</h3>
+            <ul>
+                <li>Ensure good, even lighting on your face</li>
+                <li>Remove glasses and mask if you're wearing any</li>
+                <li>Use a neutral expression (don't smile)</li>
+                <li>Center your face in the frame</li>
+                <li>Look directly at the camera</li>
+            </ul>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0;">
+            <span>Photo Quality:</span>
+            <div id="qualityIndicator" class="quality-indicator red"></div>
+            <span id="qualityText" style="color: #ef4444;">Not ready</span>
+        </div>
+        
+        <div class="camera-frame">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-primary" onclick="capturePhoto()" id="captureBtn">📸 Take Photo</button>
+            <button class="btn-secondary" onclick="retakePhoto()" style="display: none;" id="retakeBtn">🔄 Retake</button>
+            <button class="btn-success" onclick="savePhoto()" style="display: none;" id="saveBtn">💾 Save Photo</button>
+        </div>
+        
+        <button class="btn-back" onclick="goBack()">
+            <span>←</span> Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        // ============================================
+        // Camera Capture Script
+        // ============================================
+        
+        let videoStream = null;
+        let capturedImage = null;
+        
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'gamer-login.html';
+        }
+
+        /**
+         * Initialize camera on page load
+         */
+        async function initCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'  // Front camera
+                    } 
+                });
+                document.getElementById('video').srcObject = videoStream;
+                
+                // Start quality checking
+                checkPhotoQuality();
+            } catch (error) {
+                console.error('Camera access error:', error);
+                alert('Unable to access camera. Please make sure you have granted permission.');
+                window.location.href = 'patient.html';
+            }
+        }
+
+        /**
+         * Simulate photo quality check
+         * In real implementation, you would use face detection API
+         */
+        function checkPhotoQuality() {
+            const qualityIndicator = document.getElementById('qualityIndicator');
+            const qualityText = document.getElementById('qualityText');
+            
+            // Simulate quality check every 2 seconds
+            setInterval(() => {
+                // This is a simulation - in real app, use face detection
+                const randomQuality = Math.random();
+                
+                if (randomQuality > 0.7) {
+                    qualityIndicator.className = 'quality-indicator green';
+                    qualityText.textContent = 'Good quality';
+                    qualityText.style.color = '#10b981';
+                } else {
+                    qualityIndicator.className = 'quality-indicator red';
+                    qualityText.textContent = 'Adjust lighting or position';
+                    qualityText.style.color = '#ef4444';
+                }
+            }, 2000);
+        }
+
+        /**
+         * Capture photo from video stream
+         */
+        function capturePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Convert to Base64 (JPEG format, 90% quality)
+            capturedImage = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // Hide video, show captured image
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+            
+            // Update buttons
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'inline';
+            document.getElementById('saveBtn').style.display = 'inline';
+        }
+
+        /**
+         * Retake photo (go back to live video)
+         */
+        function retakePhoto() {
+            document.getElementById('video').style.display = 'block';
+            document.getElementById('canvas').style.display = 'none';
+            
+            document.getElementById('captureBtn').style.display = 'inline';
+            document.getElementById('retakeBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'none';
+            
+            capturedImage = null;
+        }
+
+        /**
+         * Save photo to server
+         */
+        async function savePhoto() {
+            if (!capturedImage) {
+                alert('Please take a photo first');
+                return;
+            }
+            
+            const patientId = localStorage.getItem('patientId');
+            
+            try {
+                // Disable buttons during upload
+                document.getElementById('saveBtn').disabled = true;
+                document.getElementById('saveBtn').textContent = '⏳ Uploading...';
+                
+                const response = await fetch('http://localhost:5000/api/patients/upload-photo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        patientId: patientId,
+                        image: capturedImage
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Photo saved successfully!');
+                    window.location.href = 'patient.html';
+                } else {
+                    alert('❌ Error saving photo: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error saving photo:', error);
+                alert('❌ Connection error. Please try again.');
+            } finally {
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('saveBtn').textContent = '💾 Save Photo';
+            }
+        }
+
+        /**
+         * Go back to patient dashboard
+         */
+        function goBack() {
+            if (confirm('Are you sure? Your photo will not be saved.')) {
+                window.location.href = 'patient.html';
+            }
+        }
+
+        // Initialize camera when page loads
+        window.onload = initCamera;
+    </script>
+</body>
+</html>
