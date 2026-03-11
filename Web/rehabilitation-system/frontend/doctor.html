@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -42,7 +42,7 @@
             background: transparent;
             border-radius: 50%;
             margin: 0 auto 15px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border: 4px solid #60a5fa;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -330,15 +330,15 @@
                 <p id="doctorInfo">Therapist • #TH001</p>
             </div>
             <ul>
-                <li class="active" onclick="window.location.href='doctor.html'">🏠 Home</li>
-                <li onclick="window.location.href='doctor-patients.html'">👥 Patients List</li>
-                <li onclick="window.location.href='doctor-performance.html'">📊 Patients Performance</li>
-                <li onclick="window.location.href='doctor-messages.html'">💬 Messages</li>
-                <li onclick="window.location.href='profile.html'">👤 User Profile</li>
+                <li class="active" onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
+                <li onclick="window.location.href='doctor-patients.html'"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='doctor-messages.html'"><span>💬</span> Messages</li>
+                <li onclick="window.location.href='profile.html'"><span>👤</span> User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'">⚙ Settings</p>
-                <p onclick="logoutDoctor()">🚪 Log Out</p>
+                <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
+                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
             </div>
         </div>
 
@@ -532,15 +532,7 @@
         
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                // Clear doctor data from localStorage
-                localStorage.removeItem('userType');
-                localStorage.removeItem('doctorId');
-                localStorage.removeItem('doctorName');
-                localStorage.removeItem('doctorEmail');
-                localStorage.removeItem('doctorSpecialty');
-                localStorage.removeItem('doctorPhone');
-                
-                // Redirect to home page
+                localStorage.clear();
                 window.location.href = 'index.html';
             }
         }

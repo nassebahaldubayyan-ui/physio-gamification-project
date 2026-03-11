@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patients List - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -267,34 +267,20 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Physiotherapy • #DR003</p>
+                <p id="doctorInfo">Therapist • #TH001</p>
             </div>
 
             <ul>
-                <li onclick="window.location.href='doctor.html'">
-                    Home
-                </li>
-                <li class="active">
-                    Patients List
-                </li>
-                <li onclick="window.location.href='doctor-performance.html'">
-                    Patients Performance
-                </li>
-                <li onclick="window.location.href='doctor-messages.html'">
-                    Messages
-                </li>
-                <li onclick="window.location.href='profile.html'">
-                    User Profile
-                </li>
+                <li onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
+                <li class="active"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='doctor-messages.html'"><span>💬</span> Messages</li>
+                <li onclick="window.location.href='profile.html'"><span>👤</span> User Profile</li>
             </ul>
 
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'">
-                    Settings
-                </p>
-                <p onclick="logoutDoctor()">
-                    Log Out
-                </p>
+                <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
+                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
             </div>
         </div>
 
@@ -401,8 +387,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
+            const doctorId = localStorage.getItem('doctorId') || 'TH001';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
             
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;

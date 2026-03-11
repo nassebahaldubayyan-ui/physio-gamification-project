@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Dashboard - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -56,14 +56,19 @@
             font-weight: bold;
             border: 3px solid white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            object-fit: cover;
         }
         
-        .patient-avatar img {
-            width: 100%;
-            height: 100%;
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            background: transparent;
             border-radius: 50%;
-            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #a78bfa;
+            border: 2px solid #a78bfa;
         }
         
         .patient-details h2 {
@@ -365,27 +370,7 @@
             font-size: 20px;
             padding: 50px;
         }
-        
-        .camera-btn {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .camera-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(59, 130, 246, 0.3);
-        }
-        
+
         .notification {
             position: fixed;
             top: 20px;
@@ -396,6 +381,7 @@
             font-weight: 500;
             z-index: 1000;
             animation: slideIn 0.3s ease;
+            max-width: 300px;
         }
         
         .notification.success {
@@ -404,6 +390,10 @@
         
         .notification.error {
             background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         }
         
         @keyframes slideIn {
@@ -456,7 +446,6 @@
             <div class="patient-info">
                 <div class="patient-avatar" id="patientAvatar">
                     <span id="avatarText">A</span>
-                    <img id="patientPhoto" style="display: none;" alt="Patient photo">
                 </div>
                 <div class="patient-details">
                     <h2 id="patientName">Ali Ahmed</h2>
@@ -464,9 +453,6 @@
                         <span>ID: <span id="patientId">PT001</span></span>
                         <span class="level-badge" id="patientCondition">Motor Disability</span>
                     </p>
-                    <button class="camera-btn" onclick="takePhoto()" id="cameraBtn">
-                        <i class="fas fa-camera"></i> Take Profile Photo
-                    </button>
                 </div>
             </div>
             <div class="header-actions">
@@ -513,6 +499,7 @@
         </h2>
         
         <div class="games-grid">
+            <!-- Game 1: Catching Stars -->
             <div class="game-card" onclick="window.location.href='game-catching-stars.html'">
                 <div class="game-icon">⭐</div>
                 <h3>Catching Stars</h3>
@@ -523,6 +510,7 @@
                 </div>
             </div>
 
+            <!-- Game 2: Matching Game -->
             <div class="game-card" onclick="window.location.href='game-matching.html'">
                 <div class="game-icon">🎨</div>
                 <h3>Matching Game</h3>
@@ -533,6 +521,7 @@
                 </div>
             </div>
 
+            <!-- Game 3: Catching Falling Objects -->
             <div class="game-card" onclick="window.location.href='game-catching-objects.html'">
                 <div class="game-icon">🧺</div>
                 <h3>Catching Falling Objects</h3>
@@ -563,6 +552,7 @@
             </button>
         </div>
 
+        <!-- Logout -->
         <button class="logout-btn" onclick="logoutPatient()">
             <span>🚪</span> Log Out
         </button>
@@ -581,9 +571,277 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
-            checkFirstLogin();
-            checkPatientPhoto();
+            checkInitialAssessment(); // التحقق من فيديو التقييم عند تحميل الصفحة
         });
+
+        // ============================================
+        // Patient Data Loading Functions
+        // ============================================
+        async function loadPatientData() {
+            try {
+                // Show loading
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
+
+                // Get patient data from localStorage first
+                const patientId = localStorage.getItem('patientId') || 'PT002';
+                const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
+                
+                // Update basic info
+                document.getElementById('patientName').textContent = patientName;
+                document.getElementById('patientId').textContent = patientId;
+                document.getElementById('avatarText').textContent = patientName.charAt(0);
+                
+                // Set default values based on patient ID
+                if (patientId === 'PT001') { // Ali
+                    document.getElementById('patientCondition').textContent = 'Motor Disability';
+                    document.getElementById('patientAccuracy').textContent = '82%';
+                    document.getElementById('shoulderStrength').textContent = '85%';
+                    document.getElementById('externalRotation').textContent = '78%';
+                    document.getElementById('totalSessions').textContent = '45';
+                    document.getElementById('game1Level').textContent = 'Level 4';
+                    document.getElementById('game1Progress').textContent = '82%';
+                    document.getElementById('game2Level').textContent = 'Level 3';
+                    document.getElementById('game2Progress').textContent = '79%';
+                    document.getElementById('game3Level').textContent = 'Level 5';
+                    document.getElementById('game3Progress').textContent = '92%';
+                } else if (patientId === 'PT002' || patientId === 'PT016') { // Sara
+                    document.getElementById('patientCondition').textContent = 'Arm Weakness';
+                    document.getElementById('patientAccuracy').textContent = '89%';
+                    document.getElementById('shoulderStrength').textContent = '92%';
+                    document.getElementById('externalRotation').textContent = '86%';
+                    document.getElementById('totalSessions').textContent = '52';
+                    document.getElementById('game1Level').textContent = 'Level 5';
+                    document.getElementById('game1Progress').textContent = '90%';
+                    document.getElementById('game2Level').textContent = 'Level 4';
+                    document.getElementById('game2Progress').textContent = '89%';
+                    document.getElementById('game3Level').textContent = 'Level 4';
+                    document.getElementById('game3Progress').textContent = '88%';
+                } else if (patientId === 'PT003' || patientId === 'PT017') { // Omar
+                    document.getElementById('patientCondition').textContent = 'Movement Disorder';
+                    document.getElementById('patientAccuracy').textContent = '94%';
+                    document.getElementById('shoulderStrength').textContent = '88%';
+                    document.getElementById('externalRotation').textContent = '96%';
+                    document.getElementById('totalSessions').textContent = '68';
+                    document.getElementById('game1Level').textContent = 'Level 5';
+                    document.getElementById('game1Progress').textContent = '88%';
+                    document.getElementById('game2Level').textContent = 'Level 4';
+                    document.getElementById('game2Progress').textContent = '85%';
+                    document.getElementById('game3Level').textContent = 'Level 5';
+                    document.getElementById('game3Progress').textContent = '96%';
+                } else {
+                    // Default values for new patients
+                    document.getElementById('patientCondition').textContent = 'Not specified';
+                    document.getElementById('patientAccuracy').textContent = '0%';
+                    document.getElementById('shoulderStrength').textContent = '0%';
+                    document.getElementById('externalRotation').textContent = '0%';
+                    document.getElementById('totalSessions').textContent = '0';
+                    document.getElementById('game1Level').textContent = 'Level 1';
+                    document.getElementById('game1Progress').textContent = '0%';
+                    document.getElementById('game2Level').textContent = 'Level 1';
+                    document.getElementById('game2Progress').textContent = '0%';
+                    document.getElementById('game3Level').textContent = 'Level 1';
+                    document.getElementById('game3Progress').textContent = '0%';
+                }
+
+                // Hide loading, show dashboard
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading patient data:', error);
+                document.getElementById('loading').textContent = 'Error loading data. Please try again.';
+            }
+        }
+
+        // ============================================
+        // Initial Assessment Functions
+        // Shows only once per patient, never again after cancel
+        // ============================================
+        
+        async function checkInitialAssessment() {
+            const patientId = localStorage.getItem('patientId');
+            const token = localStorage.getItem('token');
+            
+            if (!patientId || !token) return;
+            
+            // Check if already showed in this session
+            if (sessionStorage.getItem('assessmentShownThisSession')) {
+                console.log('Already shown in this session');
+                return;
+            }
+            
+            // Check if user already skipped assessment forever
+            const assessmentSkipped = localStorage.getItem('assessmentSkipped');
+            if (assessmentSkipped === 'true') {
+                console.log('User previously skipped assessment');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Check if patient already has a video
+                    const hasVideo = data.data.video_url && data.data.video_url !== null;
+                    
+                    if (!hasVideo) {
+                        // Wait a bit for the page to fully load
+                        setTimeout(() => {
+                            showAssessmentDialog();
+                        }, 1500);
+                    } else {
+                        console.log('Patient already has assessment video');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking patient assessment:', error);
+            }
+        }
+
+        function showAssessmentDialog() {
+            // Remove any existing dialog
+            const existingDialog = document.querySelector('.assessment-dialog');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
+            
+            // Create dialog container
+            const dialog = document.createElement('div');
+            dialog.className = 'assessment-dialog';
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Create dialog content
+            dialog.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 30px;
+                    max-width: 450px;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+                ">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Welcome!</h3>
+                    <p style="color: #64748b; margin-bottom: 25px; line-height: 1.6;">
+                        Would you like to complete your initial assessment video?<br>
+                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
+                    </p>
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <button id="dialogYes" style="
+                            flex: 2;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #10b981, #059669);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-video"></i> Yes, Take Video
+                        </button>
+                        <button id="dialogNo" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-clock"></i> Later
+                        </button>
+                    </div>
+                    <div style="color: #94a3b8; font-size: 12px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                        You can always take it later from your <strong>profile settings</strong>
+                    </div>
+                </div>
+            `;
+            
+            // Add to body
+            document.body.appendChild(dialog);
+            
+            // Mark as shown in this session
+            sessionStorage.setItem('assessmentShownThisSession', 'true');
+            
+            // Handle Yes button
+            document.getElementById('dialogYes').addEventListener('click', function() {
+                dialog.remove();
+                window.location.href = 'capture-video.html';
+            });
+            
+            // Handle No button
+            document.getElementById('dialogNo').addEventListener('click', function() {
+                dialog.remove();
+                // Save that user skipped assessment (never show again)
+                localStorage.setItem('assessmentSkipped', 'true');
+                // Show a friendly notification
+                showNotification('You can take the assessment anytime from your profile.', 'info');
+            });
+        }
+
+        // ============================================
+        // Notification Function
+        // ============================================
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+            };
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10001;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
 
         // ============================================
         // Camera Permission Functions
@@ -598,7 +856,7 @@
                 return true;
             } catch (error) {
                 console.error('Error accessing camera:', error);
-                showNotification('❌ Camera permission denied', 'error');
+                showNotification('❌ Camera permission denied. You can enable it later.', 'error');
                 localStorage.setItem('cameraPermission', 'denied');
                 return false;
             }
@@ -609,89 +867,34 @@
             
             if (!hasAskedForCamera) {
                 setTimeout(() => {
-                    if (confirm('Welcome! Would you like to enable camera access for profile photos?')) {
+                    if (confirm('Welcome! Would you like to enable camera access for profile photos and assessment videos?')) {
                         requestCameraPermission();
                     } else {
                         localStorage.setItem('cameraPermission', 'skipped');
                     }
-                }, 1500);
+                }, 1000);
             }
         }
 
         // ============================================
-        // Photo Check Functions
+        // Logout Function
         // ============================================
         
-        async function checkPatientPhoto() {
-            const patientId = localStorage.getItem('patientId');
-            
-            if (!patientId || !token) return;
-            
-            try {
-                const response = await fetch(`http://localhost:5000/api/patients/${patientId}/has-photo`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success && !data.hasPhoto) {
-                    document.getElementById('cameraBtn').style.display = 'inline-flex';
-                } else if (data.success && data.hasPhoto) {
-                    document.getElementById('cameraBtn').textContent = '📸 Update Photo';
-                    loadPatientPhoto();
-                }
-            } catch (error) {
-                console.error('Error checking patient photo:', error);
+        function logoutPatient() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
             }
         }
 
-        async function loadPatientPhoto() {
-            const patientId = localStorage.getItem('patientId');
-            
-            try {
-                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success && data.data.photo_url) {
-                    const avatarDiv = document.getElementById('patientAvatar');
-                    const avatarText = document.getElementById('avatarText');
-                    const photoImg = document.getElementById('patientPhoto');
-                    
-                    avatarText.style.display = 'none';
-                    photoImg.style.display = 'block';
-                    photoImg.src = `http://localhost:5000${data.data.photo_url}`;
-                }
-            } catch (error) {
-                console.error('Error loading patient photo:', error);
-            }
-        }
-
-        function takePhoto() {
-            window.location.href = 'capture-photo.html';
-        }
-
         // ============================================
-        // Notification Function
+        // Test function to reset assessment flag (for debugging)
         // ============================================
-        
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
+        function resetAssessmentFlag() {
+            localStorage.removeItem('assessmentSkipped');
+            sessionStorage.removeItem('assessmentShownThisSession');
+            alert('Assessment flag reset. The dialog will show again on next login.');
         }
 
         // Add slideOut animation
@@ -703,76 +906,6 @@
             }
         `;
         document.head.appendChild(style);
-
-        // ============================================
-        // Patient Data Loading Functions
-        // ============================================
-
-        async function loadPatientData() {
-            try {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
-
-                const patientId = localStorage.getItem('patientId') || 'PT002';
-                const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
-                
-                document.getElementById('patientName').textContent = patientName;
-                document.getElementById('patientId').textContent = patientId;
-                document.getElementById('avatarText').textContent = patientName.charAt(0);
-                
-                if (patientId === 'PT001') {
-                    document.getElementById('patientCondition').textContent = 'Motor Disability';
-                    document.getElementById('patientAccuracy').textContent = '82%';
-                    document.getElementById('shoulderStrength').textContent = '85%';
-                    document.getElementById('externalRotation').textContent = '78%';
-                    document.getElementById('totalSessions').textContent = '45';
-                    document.getElementById('game1Level').textContent = 'Level 4';
-                    document.getElementById('game1Progress').textContent = '82%';
-                    document.getElementById('game2Level').textContent = 'Level 3';
-                    document.getElementById('game2Progress').textContent = '79%';
-                    document.getElementById('game3Level').textContent = 'Level 5';
-                    document.getElementById('game3Progress').textContent = '92%';
-                } else if (patientId === 'PT002') {
-                    document.getElementById('patientCondition').textContent = 'Arm Weakness';
-                    document.getElementById('patientAccuracy').textContent = '89%';
-                    document.getElementById('shoulderStrength').textContent = '92%';
-                    document.getElementById('externalRotation').textContent = '86%';
-                    document.getElementById('totalSessions').textContent = '52';
-                    document.getElementById('game1Level').textContent = 'Level 5';
-                    document.getElementById('game1Progress').textContent = '90%';
-                    document.getElementById('game2Level').textContent = 'Level 4';
-                    document.getElementById('game2Progress').textContent = '89%';
-                    document.getElementById('game3Level').textContent = 'Level 4';
-                    document.getElementById('game3Progress').textContent = '88%';
-                } else if (patientId === 'PT003') {
-                    document.getElementById('patientCondition').textContent = 'Movement Disorder';
-                    document.getElementById('patientAccuracy').textContent = '94%';
-                    document.getElementById('shoulderStrength').textContent = '88%';
-                    document.getElementById('externalRotation').textContent = '96%';
-                    document.getElementById('totalSessions').textContent = '68';
-                    document.getElementById('game1Level').textContent = 'Level 5';
-                    document.getElementById('game1Progress').textContent = '88%';
-                    document.getElementById('game2Level').textContent = 'Level 4';
-                    document.getElementById('game2Progress').textContent = '85%';
-                    document.getElementById('game3Level').textContent = 'Level 5';
-                    document.getElementById('game3Progress').textContent = '96%';
-                }
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-
-            } catch (error) {
-                console.error('Error loading patient data:', error);
-                document.getElementById('loading').textContent = 'Error loading data. Please try again.';
-            }
-        }
-
-        function logoutPatient() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }
     </script>
 </body>
 </html>

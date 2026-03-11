@@ -4,6 +4,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
+// ============================================
+// Register single patient
+// ============================================
 router.post('/register/patient', async (req, res) => {
     try {
         const { name, email, password, phone, dateOfBirth, gender, medicalCondition, therapyType } = req.body;
@@ -69,6 +72,9 @@ router.post('/register/patient', async (req, res) => {
     }
 });
 
+// ============================================
+// Register single doctor
+// ============================================
 router.post('/register/doctor', async (req, res) => {
     try {
         const { name, email, password, phone, specialty, licenseNumber, hospital, experience } = req.body;
@@ -140,6 +146,229 @@ router.post('/register/doctor', async (req, res) => {
     }
 });
 
+// ============================================
+// BULK Register Patients (NEW)
+// ============================================
+router.post('/register/patients/bulk', async (req, res) => {
+    try {
+        const patients = req.body; // Array of patients
+        
+        if (!Array.isArray(patients) || patients.length === 0) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Please provide an array of patients' 
+            });
+        }
+
+        const results = [];
+        const errors = [];
+
+        // Start transaction - either all succeed or all fail
+        await db.query('START TRANSACTION');
+
+        for (let patient of patients) {
+            try {
+                const { name, email, password, phone, dateOfBirth, gender, medicalCondition, therapyType } = patient;
+
+                // Validate required fields
+                if (!name || !email || !password || !phone) {
+                    errors.push({ 
+                        email: email || 'unknown', 
+                        error: 'Missing required fields' 
+                    });
+                    continue;
+                }
+
+                // Check if email already exists
+                const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+                if (existing.length > 0) {
+                    errors.push({ email, error: 'Email already exists' });
+                    continue;
+                }
+
+                // Hash password
+                const hashedPassword = await bcrypt.hash(password, 10);
+
+                // Insert into users table
+                const [userResult] = await db.query(
+                    'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+                    [name, email, hashedPassword, 'patient', phone]
+                );
+
+                const userId = userResult.insertId;
+                const patientId = `PT${String(userId).padStart(3, '0')}`;
+
+                // Insert into patients table
+                await db.query(
+                    `INSERT INTO patients 
+                    (user_id, patient_id, date_of_birth, gender, medical_condition, therapy_type) 
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                    [userId, patientId, dateOfBirth || '2000-01-01', gender || 'male', 
+                     medicalCondition || 'Not specified', therapyType || 'Physical Therapy']
+                );
+
+                results.push({ 
+                    email, 
+                    success: true, 
+                    patientId,
+                    userId 
+                });
+
+            } catch (error) {
+                errors.push({ 
+                    email: patient.email || 'unknown', 
+                    error: error.message 
+                });
+            }
+        }
+
+        // If any errors occurred, rollback everything
+        if (errors.length > 0) {
+            await db.query('ROLLBACK');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Some patients failed to register',
+                results, 
+                errors 
+            });
+        }
+
+        // All succeeded, commit transaction
+        await db.query('COMMIT');
+        
+        res.status(201).json({ 
+            success: true, 
+            message: `All ${results.length} patients registered successfully`,
+            results 
+        });
+
+    } catch (error) {
+        await db.query('ROLLBACK');
+        console.error('Bulk registration error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error during bulk registration',
+            error: error.message 
+        });
+    }
+});
+
+// ============================================
+// BULK Register Doctors (NEW)
+// ============================================
+router.post('/register/doctors/bulk', async (req, res) => {
+    try {
+        const doctors = req.body; // Array of doctors
+        
+        if (!Array.isArray(doctors) || doctors.length === 0) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Please provide an array of doctors' 
+            });
+        }
+
+        const results = [];
+        const errors = [];
+
+        // Start transaction
+        await db.query('START TRANSACTION');
+
+        for (let doctor of doctors) {
+            try {
+                const { name, email, password, phone, specialty, licenseNumber, hospital, experience } = doctor;
+
+                // Validate required fields
+                if (!name || !email || !password || !phone || !specialty || !licenseNumber || !hospital) {
+                    errors.push({ 
+                        email: email || 'unknown', 
+                        error: 'Missing required fields' 
+                    });
+                    continue;
+                }
+
+                // Check if email already exists
+                const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+                if (existing.length > 0) {
+                    errors.push({ email, error: 'Email already exists' });
+                    continue;
+                }
+
+                // Check if license number already exists
+                const [existingLicense] = await db.query('SELECT * FROM doctors WHERE license_number = ?', [licenseNumber]);
+                if (existingLicense.length > 0) {
+                    errors.push({ email, error: 'License number already exists' });
+                    continue;
+                }
+
+                // Hash password
+                const hashedPassword = await bcrypt.hash(password, 10);
+
+                // Insert into users table
+                const [userResult] = await db.query(
+                    'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
+                    [name, email, hashedPassword, 'doctor', phone]
+                );
+
+                const userId = userResult.insertId;
+                const doctorId = `DR${String(userId).padStart(3, '0')}`;
+
+                // Insert into doctors table
+                await db.query(
+                    `INSERT INTO doctors 
+                    (user_id, doctor_id, specialty, license_number, hospital, experience) 
+                    VALUES (?, ?, ?, ?, ?, ?)`,
+                    [userId, doctorId, specialty, licenseNumber, hospital, experience || 0]
+                );
+
+                results.push({ 
+                    email, 
+                    success: true, 
+                    doctorId,
+                    userId 
+                });
+
+            } catch (error) {
+                errors.push({ 
+                    email: doctor.email || 'unknown', 
+                    error: error.message 
+                });
+            }
+        }
+
+        // If any errors occurred, rollback everything
+        if (errors.length > 0) {
+            await db.query('ROLLBACK');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Some doctors failed to register',
+                results, 
+                errors 
+            });
+        }
+
+        // All succeeded, commit transaction
+        await db.query('COMMIT');
+        
+        res.status(201).json({ 
+            success: true, 
+            message: `All ${results.length} doctors registered successfully`,
+            results 
+        });
+
+    } catch (error) {
+        await db.query('ROLLBACK');
+        console.error('Bulk registration error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error during bulk registration',
+            error: error.message 
+        });
+    }
+});
+
+// ============================================
+// Login
+// ============================================
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -225,6 +454,9 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// ============================================
+// Get current user (placeholder)
+// ============================================
 router.get('/me', async (req, res) => {
     try {
         res.status(401).json({ 

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Assessment Video - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .video-container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h2 {
+            color: #1e293b;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .instructions {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .camera-frame {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #3b82f6;
+        }
+        
+        video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn-record, .btn-stop, .btn-play, .btn-save, .btn-retake {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-record {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .btn-stop {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-play {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-retake {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-record:hover, .btn-stop:hover, .btn-play:hover, 
+        .btn-save:hover, .btn-retake:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-back {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .timer {
+            font-size: 48px;
+            font-family: monospace;
+            color: #ef4444;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <h2>📹 Initial Assessment Video</h2>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul style="margin-left: 20px;">
+                <li>Stand where the camera can see your full arm</li>
+                <li>Perform the movements as shown</li>
+                <li>The video will help us track your progress</li>
+            </ul>
+        </div>
+        
+        <div class="camera-frame">
+            <video id="video" autoplay playsinline></video>
+        </div>
+        
+        <div class="timer" id="timer">00:00</div>
+        
+        <div class="controls">
+            <button class="btn-record" onclick="startRecording()" id="recordBtn">
+                <i class="fas fa-circle"></i> Start Recording
+            </button>
+            <button class="btn-stop" onclick="stopRecording()" id="stopBtn" disabled>
+                <i class="fas fa-square"></i> Stop
+            </button>
+            <button class="btn-play" onclick="playRecording()" id="playBtn" disabled>
+                <i class="fas fa-play"></i> Play
+            </button>
+            <button class="btn-save" onclick="saveVideo()" id="saveBtn" disabled>
+                <i class="fas fa-save"></i> Save
+            </button>
+            <button class="btn-retake" onclick="retakeVideo()" id="retakeBtn" disabled>
+                <i class="fas fa-redo"></i> Retake
+            </button>
+        </div>
+        
+        <button class="btn-back" onclick="goBack()">
+            <span>←</span> Back to Profile
+        </button>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let videoStream;
+        let timerInterval;
+        let seconds = 0;
+        let isRecording = false;
+
+        async function initCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                document.getElementById('video').srcObject = videoStream;
+            } catch (error) {
+                alert('Unable to access camera. Please check permissions.');
+                console.error(error);
+                window.location.href = 'profile.html';
+            }
+        }
+
+        function startRecording() {
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(videoStream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('retakeBtn').disabled = false;
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            startTimer();
+            
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(timerInterval);
+                
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+
+        function startTimer() {
+            seconds = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function playRecording() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const video = document.getElementById('video');
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            
+            video.srcObject = null;
+            video.src = url;
+            video.controls = true;
+            video.play();
+        }
+
+        function retakeVideo() {
+            recordedChunks = [];
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            initCamera();
+            
+            const video = document.getElementById('video');
+            video.srcObject = videoStream;
+            video.src = '';
+            video.controls = false;
+            
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('saveBtn').disabled = true;
+            document.getElementById('retakeBtn').disabled = true;
+            document.getElementById('recordBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            seconds = 0;
+            updateTimerDisplay();
+        }
+
+        async function saveVideo() {
+            if (recordedChunks.length === 0) {
+                alert('No recording to save');
+                return;
+            }
+            
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const reader = new FileReader();
+            
+            reader.readAsDataURL(blob);
+            reader.onloadend = async function() {
+                const base64data = reader.result;
+                const patientId = localStorage.getItem('patientId');
+                
+                try {
+                    document.getElementById('saveBtn').disabled = true;
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                    
+                    const response = await fetch('http://localhost:5000/api/patients/upload-assessment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            patientId: patientId,
+                            video: base64data
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ Assessment video saved successfully!');
+                        window.location.href = 'profile.html';
+                    } else {
+                        alert('Error saving video. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error saving video:', error);
+                    alert('Connection error. Please try again.');
+                } finally {
+                    document.getElementById('saveBtn').disabled = false;
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save';
+                }
+            };
+        }
+
+        function goBack() {
+            if (confirm('Are you sure? Your recording will not be saved.')) {
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
+                window.location.href = 'profile.html';
+            }
+        }
+
+        window.onload = initCamera;
+    </script>
+</body>
+</html>

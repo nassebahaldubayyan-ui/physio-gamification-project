@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -15,21 +16,189 @@
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
         }
         
-        .profile-container {
-            max-width: 900px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
+        .patient-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .doctor-info {
+            text-align: center;
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+        }
+        
+        .doctor-info h4 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .doctor-info p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            flex: 1;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .sidebar li.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #60a5fa;
+            font-weight: 600;
+        }
+        
+        .sidebar li:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-bottom p {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+        
+        .sidebar-bottom p:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
             padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        
+        .patient-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .patient-header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .patient-avatar-large {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .patient-header-info h2 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .patient-header-info p {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        .patient-header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .patient-nav-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .patient-nav-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .patient-nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
         }
         
         .profile-header {
@@ -38,7 +207,7 @@
             gap: 20px;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #f1f5f9;
+            border-bottom: 2px solid #e2e8f0;
         }
         
         .back-btn {
@@ -71,8 +240,9 @@
             gap: 40px;
             margin-bottom: 40px;
             padding: 30px;
-            background: #f8fafc;
+            background: white;
             border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border: 1px solid #e2e8f0;
         }
         
@@ -120,7 +290,7 @@
         }
         
         .stat-box {
-            background: white;
+            background: #f8fafc;
             padding: 15px;
             border-radius: 12px;
             text-align: center;
@@ -147,7 +317,7 @@
         }
         
         .info-card {
-            background: #f8fafc;
+            background: white;
             padding: 20px;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
@@ -185,13 +355,13 @@
         }
         
         .action-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-top: 30px;
         }
         
-        .btn-edit, .btn-settings {
-            flex: 1;
+        .btn-edit, .btn-settings, .btn-video, .btn-games {
             padding: 15px;
             border: none;
             border-radius: 12px;
@@ -215,14 +385,27 @@
             color: #475569;
         }
         
-        .btn-edit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .btn-video {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
         }
         
-        .btn-settings:hover {
-            background: #e2e8f0;
+        .btn-games {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-edit:hover, .btn-settings:hover, .btn-video:hover, .btn-games:hover {
             transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-video:hover {
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+        
+        .btn-games:hover {
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
         }
         
         .loading {
@@ -231,114 +414,64 @@
             color: white;
             font-size: 20px;
         }
+        
+        /* Hide loading by default, show content immediately */
+        .content-hidden {
+            display: none;
+        }
+        
+        @media (max-width: 1024px) {
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .profile-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .patient-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .patient-header-left {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="profile-container" id="profileContainer" style="display: none;">
-        <div class="profile-header">
-            <button class="back-btn" onclick="goBack()">←</button>
-            <h2>👤 User Profile</h2>
-        </div>
+    <div id="profileContainer"></div>
 
-        <div class="profile-card">
-            <div class="profile-avatar-large" id="avatar">A</div>
-            <div class="profile-info">
-                <div class="profile-name" id="displayName">Loading...</div>
-                <div class="profile-role" id="userRole">Loading...</div>
-                
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <div class="stat-value" id="stat1">0</div>
-                        <div class="stat-label" id="stat1Label">Accuracy</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="stat2">0</div>
-                        <div class="stat-label" id="stat2Label">Level</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="stat3">0</div>
-                        <div class="stat-label" id="stat3Label">Sessions</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="info-grid">
-            <!-- Personal Information -->
-            <div class="info-card">
-                <h3>📋 Personal Information</h3>
-                <div class="info-row">
-                    <span class="info-label">Full Name</span>
-                    <span class="info-value" id="fullName">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">User ID</span>
-                    <span class="info-value" id="userId">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Email</span>
-                    <span class="info-value" id="email">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Phone</span>
-                    <span class="info-value" id="phone">Loading...</span>
-                </div>
-            </div>
-
-            <!-- Medical Information (for patients) -->
-            <div class="info-card" id="patientInfoCard">
-                <h3>🏥 Medical Information</h3>
-                <div class="info-row">
-                    <span class="info-label">Condition</span>
-                    <span class="info-value" id="condition">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Therapy Type</span>
-                    <span class="info-value" id="therapy">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Current Level</span>
-                    <span class="info-value" id="currentLevel">Loading...</span>
-                </div>
-            </div>
-
-            <!-- Doctor Information (for doctors) -->
-            <div class="info-card" id="doctorInfoCard" style="display: none;">
-                <h3>👨‍⚕️ Professional Information</h3>
-                <div class="info-row">
-                    <span class="info-label">Specialty</span>
-                    <span class="info-value" id="specialty">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">License</span>
-                    <span class="info-value" id="license">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Hospital</span>
-                    <span class="info-value" id="hospital">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Experience</span>
-                    <span class="info-value" id="experience">Loading...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="btn-edit" onclick="editProfile()">
-                ✏️ Edit Profile
-            </button>
-            <button class="btn-settings" onclick="goToSettings()">
-                ⚙️ Settings
-            </button>
-        </div>
-    </div>
-
-    <div class="loading" id="loading">Loading profile...</div>
+    <div class="loading" id="loading" style="display: none;">Loading profile...</div>
 
     <script>
-        // Check login
+        // Check login immediately
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const userType = localStorage.getItem('userType') || 'patient';
@@ -347,104 +480,298 @@
             window.location.href = 'index.html';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadProfileData();
-        });
+        // Load data from localStorage directly (no waiting)
+        const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+        const doctorId = localStorage.getItem('doctorId') || 'DR001';
+        const doctorEmail = localStorage.getItem('doctorEmail') || 'dr.ahmad@clinic.com';
+        const doctorPhone = localStorage.getItem('doctorPhone') || '0500000000';
+        const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
 
-        function loadProfileData() {
-            // Get data from localStorage
-            const name = localStorage.getItem('patientName') || 
-                        localStorage.getItem('doctorName') || 
-                        user.name || 'User';
-            const userId = localStorage.getItem('patientId') || 
-                          localStorage.getItem('doctorId') || 
-                          'ID001';
-            const email = localStorage.getItem('doctorEmail') || user.email || 'user@example.com';
-            const phone = localStorage.getItem('doctorPhone') || '0500000000';
+        const patientName = localStorage.getItem('patientName') || 'Patient';
+        const patientId = localStorage.getItem('patientId') || 'PT001';
+        const patientEmail = localStorage.getItem('patientEmail') || 'patient@rehab.com';
+        const patientPhone = localStorage.getItem('patientPhone') || '0500000000';
 
-            // Update basic info
-            document.getElementById('avatar').textContent = name.charAt(0);
-            document.getElementById('displayName').textContent = name;
-            document.getElementById('fullName').textContent = name;
-            document.getElementById('userId').textContent = userId;
-            document.getElementById('email').textContent = email;
-            document.getElementById('phone').textContent = phone;
-
+        // Render immediately
+        function renderContent() {
+            const container = document.getElementById('profileContainer');
+            
             if (userType === 'doctor') {
-                // Doctor view
-                document.getElementById('userRole').textContent = 'Doctor';
-                document.getElementById('patientInfoCard').style.display = 'none';
-                document.getElementById('doctorInfoCard').style.display = 'block';
-
-                // Doctor stats
-                document.getElementById('stat1Label').textContent = 'Patients';
-                document.getElementById('stat2Label').textContent = 'Experience';
-                document.getElementById('stat3Label').textContent = 'Sessions';
-
-                document.getElementById('stat1').textContent = '3';
-                document.getElementById('stat2').textContent = '10 years';
-                document.getElementById('stat3').textContent = '128';
-
-                // Doctor info
-                document.getElementById('specialty').textContent = 
-                    localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-                document.getElementById('license').textContent = 'LIC-' + userId;
-                document.getElementById('hospital').textContent = 'Central Hospital';
-                document.getElementById('experience').textContent = '10 years';
-
+                renderDoctorProfile(container);
             } else {
-                // Patient view
-                document.getElementById('userRole').textContent = 'Patient';
-                document.getElementById('patientInfoCard').style.display = 'block';
-                document.getElementById('doctorInfoCard').style.display = 'none';
+                renderPatientProfile(container);
+            }
+        }
 
-                // Patient stats based on ID
-                const patientId = localStorage.getItem('patientId') || 'PT001';
-                
-                let accuracy, level, sessions, condition, therapy;
-                
-                if (patientId === 'PT001') { // Ali
-                    accuracy = '82%';
-                    level = '4';
-                    sessions = '15';
-                    condition = 'Motor Disability';
-                    therapy = 'Physical Therapy';
-                } else if (patientId === 'PT002') { // Sara
-                    accuracy = '89%';
-                    level = '3';
-                    sessions = '12';
-                    condition = 'Arm Weakness';
-                    therapy = 'Occupational Therapy';
-                } else { // Omar
-                    accuracy = '94%';
-                    level = '5';
-                    sessions = '28';
-                    condition = 'Movement Disorder';
-                    therapy = 'Developmental Therapy';
+        function renderDoctorProfile(container) {
+            container.innerHTML = `
+                <div class="dashboard-layout">
+                    <!-- Sidebar -->
+                    <div class="sidebar">
+                        <div class="doctor-info">
+                            <div class="avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h4>${doctorName}</h4>
+                            <p>${doctorSpecialty} • #${doctorId}</p>
+                        </div>
+                        <ul>
+                            <li onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
+                            <li onclick="window.location.href='doctor-patients.html'"><span>👥</span> Patients List</li>
+                            <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
+                            <li onclick="window.location.href='doctor-messages.html'"><span>💬</span> Messages</li>
+                            <li class="active"><span>👤</span> User Profile</li>
+                        </ul>
+                        <div class="sidebar-bottom">
+                            <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
+                            <p onclick="logout()"><span>🚪</span> Log Out</p>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="main-content">
+                        <div class="profile-header">
+                            <button class="back-btn" onclick="goBack()">←</button>
+                            <h2>👤 User Profile</h2>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-avatar-large">${doctorName.charAt(0)}</div>
+                            <div class="profile-info">
+                                <div class="profile-name">${doctorName}</div>
+                                <div class="profile-role">Doctor</div>
+                                
+                                <div class="profile-stats">
+                                    <div class="stat-box">
+                                        <div class="stat-value">3</div>
+                                        <div class="stat-label">Patients</div>
+                                    </div>
+                                    <div class="stat-box">
+                                        <div class="stat-value">10 years</div>
+                                        <div class="stat-label">Experience</div>
+                                    </div>
+                                    <div class="stat-box">
+                                        <div class="stat-value">128</div>
+                                        <div class="stat-label">Sessions</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-grid">
+                            <!-- Personal Information -->
+                            <div class="info-card">
+                                <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+                                <div class="info-row">
+                                    <span class="info-label">Full Name</span>
+                                    <span class="info-value">${doctorName}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">User ID</span>
+                                    <span class="info-value">${doctorId}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Email</span>
+                                    <span class="info-value">${doctorEmail}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Phone</span>
+                                    <span class="info-value">${doctorPhone}</span>
+                                </div>
+                            </div>
+
+                            <!-- Professional Information -->
+                            <div class="info-card">
+                                <h3><i class="fas fa-stethoscope"></i> Professional Information</h3>
+                                <div class="info-row">
+                                    <span class="info-label">Specialty</span>
+                                    <span class="info-value">${doctorSpecialty}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">License</span>
+                                    <span class="info-value">LIC-${doctorId}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Hospital</span>
+                                    <span class="info-value">Central Hospital</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Experience</span>
+                                    <span class="info-value">10 years</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button class="btn-edit" onclick="editProfile()">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            <button class="btn-settings" onclick="goToSettings()">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPatientProfile(container) {
+            let condition = 'Not specified';
+            let therapy = 'Not specified';
+            let level = '1';
+            
+            if (patientId === 'PT001') { // Ali
+                condition = 'Motor Disability';
+                therapy = 'Physical Therapy';
+                level = '4';
+            } else if (patientId === 'PT002' || patientId === 'PT016') { // Sara
+                condition = 'Arm Weakness';
+                therapy = 'Occupational Therapy';
+                level = '3';
+            } else if (patientId === 'PT003' || patientId === 'PT017') { // Omar
+                condition = 'Movement Disorder';
+                therapy = 'Developmental Therapy';
+                level = '5';
+            }
+
+            let accuracy = condition === 'Motor Disability' ? '82%' : condition === 'Arm Weakness' ? '89%' : '94%';
+            let sessions = condition === 'Motor Disability' ? '15' : condition === 'Arm Weakness' ? '12' : '28';
+
+            container.innerHTML = `
+                <div class="patient-container">
+                    <!-- Patient Header (بدون شريط جانبي) -->
+                    <div class="patient-header">
+                        <div class="patient-header-left">
+                            <div class="patient-avatar-large">${patientName.charAt(0)}</div>
+                            <div class="patient-header-info">
+                                <h2>${patientName}</h2>
+                                <p>ID: ${patientId}</p>
+                            </div>
+                        </div>
+                        <div class="patient-header-actions">
+                            <button class="patient-nav-btn" onclick="window.location.href='patient.html'">
+                                <i class="fas fa-gamepad"></i> Games
+                            </button>
+                            <button class="patient-nav-btn active">
+                                <i class="fas fa-user"></i> Profile
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Profile Content -->
+                    <div class="profile-card">
+                        <div class="profile-avatar-large">${patientName.charAt(0)}</div>
+                        <div class="profile-info">
+                            <div class="profile-name">${patientName}</div>
+                            <div class="profile-role">Patient</div>
+                            
+                            <div class="profile-stats">
+                                <div class="stat-box">
+                                    <div class="stat-value">${level}</div>
+                                    <div class="stat-label">Level</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">${accuracy}</div>
+                                    <div class="stat-label">Accuracy</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">${sessions}</div>
+                                    <div class="stat-label">Sessions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <!-- Personal Information -->
+                        <div class="info-card">
+                            <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Full Name</span>
+                                <span class="info-value">${patientName}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">User ID</span>
+                                <span class="info-value">${patientId}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">${patientEmail}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">${patientPhone}</span>
+                            </div>
+                        </div>
+
+                        <!-- Medical Information -->
+                        <div class="info-card">
+                            <h3><i class="fas fa-notes-medical"></i> Medical Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Condition</span>
+                                <span class="info-value">${condition}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Therapy Type</span>
+                                <span class="info-value">${therapy}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Current Level</span>
+                                <span class="info-value">Level ${level}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-edit" onclick="editProfile()">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn-settings" onclick="goToSettings()">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="btn-video" onclick="window.location.href='capture-video.html'">
+                            <i class="fas fa-video"></i> Take Assessment
+                        </button>
+                        <button class="btn-games" onclick="window.location.href='patient.html'">
+                            <i class="fas fa-gamepad"></i> Back to Games
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Check video status without delaying page load
+            setTimeout(() => checkVideoStatus(), 100);
+        }
+
+        function checkVideoStatus() {
+            const patientId = localStorage.getItem('patientId');
+            
+            fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-
-                document.getElementById('stat1').textContent = accuracy;
-                document.getElementById('stat2').textContent = 'Level ' + level;
-                document.getElementById('stat3').textContent = sessions;
-
-                document.getElementById('condition').textContent = condition;
-                document.getElementById('therapy').textContent = therapy;
-                document.getElementById('currentLevel').textContent = 'Level ' + level;
-            }
-
-            // Hide loading, show profile
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('profileContainer').style.display = 'block';
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const hasVideo = data.data.video_url && data.data.video_url !== null;
+                    const videoBtn = document.querySelector('.btn-video');
+                    if (videoBtn) {
+                        if (hasVideo) {
+                            videoBtn.innerHTML = '<i class="fas fa-redo"></i> Retake Assessment';
+                        }
+                    }
+                }
+            })
+            .catch(error => console.error('Error checking video:', error));
         }
 
-        function goBack() {
-            if (userType === 'doctor') {
-                window.location.href = 'doctor.html';
-            } else {
-                window.location.href = 'patient.html';
-            }
-        }
+        // Render immediately
+        renderContent();
 
+        // Navigation functions
         function editProfile() {
             if (userType === 'doctor') {
                 window.location.href = 'edit-doctor-profile.html';
@@ -457,23 +784,19 @@
             window.location.href = 'settings.html';
         }
 
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
+        function goBack() {
+            if (userType === 'doctor') {
+                window.location.href = 'doctor.html';
+            } else {
+                window.location.href = 'patient.html';
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
         }
     </script>
 </body>
