@@ -406,6 +406,43 @@
             to { transform: translateX(100%); opacity: 0; }
         }
         
+        .games-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        
+        .assessment-warning {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .assessment-warning button {
+            padding: 8px 20px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .assessment-warning button:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -435,6 +472,10 @@
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
+            }
+            
+            .assessment-warning {
+                flex-direction: column;
             }
         }
     </style>
@@ -498,9 +539,9 @@
             <span>🎮</span> Therapeutic Games
         </h2>
         
-        <div class="games-grid">
+        <div class="games-grid" id="gamesGrid">
             <!-- Game 1: Catching Stars -->
-            <div class="game-card" onclick="window.location.href='game-catching-stars.html'">
+            <div class="game-card" id="game1" onclick="checkGameAccess('game-catching-stars.html')">
                 <div class="game-icon">⭐</div>
                 <h3>Catching Stars</h3>
                 <p class="game-description">Reach up to catch stars. Targets shoulder elevation and elbow movement.</p>
@@ -511,7 +552,7 @@
             </div>
 
             <!-- Game 2: Matching Game -->
-            <div class="game-card" onclick="window.location.href='game-matching.html'">
+            <div class="game-card" id="game2" onclick="checkGameAccess('game-matching.html')">
                 <div class="game-icon">🎨</div>
                 <h3>Matching Game</h3>
                 <p class="game-description">Match objects to colors. Full upper extremity workout.</p>
@@ -522,7 +563,7 @@
             </div>
 
             <!-- Game 3: Catching Falling Objects -->
-            <div class="game-card" onclick="window.location.href='game-catching-objects.html'">
+            <div class="game-card" id="game3" onclick="checkGameAccess('game-catching-objects.html')">
                 <div class="game-icon">🧺</div>
                 <h3>Catching Falling Objects</h3>
                 <p class="game-description">External rotation training. Prevents contractures.</p>
@@ -571,8 +612,375 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
-            checkInitialAssessment(); // التحقق من فيديو التقييم عند تحميل الصفحة
+            // Check assessment status after loading data
+            setTimeout(() => {
+                checkAssessmentStatus();
+            }, 500);
         });
+
+        // ============================================
+        // Assessment Status and Game Access
+        // ============================================
+        let hasVideo = false;
+        let assessmentChecked = false;
+
+        async function checkAssessmentStatus() {
+            const patientId = localStorage.getItem('patientId');
+            
+            if (!patientId) return;
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    hasVideo = data.data.video_url && data.data.video_url !== null;
+                    assessmentChecked = true;
+                    
+                    console.log('Video status:', hasVideo ? 'Has video' : 'No video');
+                    
+                    // Check if this is a new patient (no video)
+                    if (!hasVideo) {
+                        checkInitialAssessment();
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking video status:', error);
+            }
+        }
+
+        function checkGameAccess(gamePage) {
+            if (!assessmentChecked) {
+                showNotification('Checking assessment status...', 'info');
+                return;
+            }
+            
+            if (hasVideo) {
+                window.location.href = gamePage;
+            } else {
+                showNotification('Please complete your initial assessment video first.', 'error');
+                // Show assessment dialog again
+                showNewPlayerQuestion();
+            }
+        }
+
+        // ============================================
+        // Initial Assessment Functions
+        // ============================================
+        
+        async function checkInitialAssessment() {
+            const patientId = localStorage.getItem('patientId');
+            
+            if (!patientId) return;
+            
+            // Check if already showed in this session
+            if (sessionStorage.getItem('assessmentShownThisSession')) {
+                return;
+            }
+            
+            // Check if user already skipped assessment forever
+            const assessmentSkipped = localStorage.getItem('assessmentSkipped');
+            if (assessmentSkipped === 'true') {
+                // Even if skipped, disable games if no video
+                if (!hasVideo) {
+                    disableGameCards();
+                }
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Check if patient already has a video
+                    const hasVideo = data.data.video_url && data.data.video_url !== null;
+                    
+                    if (!hasVideo) {
+                        // First question: Are you a new player?
+                        setTimeout(() => {
+                            showNewPlayerQuestion();
+                        }, 1500);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking patient assessment:', error);
+            }
+        }
+
+        function showNewPlayerQuestion() {
+            // Remove any existing dialog
+            const existingDialog = document.querySelector('.assessment-dialog');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
+            
+            // Create dialog container
+            const dialog = document.createElement('div');
+            dialog.className = 'assessment-dialog';
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Create dialog content
+            dialog.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 30px;
+                    max-width: 400px;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+                ">
+                    <div style="font-size: 64px; margin-bottom: 20px;">👋</div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Welcome!</h3>
+                    <p style="color: #64748b; margin-bottom: 25px; font-size: 18px;">
+                        Are you a new player?
+                    </p>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="dialogYes" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #10b981, #059669);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            Yes, I'm New
+                        </button>
+                        <button id="dialogNo" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            No, Returning
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add to body
+            document.body.appendChild(dialog);
+            
+            // Mark as shown in this session
+            sessionStorage.setItem('assessmentShownThisSession', 'true');
+            
+            // Handle Yes button (New Player)
+            document.getElementById('dialogYes').addEventListener('click', function() {
+                dialog.remove();
+                // Show camera permission and video recording
+                showAssessmentDialog();
+            });
+            
+            // Handle No button (Returning Player)
+            document.getElementById('dialogNo').addEventListener('click', function() {
+                dialog.remove();
+                // Allow playing without video (existing player)
+                showNotification('Welcome back! You can start playing.', 'info');
+            });
+        }
+
+        function showAssessmentDialog() {
+            // Remove any existing dialog
+            const existingDialog = document.querySelector('.camera-dialog');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
+            
+            // Create dialog container
+            const dialog = document.createElement('div');
+            dialog.className = 'camera-dialog';
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Create dialog content
+            dialog.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 30px;
+                    max-width: 450px;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+                ">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Initial Assessment Required</h3>
+                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
+                        As a new player, you need to complete an assessment video before you can start playing.<br>
+                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
+                    </p>
+                    <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
+                        <p style="color: #1e293b; font-weight: 600; margin-bottom: 5px;">Camera permission needed:</p>
+                        <p style="color: #64748b; font-size: 14px;">We'll need access to your camera to record the assessment. This is a one-time requirement.</p>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="cameraYes" style="
+                            flex: 2;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #10b981, #059669);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-video"></i> Allow Camera & Record
+                        </button>
+                        <button id="cameraNo" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            Not Now
+                        </button>
+                    </div>
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 15px; font-weight: 500;">
+                        ⚠️ You cannot play games until you complete the assessment.
+                    </p>
+                </div>
+            `;
+            
+            // Add to body
+            document.body.appendChild(dialog);
+            
+            // Handle Yes button
+            document.getElementById('cameraYes').addEventListener('click', function() {
+                dialog.remove();
+                // Request camera permission and go to video page
+                requestCameraAndGoToVideo();
+            });
+            
+            // Handle No button
+            document.getElementById('cameraNo').addEventListener('click', function() {
+                dialog.remove();
+                // Save that user skipped (but they can't play)
+                localStorage.setItem('assessmentSkipped', 'true');
+                showNotification('Assessment required. You cannot play games until you complete it.', 'error');
+                
+                // Disable game cards
+                disableGameCards();
+            });
+        }
+
+        async function requestCameraAndGoToVideo() {
+            try {
+                // Show loading
+                const loadingDialog = document.createElement('div');
+                loadingDialog.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                `;
+                loadingDialog.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #667eea;"></i>
+                        <p style="margin-top: 15px; color: #1e293b;">Requesting camera access...</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingDialog);
+                
+                // Request camera permission
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                
+                loadingDialog.remove();
+                
+                // Go to video capture page
+                window.location.href = 'capture-video.html';
+                
+            } catch (error) {
+                console.error('Camera permission error:', error);
+                alert('Camera access is required for new players. Please allow camera access and try again.');
+                // Show the dialog again
+                showAssessmentDialog();
+            }
+        }
+
+        function disableGameCards() {
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.style.opacity = '0.5';
+                card.style.pointerEvents = 'none';
+                card.style.cursor = 'not-allowed';
+                card.setAttribute('title', 'Complete initial assessment to play games');
+            });
+            
+            // Show message at top
+            const gamesSection = document.querySelector('.section-title');
+            const existingWarning = document.querySelector('.assessment-warning');
+            if (existingWarning) {
+                existingWarning.remove();
+            }
+            
+            const warningMsg = document.createElement('div');
+            warningMsg.className = 'assessment-warning';
+            warningMsg.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> 
+                Please complete your initial assessment video to unlock games.
+                <button onclick="window.location.href='capture-video.html'">
+                    <i class="fas fa-video"></i> Take Assessment Now
+                </button>
+            `;
+            gamesSection.parentNode.insertBefore(warningMsg, gamesSection.nextSibling);
+        }
 
         // ============================================
         // Patient Data Loading Functions
@@ -655,225 +1063,20 @@
         }
 
         // ============================================
-        // Initial Assessment Functions
-        // Shows only once per patient, never again after cancel
-        // ============================================
-        
-        async function checkInitialAssessment() {
-            const patientId = localStorage.getItem('patientId');
-            const token = localStorage.getItem('token');
-            
-            if (!patientId || !token) return;
-            
-            // Check if already showed in this session
-            if (sessionStorage.getItem('assessmentShownThisSession')) {
-                console.log('Already shown in this session');
-                return;
-            }
-            
-            // Check if user already skipped assessment forever
-            const assessmentSkipped = localStorage.getItem('assessmentSkipped');
-            if (assessmentSkipped === 'true') {
-                console.log('User previously skipped assessment');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Check if patient already has a video
-                    const hasVideo = data.data.video_url && data.data.video_url !== null;
-                    
-                    if (!hasVideo) {
-                        // Wait a bit for the page to fully load
-                        setTimeout(() => {
-                            showAssessmentDialog();
-                        }, 1500);
-                    } else {
-                        console.log('Patient already has assessment video');
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking patient assessment:', error);
-            }
-        }
-
-        function showAssessmentDialog() {
-            // Remove any existing dialog
-            const existingDialog = document.querySelector('.assessment-dialog');
-            if (existingDialog) {
-                existingDialog.remove();
-            }
-            
-            // Create dialog container
-            const dialog = document.createElement('div');
-            dialog.className = 'assessment-dialog';
-            dialog.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                backdrop-filter: blur(5px);
-            `;
-            
-            // Create dialog content
-            dialog.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 40px;
-                    border-radius: 30px;
-                    max-width: 450px;
-                    text-align: center;
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-                ">
-                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
-                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Welcome!</h3>
-                    <p style="color: #64748b; margin-bottom: 25px; line-height: 1.6;">
-                        Would you like to complete your initial assessment video?<br>
-                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
-                    </p>
-                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <button id="dialogYes" style="
-                            flex: 2;
-                            padding: 14px;
-                            background: linear-gradient(135deg, #10b981, #059669);
-                            color: white;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 8px;
-                        ">
-                            <i class="fas fa-video"></i> Yes, Take Video
-                        </button>
-                        <button id="dialogNo" style="
-                            flex: 1;
-                            padding: 14px;
-                            background: #f1f5f9;
-                            color: #475569;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 8px;
-                        ">
-                            <i class="fas fa-clock"></i> Later
-                        </button>
-                    </div>
-                    <div style="color: #94a3b8; font-size: 12px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                        You can always take it later from your <strong>profile settings</strong>
-                    </div>
-                </div>
-            `;
-            
-            // Add to body
-            document.body.appendChild(dialog);
-            
-            // Mark as shown in this session
-            sessionStorage.setItem('assessmentShownThisSession', 'true');
-            
-            // Handle Yes button
-            document.getElementById('dialogYes').addEventListener('click', function() {
-                dialog.remove();
-                window.location.href = 'capture-video.html';
-            });
-            
-            // Handle No button
-            document.getElementById('dialogNo').addEventListener('click', function() {
-                dialog.remove();
-                // Save that user skipped assessment (never show again)
-                localStorage.setItem('assessmentSkipped', 'true');
-                // Show a friendly notification
-                showNotification('You can take the assessment anytime from your profile.', 'info');
-            });
-        }
-
-        // ============================================
         // Notification Function
         // ============================================
         
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
             notification.textContent = message;
-            
-            const colors = {
-                success: 'linear-gradient(135deg, #10b981, #059669)',
-                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
-            };
-            
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 10001;
-                animation: slideIn 0.3s ease;
-            `;
             
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.remove();
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
             }, 4000);
-        }
-
-        // ============================================
-        // Camera Permission Functions
-        // ============================================
-        
-        async function requestCameraPermission() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                stream.getTracks().forEach(track => track.stop());
-                showNotification('✅ Camera permission granted', 'success');
-                localStorage.setItem('cameraPermission', 'granted');
-                return true;
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                showNotification('❌ Camera permission denied. You can enable it later.', 'error');
-                localStorage.setItem('cameraPermission', 'denied');
-                return false;
-            }
-        }
-
-        function checkFirstLogin() {
-            const hasAskedForCamera = localStorage.getItem('cameraPermission');
-            
-            if (!hasAskedForCamera) {
-                setTimeout(() => {
-                    if (confirm('Welcome! Would you like to enable camera access for profile photos and assessment videos?')) {
-                        requestCameraPermission();
-                    } else {
-                        localStorage.setItem('cameraPermission', 'skipped');
-                    }
-                }, 1000);
-            }
         }
 
         // ============================================

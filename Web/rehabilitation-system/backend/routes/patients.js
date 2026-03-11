@@ -14,14 +14,6 @@ router.get('/', protect, async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const filter = {};
-        if (req.query.status) {
-            filter.status = req.query.status;
-        }
-        if (req.query.condition) {
-            filter.condition = req.query.condition;
-        }
-
         const [patients] = await db.query(
             `SELECT u.id, u.name, u.email, u.phone, 
                     p.patient_id, p.date_of_birth, p.gender, p.affected_hand,
@@ -129,6 +121,44 @@ router.get('/:patientId', protect, async (req, res) => {
 });
 
 // ============================================
+// Check if patient is new (has no assessment video)
+// ============================================
+router.get('/:patientId/is-new', protect, async (req, res) => {
+    try {
+        const { patientId } = req.params;
+        
+        const [patients] = await db.query(
+            'SELECT video_url FROM patients WHERE patient_id = ?',
+            [patientId]
+        );
+        
+        if (patients.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Patient not found' 
+            });
+        }
+        
+        const patient = patients[0];
+        const hasVideo = patient.video_url && patient.video_url !== null;
+        const isNew = !hasVideo;
+        
+        res.json({ 
+            success: true, 
+            isNew: isNew,
+            hasVideo: hasVideo
+        });
+        
+    } catch (error) {
+        console.error('Error checking if patient is new:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error' 
+        });
+    }
+});
+
+// ============================================
 // Register new patient (for doctors)
 // ============================================
 router.post('/register', protect, async (req, res) => {
@@ -138,7 +168,6 @@ router.post('/register', protect, async (req, res) => {
             gender, affectedHand, medicalCondition, therapyType 
         } = req.body;
 
-        // Check if user exists
         const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (existing.length > 0) {
             return res.status(400).json({ 
@@ -146,21 +175,16 @@ router.post('/register', protect, async (req, res) => {
             });
         }
 
-        // Hash password (in real app, use bcrypt)
-        const hashedPassword = password; // In production: await bcrypt.hash(password, 10);
+        const hashedPassword = password;
 
-        // Insert into users table
         const [userResult] = await db.query(
             'INSERT INTO users (name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)',
             [name, email, hashedPassword, 'patient', phone]
         );
 
         const userId = userResult.insertId;
-
-        // Generate patient ID
         const patientId = `PT${String(userId).padStart(3, '0')}`;
 
-        // Insert into patients table with new fields
         await db.query(
             `INSERT INTO patients 
             (user_id, patient_id, date_of_birth, gender, affected_hand, 
@@ -189,61 +213,6 @@ router.post('/register', protect, async (req, res) => {
 });
 
 // ============================================
-// Update patient
-// ============================================
-router.put('/:patientId', protect, async (req, res) => {
-    try {
-        const { patientId } = req.params;
-        const updates = req.body;
-
-        // Build update query dynamically
-        const allowedFields = [
-            'name', 'phone', 'date_of_birth', 'gender', 'affected_hand',
-            'medical_condition', 'therapy_type', 'current_level',
-            'emergency_contact_name', 'emergency_contact_phone',
-            'address', 'city', 'country'
-        ];
-
-        const updateFields = [];
-        const updateValues = [];
-
-        Object.keys(updates).forEach(key => {
-            if (allowedFields.includes(key)) {
-                updateFields.push(`${key} = ?`);
-                updateValues.push(updates[key]);
-            }
-        });
-
-        if (updateFields.length === 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'No valid fields to update' 
-            });
-        }
-
-        updateValues.push(patientId);
-
-        await db.query(
-            `UPDATE patients SET ${updateFields.join(', ')} WHERE patient_id = ?`,
-            updateValues
-        );
-
-        res.json({
-            success: true,
-            message: 'Patient updated successfully'
-        });
-
-    } catch (error) {
-        console.error('Update patient error:', error);
-        res.status(500).json({ 
-            success: false,
-            message: 'Server error',
-            error: error.message 
-        });
-    }
-});
-
-// ============================================
 // Upload patient photo
 // ============================================
 router.post('/upload-photo', protect, async (req, res) => {
@@ -257,22 +226,18 @@ router.post('/upload-photo', protect, async (req, res) => {
             });
         }
 
-        // Create uploads directory if it doesn't exist
         const uploadDir = path.join(__dirname, '../uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        // Convert base64 to file
         const base64Data = image.replace(/^data:image\/jpeg;base64,/, '');
         const timestamp = Date.now();
         const filename = `patient_${patientId}_photo_${timestamp}.jpg`;
         const filepath = path.join(uploadDir, filename);
 
-        // Save file
         fs.writeFileSync(filepath, base64Data, 'base64');
 
-        // Update database
         const photoUrl = `/uploads/${filename}`;
         await db.query(
             'UPDATE patients SET photo_url = ? WHERE patient_id = ?',
@@ -308,22 +273,18 @@ router.post('/upload-assessment', protect, async (req, res) => {
             });
         }
 
-        // Create uploads directory if it doesn't exist
         const uploadDir = path.join(__dirname, '../uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        // Convert base64 to file
         const base64Data = video.replace(/^data:video\/webm;base64,/, '');
         const timestamp = Date.now();
         const filename = `patient_${patientId}_assessment_${timestamp}.webm`;
         const filepath = path.join(uploadDir, filename);
 
-        // Save file
         fs.writeFileSync(filepath, base64Data, 'base64');
 
-        // Update database
         const videoUrl = `/uploads/${filename}`;
         await db.query(
             `UPDATE patients SET 
@@ -369,7 +330,6 @@ router.post('/initial-measurements', protect, async (req, res) => {
              measurements.grip, measurements.rotation, patientId]
         );
 
-        // Also save to progress tracking
         const [patient] = await db.query(
             'SELECT id FROM patients WHERE patient_id = ?',
             [patientId]
@@ -441,7 +401,7 @@ router.get('/:patientId/has-photo', protect, async (req, res) => {
 router.get('/:patientId/progress', protect, async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { period = 'week' } = req.query; // week, month, year
+        const { period = 'week' } = req.query;
 
         const [patient] = await db.query(
             'SELECT id FROM patients WHERE patient_id = ?',
@@ -479,7 +439,6 @@ router.get('/:patientId/progress', protect, async (req, res) => {
             [patient[0].id]
         );
 
-        // Format data for charts
         const labels = progress.map(p => {
             const date = new Date(p.tracking_date);
             return period === 'week' ? 
