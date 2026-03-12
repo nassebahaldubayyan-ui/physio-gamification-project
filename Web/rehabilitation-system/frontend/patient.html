@@ -540,7 +540,6 @@
         </h2>
         
         <div class="games-grid" id="gamesGrid">
-            <!-- Game 1: Catching Stars -->
             <div class="game-card" id="game1" onclick="checkGameAccess('game-catching-stars.html')">
                 <div class="game-icon">⭐</div>
                 <h3>Catching Stars</h3>
@@ -551,7 +550,6 @@
                 </div>
             </div>
 
-            <!-- Game 2: Matching Game -->
             <div class="game-card" id="game2" onclick="checkGameAccess('game-matching.html')">
                 <div class="game-icon">🎨</div>
                 <h3>Matching Game</h3>
@@ -562,7 +560,6 @@
                 </div>
             </div>
 
-            <!-- Game 3: Catching Falling Objects -->
             <div class="game-card" id="game3" onclick="checkGameAccess('game-catching-objects.html')">
                 <div class="game-icon">🧺</div>
                 <h3>Catching Falling Objects</h3>
@@ -593,7 +590,6 @@
             </button>
         </div>
 
-        <!-- Logout -->
         <button class="logout-btn" onclick="logoutPatient()">
             <span>🚪</span> Log Out
         </button>
@@ -602,7 +598,6 @@
     <div class="loading" id="loading">Loading patient data...</div>
 
     <script>
-        // Check if user is logged in
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -610,27 +605,24 @@
             window.location.href = 'gamer-login.html';
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPatientData();
-            // Check assessment status after loading data
-            setTimeout(() => {
-                checkAssessmentStatus();
-            }, 500);
-        });
-
-        // ============================================
-        // Assessment Status and Game Access
-        // ============================================
         let hasVideo = false;
         let assessmentChecked = false;
 
-        async function checkAssessmentStatus() {
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPatientData();
+            checkIfPatientIsNew();
+        });
+
+        // ============================================
+        // Check if patient is new (backend call)
+        // ============================================
+        async function checkIfPatientIsNew() {
             const patientId = localStorage.getItem('patientId');
             
-            if (!patientId) return;
+            if (!patientId || !token) return;
             
             try {
-                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
+                const response = await fetch(`http://localhost:5000/api/patients/${patientId}/is-new`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -639,184 +631,41 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    hasVideo = data.data.video_url && data.data.video_url !== null;
+                    hasVideo = data.hasVideo;
                     assessmentChecked = true;
+                    console.log('Assessment status:', hasVideo ? 'Has video' : 'No video');
                     
-                    console.log('Video status:', hasVideo ? 'Has video' : 'No video');
-                    
-                    // Check if this is a new patient (no video)
-                    if (!hasVideo) {
-                        checkInitialAssessment();
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking video status:', error);
-            }
-        }
-
-        function checkGameAccess(gamePage) {
-            if (!assessmentChecked) {
-                showNotification('Checking assessment status...', 'info');
-                return;
-            }
-            
-            if (hasVideo) {
-                window.location.href = gamePage;
-            } else {
-                showNotification('Please complete your initial assessment video first.', 'error');
-                // Show assessment dialog again
-                showNewPlayerQuestion();
-            }
-        }
-
-        // ============================================
-        // Initial Assessment Functions
-        // ============================================
-        
-        async function checkInitialAssessment() {
-            const patientId = localStorage.getItem('patientId');
-            
-            if (!patientId) return;
-            
-            // Check if already showed in this session
-            if (sessionStorage.getItem('assessmentShownThisSession')) {
-                return;
-            }
-            
-            // Check if user already skipped assessment forever
-            const assessmentSkipped = localStorage.getItem('assessmentSkipped');
-            if (assessmentSkipped === 'true') {
-                // Even if skipped, disable games if no video
-                if (!hasVideo) {
-                    disableGameCards();
-                }
-                return;
-            }
-            
-            try {
-                const response = await fetch(`http://localhost:5000/api/patients/${patientId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Check if patient already has a video
-                    const hasVideo = data.data.video_url && data.data.video_url !== null;
-                    
-                    if (!hasVideo) {
-                        // First question: Are you a new player?
+                    if (data.isNew) {
+                        console.log('New patient - showing assessment');
+                        localStorage.removeItem('hasAssessmentVideo');
+                        // نضمن أن الاشعار يظهر للمستخدم الجديد
                         setTimeout(() => {
-                            showNewPlayerQuestion();
-                        }, 1500);
+                            showAssessmentDialog();
+                        }, 2000);
+                    } else {
+                        console.log('Returning patient');
+                        localStorage.setItem('hasAssessmentVideo', 'true');
                     }
                 }
             } catch (error) {
-                console.error('Error checking patient assessment:', error);
+                console.error('Error checking if patient is new:', error);
+                assessmentChecked = true;
+                hasVideo = true; // افتراض أن المستخدم قديم في حالة الخطأ
             }
-        }
-
-        function showNewPlayerQuestion() {
-            // Remove any existing dialog
-            const existingDialog = document.querySelector('.assessment-dialog');
-            if (existingDialog) {
-                existingDialog.remove();
-            }
-            
-            // Create dialog container
-            const dialog = document.createElement('div');
-            dialog.className = 'assessment-dialog';
-            dialog.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                backdrop-filter: blur(5px);
-            `;
-            
-            // Create dialog content
-            dialog.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 40px;
-                    border-radius: 30px;
-                    max-width: 400px;
-                    text-align: center;
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-                ">
-                    <div style="font-size: 64px; margin-bottom: 20px;">👋</div>
-                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Welcome!</h3>
-                    <p style="color: #64748b; margin-bottom: 25px; font-size: 18px;">
-                        Are you a new player?
-                    </p>
-                    <div style="display: flex; gap: 15px;">
-                        <button id="dialogYes" style="
-                            flex: 1;
-                            padding: 14px;
-                            background: linear-gradient(135deg, #10b981, #059669);
-                            color: white;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                        ">
-                            Yes, I'm New
-                        </button>
-                        <button id="dialogNo" style="
-                            flex: 1;
-                            padding: 14px;
-                            background: #f1f5f9;
-                            color: #475569;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                        ">
-                            No, Returning
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Add to body
-            document.body.appendChild(dialog);
-            
-            // Mark as shown in this session
-            sessionStorage.setItem('assessmentShownThisSession', 'true');
-            
-            // Handle Yes button (New Player)
-            document.getElementById('dialogYes').addEventListener('click', function() {
-                dialog.remove();
-                // Show camera permission and video recording
-                showAssessmentDialog();
-            });
-            
-            // Handle No button (Returning Player)
-            document.getElementById('dialogNo').addEventListener('click', function() {
-                dialog.remove();
-                // Allow playing without video (existing player)
-                showNotification('Welcome back! You can start playing.', 'info');
-            });
         }
 
         function showAssessmentDialog() {
-            // Remove any existing dialog
+            // نتأكد أن الاشعار لم يظهر من قبل في هذه الجلسة
+            if (sessionStorage.getItem('assessmentShownThisSession')) {
+                console.log('Assessment already shown in this session');
+                return;
+            }
+            
             const existingDialog = document.querySelector('.camera-dialog');
             if (existingDialog) {
                 existingDialog.remove();
             }
             
-            // Create dialog container
             const dialog = document.createElement('div');
             dialog.className = 'camera-dialog';
             dialog.style.cssText = `
@@ -833,7 +682,6 @@
                 backdrop-filter: blur(5px);
             `;
             
-            // Create dialog content
             dialog.innerHTML = `
                 <div style="
                     background: white;
@@ -846,7 +694,7 @@
                     <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
                     <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Initial Assessment Required</h3>
                     <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
-                        As a new player, you need to complete an assessment video before you can start playing.<br>
+                        Welcome! As this is your first time, we need to record an assessment video.<br>
                         <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
                     </p>
                     <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
@@ -891,31 +739,24 @@
                 </div>
             `;
             
-            // Add to body
             document.body.appendChild(dialog);
+            sessionStorage.setItem('assessmentShownThisSession', 'true');
             
-            // Handle Yes button
             document.getElementById('cameraYes').addEventListener('click', function() {
                 dialog.remove();
-                // Request camera permission and go to video page
                 requestCameraAndGoToVideo();
             });
             
-            // Handle No button
             document.getElementById('cameraNo').addEventListener('click', function() {
                 dialog.remove();
-                // Save that user skipped (but they can't play)
                 localStorage.setItem('assessmentSkipped', 'true');
                 showNotification('Assessment required. You cannot play games until you complete it.', 'error');
-                
-                // Disable game cards
                 disableGameCards();
             });
         }
 
         async function requestCameraAndGoToVideo() {
             try {
-                // Show loading
                 const loadingDialog = document.createElement('div');
                 loadingDialog.style.cssText = `
                     position: fixed;
@@ -937,19 +778,45 @@
                 `;
                 document.body.appendChild(loadingDialog);
                 
-                // Request camera permission
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 stream.getTracks().forEach(track => track.stop());
                 
                 loadingDialog.remove();
-                
-                // Go to video capture page
                 window.location.href = 'capture-video.html';
                 
             } catch (error) {
                 console.error('Camera permission error:', error);
                 alert('Camera access is required for new players. Please allow camera access and try again.');
-                // Show the dialog again
+                showAssessmentDialog();
+            }
+        }
+
+        function checkGameAccess(gamePage) {
+            if (!assessmentChecked) {
+                console.log('Assessment not checked yet, waiting...');
+                showNotification('Please wait while we verify your account...', 'info');
+                
+                setTimeout(() => {
+                    if (assessmentChecked) {
+                        if (hasVideo) {
+                            window.location.href = gamePage;
+                        } else {
+                            showNotification('Please complete your initial assessment video first.', 'error');
+                            showAssessmentDialog();
+                        }
+                    } else {
+                        // إذا ما زال التحقق معلق، نفترض أن المستخدم قديم ونسمح له
+                        console.log('Assessment check timeout - allowing access');
+                        window.location.href = gamePage;
+                    }
+                }, 2000);
+                return;
+            }
+            
+            if (hasVideo) {
+                window.location.href = gamePage;
+            } else {
+                showNotification('Please complete your initial assessment video first.', 'error');
                 showAssessmentDialog();
             }
         }
@@ -963,7 +830,6 @@
                 card.setAttribute('title', 'Complete initial assessment to play games');
             });
             
-            // Show message at top
             const gamesSection = document.querySelector('.section-title');
             const existingWarning = document.querySelector('.assessment-warning');
             if (existingWarning) {
@@ -982,26 +848,19 @@
             gamesSection.parentNode.insertBefore(warningMsg, gamesSection.nextSibling);
         }
 
-        // ============================================
-        // Patient Data Loading Functions
-        // ============================================
         async function loadPatientData() {
             try {
-                // Show loading
                 document.getElementById('loading').style.display = 'block';
                 document.getElementById('dashboard').style.display = 'none';
 
-                // Get patient data from localStorage first
                 const patientId = localStorage.getItem('patientId') || 'PT002';
                 const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
                 
-                // Update basic info
                 document.getElementById('patientName').textContent = patientName;
                 document.getElementById('patientId').textContent = patientId;
                 document.getElementById('avatarText').textContent = patientName.charAt(0);
                 
-                // Set default values based on patient ID
-                if (patientId === 'PT001') { // Ali
+                if (patientId === 'PT001') {
                     document.getElementById('patientCondition').textContent = 'Motor Disability';
                     document.getElementById('patientAccuracy').textContent = '82%';
                     document.getElementById('shoulderStrength').textContent = '85%';
@@ -1013,7 +872,7 @@
                     document.getElementById('game2Progress').textContent = '79%';
                     document.getElementById('game3Level').textContent = 'Level 5';
                     document.getElementById('game3Progress').textContent = '92%';
-                } else if (patientId === 'PT002' || patientId === 'PT016') { // Sara
+                } else if (patientId === 'PT002' || patientId === 'PT016') {
                     document.getElementById('patientCondition').textContent = 'Arm Weakness';
                     document.getElementById('patientAccuracy').textContent = '89%';
                     document.getElementById('shoulderStrength').textContent = '92%';
@@ -1025,7 +884,7 @@
                     document.getElementById('game2Progress').textContent = '89%';
                     document.getElementById('game3Level').textContent = 'Level 4';
                     document.getElementById('game3Progress').textContent = '88%';
-                } else if (patientId === 'PT003' || patientId === 'PT017') { // Omar
+                } else if (patientId === 'PT003' || patientId === 'PT017') {
                     document.getElementById('patientCondition').textContent = 'Movement Disorder';
                     document.getElementById('patientAccuracy').textContent = '94%';
                     document.getElementById('shoulderStrength').textContent = '88%';
@@ -1038,7 +897,6 @@
                     document.getElementById('game3Level').textContent = 'Level 5';
                     document.getElementById('game3Progress').textContent = '96%';
                 } else {
-                    // Default values for new patients
                     document.getElementById('patientCondition').textContent = 'Not specified';
                     document.getElementById('patientAccuracy').textContent = '0%';
                     document.getElementById('shoulderStrength').textContent = '0%';
@@ -1052,7 +910,6 @@
                     document.getElementById('game3Progress').textContent = '0%';
                 }
 
-                // Hide loading, show dashboard
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
 
@@ -1062,10 +919,6 @@
             }
         }
 
-        // ============================================
-        // Notification Function
-        // ============================================
-        
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
@@ -1079,10 +932,6 @@
             }, 4000);
         }
 
-        // ============================================
-        // Logout Function
-        // ============================================
-        
         function logoutPatient() {
             if (confirm('Are you sure you want to log out?')) {
                 localStorage.clear();
@@ -1091,16 +940,6 @@
             }
         }
 
-        // ============================================
-        // Test function to reset assessment flag (for debugging)
-        // ============================================
-        function resetAssessmentFlag() {
-            localStorage.removeItem('assessmentSkipped');
-            sessionStorage.removeItem('assessmentShownThisSession');
-            alert('Assessment flag reset. The dialog will show again on next login.');
-        }
-
-        // Add slideOut animation
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideOut {
