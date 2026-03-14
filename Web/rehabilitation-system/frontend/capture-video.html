@@ -23,7 +23,7 @@
         }
         
         .video-container {
-            max-width: 1200px;
+            max-width: 1300px;
             width: 100%;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 30px;
@@ -138,11 +138,17 @@
             text-align: right;
         }
         
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+        
         .camera-section {
             background: #1e293b;
             border-radius: 20px;
             padding: 20px;
-            margin: 25px 0;
             border: 3px solid #3b82f6;
         }
         
@@ -153,6 +159,112 @@
             margin: 0 auto;
             display: block;
             background: #000;
+        }
+        
+        .analysis-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .analysis-panel h3 {
+            color: #1e293b;
+            font-size: 22px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .angle-display {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .angle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .angle-item:last-child {
+            border-bottom: none;
+        }
+        
+        .angle-label {
+            color: #64748b;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .angle-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .angle-unit {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-left: 5px;
+        }
+        
+        .feedback-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .feedback-text {
+            color: #166534;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .hand-info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .hand-badge {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            width: 0%;
+            transition: width 0.3s;
         }
         
         .timer {
@@ -247,20 +359,32 @@
             transform: translateY(-2px);
         }
         
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            margin: 15px 0;
-            overflow: hidden;
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #3b82f6);
-            width: 0%;
-            transition: width 0.3s;
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-warning {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .movements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         @media (max-width: 768px) {
@@ -373,19 +497,94 @@
             </div>
         </div>
         
-        <!-- Camera Section -->
-        <div class="camera-section" id="cameraSection" style="display: none;">
-            <video id="video" autoplay playsinline></video>
+        <!-- Main Content Grid - Camera + Analysis -->
+        <div class="main-grid" id="mainGrid" style="display: none;">
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <video id="video" autoplay playsinline></video>
+            </div>
+            
+            <!-- Analysis Panel -->
+            <div class="analysis-panel">
+                <h3>
+                    <i class="fas fa-robot"></i> 
+                    AI Movement Analysis
+                    <span class="status-badge status-success" id="aiStatus">Active</span>
+                </h3>
+                
+                <!-- Injured Hand Info -->
+                <div class="hand-info" id="handInfo">
+                    <div class="hand-badge" id="handBadge">Right Hand</div>
+                    <div>
+                        <strong>Targeted Side</strong>
+                        <p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p>
+                    </div>
+                </div>
+                
+                <!-- Angle Measurements -->
+                <div class="angle-display">
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-arrow-up"></i> Shoulder Angle
+                        </span>
+                        <span>
+                            <span class="angle-value" id="shoulderAngle">0</span>
+                            <span class="angle-unit">°</span>
+                        </span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-arrow-left"></i> Elbow Angle
+                        </span>
+                        <span>
+                            <span class="angle-value" id="elbowAngle">0</span>
+                            <span class="angle-unit">°</span>
+                        </span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-hand"></i> Grip Strength
+                        </span>
+                        <span>
+                            <span class="angle-value" id="gripStrength">0</span>
+                            <span class="angle-unit">%</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Real-time Feedback -->
+                <div class="feedback-box" id="feedbackBox">
+                    <div class="feedback-text" id="feedbackText">
+                        <i class="fas fa-info-circle"></i> 
+                        Position yourself in front of the camera
+                    </div>
+                </div>
+                
+                <!-- Movement Progress -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Movement Progress</span>
+                        <span id="movementProgressText">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="movementProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
         </div>
         
+        <!-- Progress Bar -->
         <div class="progress-bar" id="progressBar" style="display: none;">
             <div class="progress-fill" id="progressFill"></div>
         </div>
         
+        <!-- Current Movement Display -->
         <div class="current-movement" id="currentMovement" style="display: none;">Ready to start</div>
         
+        <!-- Timer -->
         <div class="timer" id="timer" style="display: none;">00:00</div>
         
+        <!-- Controls -->
         <div class="controls" id="controls" style="display: none;">
             <button class="btn-record" onclick="startRecording()" id="recordBtn">
                 <i class="fas fa-circle"></i> Start Recording
@@ -404,16 +603,22 @@
             </button>
         </div>
         
+        <!-- Back Button -->
         <button class="btn-back" onclick="goBack()" id="backBtn">
             <span>←</span> Back to Dashboard
         </button>
     </div>
 
     <script>
+        // ============================================
+        // Camera Permission and Basic Functions
+        // ============================================
+        
         let mediaRecorder;
         let recordedChunks = [];
         let videoStream;
         let timerInterval;
+        let analysisInterval;
         let seconds = 0;
         let currentMovementIndex = 0;
         let isRecording = false;
@@ -434,7 +639,10 @@
             window.location.href = 'gamer-login.html';
         }
 
-        // Request camera permission
+        // ============================================
+        // Camera Permission Function (Fixed)
+        // ============================================
+        
         async function requestCameraPermission() {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -450,7 +658,7 @@
                 document.getElementById('permissionBox').style.display = 'none';
                 document.getElementById('instructionsBox').style.display = 'block';
                 document.getElementById('movementsGrid').style.display = 'grid';
-                document.getElementById('cameraSection').style.display = 'block';
+                document.getElementById('mainGrid').style.display = 'grid';
                 document.getElementById('progressBar').style.display = 'block';
                 document.getElementById('currentMovement').style.display = 'block';
                 document.getElementById('timer').style.display = 'block';
@@ -458,12 +666,19 @@
                 
                 document.getElementById('video').srcObject = videoStream;
                 
+                // Start analysis
+                startAnalysis();
+                
             } catch (error) {
                 alert('Camera access is required for assessment. Please allow camera access and try again.');
                 console.error(error);
             }
         }
 
+        // ============================================
+        // Recording Functions
+        // ============================================
+        
         function startRecording() {
             recordedChunks = [];
             mediaRecorder = new MediaRecorder(videoStream);
@@ -551,7 +766,6 @@
                     const elapsedInMovement = Math.max(0, Math.min(15, seconds - (index * 15)));
                     timerEl.textContent = `${elapsedInMovement}s / 15s`;
                     
-                    // Highlight active movement
                     const card = document.getElementById(movement.id);
                     if (index === currentMovementIndex) {
                         card.classList.add('active');
@@ -658,8 +872,7 @@
                     
                     if (response.ok) {
                         alert('✅ Assessment video saved successfully!');
-                        // Mark that assessment is complete
-                        localStorage.setItem('assessmentCompleted', 'true');
+                        localStorage.setItem('hasAssessmentVideo', 'true');
                         localStorage.removeItem('assessmentSkipped');
                         window.location.href = 'patient.html';
                     } else {
@@ -683,6 +896,124 @@
                 window.location.href = 'patient.html';
             }
         }
+
+        // ============================================
+        // MediaPipe Analysis Functions
+        // ============================================
+        
+        const PYTHON_API_URL = 'http://localhost:5001';
+        
+        async function fetchInjuredHand() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return 'right';
+            
+            try {
+                const response = await fetch(`${PYTHON_API_URL}/api/patient/hand/${userId}`);
+                const data = await response.json();
+                return data.affected_hand || 'right';
+            } catch (error) {
+                console.error('Error fetching injured hand:', error);
+                return 'right';
+            }
+        }
+
+        async function analyzeFrame() {
+            const video = document.getElementById('video');
+            if (!video || !video.videoWidth) return null;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const frameData = canvas.toDataURL('image/jpeg', 0.8);
+            const userId = localStorage.getItem('userId');
+            
+            try {
+                const response = await fetch(`${PYTHON_API_URL}/api/analyze/frame`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        frame: frameData
+                    })
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error analyzing frame:', error);
+                return null;
+            }
+        }
+
+        function updateAnglesDisplay(result) {
+            if (!result || !result.success) return;
+            
+            const shoulderEl = document.getElementById('shoulderAngle');
+            const elbowEl = document.getElementById('elbowAngle');
+            const feedbackEl = document.getElementById('feedbackText');
+            
+            if (shoulderEl) {
+                shoulderEl.textContent = Math.round(result.shoulder_angle);
+            }
+            if (elbowEl) {
+                elbowEl.textContent = Math.round(result.elbow_angle);
+            }
+            
+            // Update feedback based on angles
+            if (result.elbow_angle > 120) {
+                feedbackEl.innerHTML = '<i class="fas fa-check-circle"></i> Good flexion! Keep going.';
+            } else if (result.elbow_angle > 80) {
+                feedbackEl.innerHTML = '<i class="fas fa-arrow-up"></i> Bend your elbow more.';
+            } else {
+                feedbackEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Try to bend your elbow further.';
+            }
+            
+            // Update injured hand badge
+            const handBadge = document.getElementById('handBadge');
+            if (handBadge && result.injured_hand) {
+                handBadge.textContent = result.injured_hand === 'left' ? 'Left Hand' : 'Right Hand';
+            }
+        }
+
+        function startAnalysis() {
+            // Clear any existing interval
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+            }
+            
+            // Fetch injured hand first
+            fetchInjuredHand().then(hand => {
+                console.log('Injured hand:', hand);
+            });
+            
+            // Analyze every 500ms
+            analysisInterval = setInterval(async () => {
+                const result = await analyzeFrame();
+                if (result) {
+                    updateAnglesDisplay(result);
+                }
+            }, 500);
+        }
+
+        function stopAnalysis() {
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+        }
+
+        // Start analysis when video is playing
+        document.getElementById('video')?.addEventListener('play', () => {
+            startAnalysis();
+        });
+
+        // Stop analysis when leaving page
+        window.addEventListener('beforeunload', () => {
+            stopAnalysis();
+        });
     </script>
 </body>
 </html>
