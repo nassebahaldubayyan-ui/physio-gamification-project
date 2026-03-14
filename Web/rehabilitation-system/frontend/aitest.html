@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Physio Assessment</title>
+<style>
+  video, canvas { transform: scaleX(-1); }
+  canvas { position: absolute; left: 0; top: 0; }
+</style>
+</head>
+<body>
+
+<video id="video" width="640" height="480" autoplay muted></video>
+<canvas id="canvas" width="640" height="480"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@latest"></script>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let detector;
+let prevAngles = {
+  leftShoulder: null,
+  leftElbow: null,
+  rightShoulder: null,
+  rightElbow: null
+};
+const SMOOTHING = 0.7;
+
+// ==================== ANGLE CALCULATION ====================
+function calculateAngle(a, b, c) {
+  const ba = [a[0]-b[0], a[1]-b[1]];
+  const bc = [c[0]-b[0], c[1]-b[1]];
+  const dot = ba[0]*bc[0] + ba[1]*bc[1];
+  const normBA = Math.sqrt(ba[0]**2 + ba[1]**2);
+  const normBC = Math.sqrt(bc[0]**2 + bc[1]**2);
+  let cosine = dot / (normBA*normBC);
+  cosine = Math.min(Math.max(cosine, -1), 1);
+  return Math.acos(cosine) * (180/Math.PI);
+}
+
+function smoothAngle(prev, current, alpha=SMOOTHING) {
+  if(prev === null) return current;
+  return alpha*prev + (1-alpha)*current;
+}
+
+// ==================== DRAW CONNECTIONS ====================
+function drawKeypoints(keypoints) {
+  keypoints.forEach(kp => {
+    if(kp.score > 0.5) {
+      ctx.beginPath();
+      ctx.arc(kp.x, kp.y, 5, 0, 2*Math.PI);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+    }
+  });
+}
+
+// ==================== PROCESS LEFT & RIGHT ====================
+function processPose(pose) {
+  const keypoints = pose.keypoints;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Landmark indices (MoveNet / BlazePose)
+  const leftShoulder = [keypoints[5].x, keypoints[5].y];
+  const leftElbow = [keypoints[7].x, keypoints[7].y];
+  const leftWrist = [keypoints[9].x, keypoints[9].y];
+
+  const rightShoulder = [keypoints[6].x, keypoints[6].y];
+  const rightElbow = [keypoints[8].x, keypoints[8].y];
+  const rightWrist = [keypoints[10].x, keypoints[10].y];
+
+  // Calculate angles
+  let leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+  let leftShoulderAngle = calculateAngle(keypoints[11], leftShoulder, leftElbow);
+  let rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+  let rightShoulderAngle = calculateAngle(keypoints[12], rightShoulder, rightElbow);
+
+  // Smooth angles
+  leftElbowAngle = smoothAngle(prevAngles.leftElbow, leftElbowAngle);
+  leftShoulderAngle = smoothAngle(prevAngles.leftShoulder, leftShoulderAngle);
+  rightElbowAngle = smoothAngle(prevAngles.rightElbow, rightElbowAngle);
+  rightShoulderAngle = smoothAngle(prevAngles.rightShoulder, rightShoulderAngle);
+
+  prevAngles = { leftElbow: leftElbowAngle, leftShoulder: leftShoulderAngle,
+                 rightElbow: rightElbowAngle, rightShoulder: rightShoulderAngle };
+
+  // Draw angles on canvas
+  ctx.fillStyle = 'yellow';
+  ctx.font = '18px Arial';
+  ctx.fillText(`L Shoulder: ${Math.round(leftShoulderAngle)}째`, 20, 40);
+  ctx.fillText(`L Elbow: ${Math.round(leftElbowAngle)}째`, 20, 70);
+  ctx.fillText(`R Shoulder: ${Math.round(rightShoulderAngle)}째`, w-180, 40);
+  ctx.fillText(`R Elbow: ${Math.round(rightElbowAngle)}째`, w-180, 70);
+
+  drawKeypoints(keypoints);
+}
+
+// ==================== VIDEO SETUP ====================
+async function setupCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+  return new Promise(resolve => {
+    video.onloadedmetadata = () => { resolve(video); };
+  });
+}
+
+// ==================== MAIN ====================
+async function main() {
+  await setupCamera();
+  const detectorConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING };
+  detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
+
+  async function renderLoop() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    const poses = await detector.estimatePoses(video);
+    if(poses.length > 0) {
+      processPose(poses[0]);
+    }
+
+    requestAnimationFrame(renderLoop);
+  }
+
+  renderLoop();
+}
+
+main();
+</script>
+</body>
+</html>
