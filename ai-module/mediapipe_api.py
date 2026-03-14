@@ -3,220 +3,202 @@ from flask_cors import CORS
 import cv2
 import mediapipe as mp
 import numpy as np
-import sqlite3
-import os
 import base64
-from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # Allow connections from your website
+CORS(app)
 
-# ================== IMPORTS ==================
+# ================== MediaPipe Setup - للإصدار 0.10.32 ==================
+# استخدام tasks API بدلاً من solutions
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-# ================== CONFIG ==================
-DB_PATH = "C:\\Users\\physio-gamification-project-grad\\physio-gamification-project\\rehabdatabase.db"
-POSE_MODEL_PATH = "C:\\Users\\Dell\\physio-gamification-project-grad\\pose_landmarker_full.task"
-HAND_MODEL_PATH = "C:\\Users\\Dell\\physio-gamification-project-grad\\hand_landmarker.task"
-
-# ================== MODELS ==================
+# إعدادات Pose
 BaseOptions = python.BaseOptions
-VisionRunningMode = vision.RunningMode
-
-# POSE SETUP
 PoseLandmarker = vision.PoseLandmarker
 PoseLandmarkerOptions = vision.PoseLandmarkerOptions
+VisionRunningMode = vision.RunningMode
 
 pose_options = PoseLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=POSE_MODEL_PATH),
-    running_mode=VisionRunningMode.VIDEO,
+    base_options=BaseOptions(model_asset_path='pose_landmarker.task'),
+    running_mode=VisionRunningMode.IMAGE,
     num_poses=1
 )
 
-# HAND SETUP
+# إعدادات Hands
 HandLandmarker = vision.HandLandmarker
 HandLandmarkerOptions = vision.HandLandmarkerOptions
 
 hand_options = HandLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=HAND_MODEL_PATH),
-    running_mode=VisionRunningMode.VIDEO,
+    base_options=BaseOptions(model_asset_path='hand_landmarker.task'),
+    running_mode=VisionRunningMode.IMAGE,
     num_hands=2
 )
 
-# ================== DATABASE FUNCTIONS ==================
-def get_injured_hand(user_id):
-    """Get the injured hand for a patient"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT affected_hand FROM patients WHERE user_id = ?", 
-        (user_id,)
-    )
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else 'right'
-
-def save_session_results(user_id, measurements):
-    """Save session results to database"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Update muscle strength
-    cursor.execute("""
-        UPDATE patients
-        SET 
-            shoulder_strength = ?,
-            elbow_strength = ?,
-            grip_strength = ?
-        WHERE user_id = ?
-    """, (
-        measurements.get('shoulder', 0),
-        measurements.get('elbow', 0),
-        measurements.get('grip', 0),
-        user_id
-    ))
-    
-    # Record new session
-    cursor.execute("""
-        INSERT INTO game_sessions 
-        (patient_id, game_type, score, duration, accuracy, completed)
-        VALUES (
-            (SELECT id FROM patients WHERE user_id = ?),
-            ?, ?, ?, ?, ?
-        )
-    """, (
-        user_id,
-        measurements.get('game_type', 'assessment'),
-        measurements.get('score', 0),
-        measurements.get('duration', 0),
-        measurements.get('accuracy', 0),
-        1
-    ))
-    
-    conn.commit()
-    conn.close()
-
-# ================== ANGLE FUNCTIONS ==================
-def calculate_angle(a, b, c, w, h):
+# ================== Angle Calculation ==================
+def calculate_angle(a, b, c):
     """Calculate angle between three points"""
-    a = np.array([a.x * w, a.y * h])
-    b = np.array([b.x * w, b.y * h])
-    c = np.array([c.x * w, c.y * h])
-
+    a = np.array([a.x, a.y])
+    b = np.array([b.x, b.y])
+    c = np.array([c.x, c.y])
+    
     ba = a - b
     bc = c - b
-
+    
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
-
+    
     angle = np.arccos(cosine_angle)
     return np.degrees(angle)
 
-def calculate_elbow_angle(shoulder, elbow, wrist, w, h):
-    """Calculate elbow flexion angle"""
-    shoulder = np.array([shoulder.x * w, shoulder.y * h])
-    elbow = np.array([elbow.x * w, elbow.y * h])
-    wrist = np.array([wrist.x * w, wrist.y * h])
+def draw_landmarks(frame, landmarks, connections, color=(0, 255, 0), thickness=2):
+    """رسم النقاط والخطوط على الصورة"""
+    h, w, _ = frame.shape
+    
+    # رسم الخطوط
+    for connection in connections:
+        start_idx, end_idx = connection
+        start = landmarks[start_idx]
+        end = landmarks[end_idx]
+        
+        x1, y1 = int(start.x * w), int(start.y * h)
+        x2, y2 = int(end.x * w), int(end.y * h)
+        
+        cv2.line(frame, (x1, y1), (x2, y2), color, thickness)
+    
+    # رسم النقاط
+    for lm in landmarks:
+        x, y = int(lm.x * w), int(lm.y * h)
+        cv2.circle(frame, (x, y), 4, (0, 0, 255), -1)
 
-    upper_arm = shoulder - elbow
-    forearm = wrist - elbow
-
-    cosine_angle = np.dot(upper_arm, forearm) / (
-        np.linalg.norm(upper_arm) * np.linalg.norm(forearm)
-    )
-
-    cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
-    angle = np.arccos(cosine_angle)
-    return np.degrees(angle)
-
-# ================== API ENDPOINTS ==================
-
-@app.route('/api/analyze/frame', methods=['POST'])
-def analyze_frame():
-    """Analyze a single video frame (for real-time use)"""
+# ================== API Endpoints ==================
+@app.route('/api/process-video', methods=['POST'])
+def process_video():
+    """Process video frame and return annotated image"""
     try:
+        # Receive frame
         data = request.json
-        user_id = data.get('user_id')
-        frame_data = data.get('frame')  # base64 encoded frame
+        frame_data = data.get('frame')
+        injured_hand = data.get('injured_hand', 'right')
         
         # Convert base64 to image
         frame_bytes = base64.b64decode(frame_data.split(',')[1])
         nparr = np.frombuffer(frame_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
-        h, w, _ = frame.shape
+        # Convert to RGB for MediaPipe
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
         
-        # Analyze image
-        with PoseLandmarker.create_from_options(pose_options) as pose_landmarker:
-            pose_result = pose_landmarker.detect(mp_image)
-            
-            if not pose_result.pose_landmarks:
-                return jsonify({'success': False, 'message': 'No pose detected'})
-            
-            landmarks = pose_result.pose_landmarks[0]
-            
-            # Calculate angles
-            injured_hand = get_injured_hand(user_id)
-            
-            if injured_hand == 'left':
-                elbow_angle = calculate_elbow_angle(
-                    landmarks[11], landmarks[13], landmarks[15], w, h
-                )
-                shoulder_angle = calculate_angle(
-                    landmarks[23], landmarks[11], landmarks[13], w, h
-                )
-            else:
-                elbow_angle = calculate_elbow_angle(
-                    landmarks[12], landmarks[14], landmarks[16], w, h
-                )
-                shoulder_angle = calculate_angle(
-                    landmarks[24], landmarks[12], landmarks[14], w, h
-                )
-            
-            return jsonify({
-                'success': True,
-                'shoulder_angle': float(shoulder_angle),
-                'elbow_angle': float(elbow_angle),
-                'injured_hand': injured_hand
-            })
-            
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/analyze/session', methods=['POST'])
-def analyze_session():
-    """Analyze a complete session (after patient finishes)"""
-    try:
-        data = request.json
-        user_id = data.get('user_id')
-        game_type = data.get('game_type', 'assessment')
-        measurements = data.get('measurements', {})
+        h, w, _ = frame.shape
         
-        # Save results to database
-        save_session_results(user_id, measurements)
+        # Initialize variables
+        shoulder_angle = 0
+        elbow_angle = 0
+        grip_percent = 0
+        
+        # ================== POSE DETECTION ==================
+        with PoseLandmarker.create_from_options(pose_options) as landmarker:
+            pose_result = landmarker.detect(mp_image)
+            
+            if pose_result.pose_landmarks:
+                landmarks = pose_result.pose_landmarks[0]
+                
+                # رسم نقاط الجسم
+                pose_connections = [
+                    (11, 12), (11, 13), (13, 15),  # الذراع اليسرى
+                    (12, 14), (14, 16),             # الذراع اليمنى
+                    (11, 23), (12, 24)              # الاتصال بالجسم
+                ]
+                draw_landmarks(frame, landmarks, pose_connections, (0, 255, 255))
+                
+                # Calculate angles for injured side
+                if injured_hand == 'left':
+                    shoulder_angle = calculate_angle(
+                        landmarks[23], landmarks[11], landmarks[13]
+                    )
+                    elbow_angle = calculate_angle(
+                        landmarks[11], landmarks[13], landmarks[15]
+                    )
+                    cv2.putText(frame, f"L Shoulder: {int(shoulder_angle)}°",
+                              (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    cv2.putText(frame, f"L Elbow: {int(elbow_angle)}°",
+                              (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    
+                else:  # right
+                    shoulder_angle = calculate_angle(
+                        landmarks[24], landmarks[12], landmarks[14]
+                    )
+                    elbow_angle = calculate_angle(
+                        landmarks[12], landmarks[14], landmarks[16]
+                    )
+                    cv2.putText(frame, f"R Shoulder: {int(shoulder_angle)}°",
+                              (w - 200, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    cv2.putText(frame, f"R Elbow: {int(elbow_angle)}°",
+                              (w - 200, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+        
+        # ================== HAND DETECTION ==================
+        with HandLandmarker.create_from_options(hand_options) as landmarker:
+            hand_result = landmarker.detect(mp_image)
+            
+            if hand_result.hand_landmarks:
+                for hand_landmarks, handedness in zip(hand_result.hand_landmarks, 
+                                                      hand_result.handedness):
+                    
+                    # رسم نقاط اليد
+                    hand_connections = [
+                        (0,1),(1,2),(2,3),(3,4),      # الإبهام
+                        (0,5),(5,6),(6,7),(7,8),      # السبابة
+                        (0,9),(9,10),(10,11),(11,12), # الوسطى
+                        (0,13),(13,14),(14,15),(15,16), # البنصر
+                        (0,17),(17,18),(18,19),(19,20) # الخنصر
+                    ]
+                    draw_landmarks(frame, hand_landmarks, hand_connections, (0, 255, 0))
+                    
+                    # Calculate grip percentage
+                    hand_label = handedness[0].category_name.lower()
+                    
+                    # Average finger angles for grip
+                    angles = []
+                    for tip, base in [(8,5), (12,9), (16,13), (20,17)]:
+                        a = hand_landmarks[0]   # wrist
+                        b = hand_landmarks[base]
+                        c = hand_landmarks[tip]
+                        angle = calculate_angle(a, b, c)
+                        angles.append(angle)
+                    
+                    avg_angle = np.mean(angles) if angles else 90
+                    grip_percent = int((avg_angle - 60) / (180 - 60) * 100)
+                    grip_percent = max(0, min(100, grip_percent))
+                    
+                    # Display grip percentage
+                    pos_x = 20 if hand_label == 'left' else w - 200
+                    cv2.putText(frame, f"Grip: {grip_percent}%",
+                              (pos_x, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        
+        # Convert processed image to base64
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame_base64 = base64.b64encode(buffer).decode('utf-8')
         
         return jsonify({
             'success': True,
-            'message': 'Session saved successfully'
+            'processed_frame': f'data:image/jpeg;base64,{frame_base64}',
+            'shoulder_angle': int(shoulder_angle),
+            'elbow_angle': int(elbow_angle),
+            'grip_percent': int(grip_percent)
         })
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/patient/hand/<int:user_id>', methods=['GET'])
-def get_patient_hand(user_id):
-    """Get the injured hand for a patient"""
-    try:
-        hand = get_injured_hand(user_id)
-        return jsonify({
-            'success': True,
-            'affected_hand': hand
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'ok', 'message': 'AI Service is running'})
 
 if __name__ == '__main__':
-    app.run(port=5001, debug=True)  # Use different port from your website (5000)
+    print("✅ Starting MediaPipe API Server on port 5001...")
+    print("✅ Using MediaPipe Tasks API (compatible with v0.10.32)")
+    print("✅ Available endpoints:")
+    print("   - POST /api/process-video")
+    print("   - GET  /api/health")
+    app.run(port=5001, debug=True)
