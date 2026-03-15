@@ -35,3 +35,7 @@ http://127.0.0.1:8080
 ## 3. View the DataBase inside VScode:
 
 ctrl + shift + p 🡢 sqlite: open database 🡢 choose database
+
+# to activate environment for website and run django
+1) venv\Scripts\activate
+2) python manage.py runserver 
