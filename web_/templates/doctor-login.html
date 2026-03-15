@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Login - Rehabilitation System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .login-page {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .login-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <div class="login-icon">👨‍⚕️</div>
+            <h2 class="login-title">Doctor Login</h2>
+            <p class="login-subtitle">Enter your credentials to access the dashboard</p>
+            
+            <div class="input-group">
+                <label class="input-label">Email</label>
+                <input type="email" class="input-field" id="doctorEmail" placeholder="Enter your email">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Doctor ID</label>
+                <input type="text" class="input-field" id="doctorId" placeholder="Enter your doctor ID">
+            </div>
+            
+            <div class="error-message" id="errorMessage" style="color: #ef4444; display: none;"></div>
+            <div class="loading" id="loading" style="display: none;">Logging in...</div>
+            
+            <button class="login-btn" onclick="loginDoctor()">Login to Dashboard</button>
+            
+            <button class="back-btn" onclick="window.location.href='{% url 'index' %}'" style="margin-top: 20px; padding: 12px 20px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; cursor: pointer;">
+                <span>←</span> Back to Main Menu
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

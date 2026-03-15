@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamer Login - Rehabilitation System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .login-page {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .login-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .input-field:focus {
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <div class="login-icon">🎮</div>
+            <h2 class="login-title">Gamer Login</h2>
+            <p class="login-subtitle">Enter your credentials to start playing</p>
+            
+            <div class="input-group">
+                <label class="input-label">Player Name</label>
+                <input type="text" class="input-field" id="playerName" placeholder="Enter your name">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Player ID</label>
+                <input type="text" class="input-field" id="playerId" placeholder="Enter your player ID">
+            </div>
+            
+            <div class="error-message" id="errorMessage" style="color: #ef4444; display: none;"></div>
+            <div class="loading" id="loading" style="display: none;">Logging in...</div>
+            
+            <button class="login-btn" onclick="loginGamer()">
+                <span>🎮</span> Start Playing
+            </button>
+            
+            <button class="back-btn" onclick="window.location.href='{% url 'index' %}'" style="margin-top: 20px; padding: 12px 20px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; cursor: pointer;">
+                <span>←</span> Back to Main Menu
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

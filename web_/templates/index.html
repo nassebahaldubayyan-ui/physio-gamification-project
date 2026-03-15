@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rehabilitation System - Welcome</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="welcome-page">
+        <div class="floating-shapes">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+        </div>
+        
+        <div class="welcome-container">
+            <h1 class="welcome-title">WELCOME</h1>
+            <p class="welcome-subtitle">LOGIN AS</p>
+            
+            <div class="role-buttons">
+                <button class="role-btn patient-btn" onclick="window.location.href='{% url 'gamer_login' %}'">
+                    <span>A GAMER</span>
+                    <span style="font-size: 14px; opacity: 0.8;">Patient Interface</span>
+                </button>
+                
+                <button class="role-btn doctor-btn" onclick="window.location.href='{% url 'doctor_login' %}'">
+                    <span>A DOCTOR</span>
+                    <span style="font-size: 14px; opacity: 0.8;">Therapist Interface</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

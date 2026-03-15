@@ -1,0 +1,737 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Physio Assessment - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .assessment-container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h2 {
+            color: #1e293b;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        
+        .camera-section {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 20px;
+            border: 3px solid #3b82f6;
+            margin-bottom: 20px;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        
+        video, canvas {
+            transform: scaleX(-1);
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        
+        canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .angle-display {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .angle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .angle-item:last-child {
+            border-bottom: none;
+        }
+        
+        .angle-label {
+            color: #64748b;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .angle-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .angle-unit {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-left: 5px;
+        }
+        
+        .feedback-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .feedback-text {
+            color: #166534;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .hand-info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .hand-badge {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .btn-back {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-save {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .instructions {
+            background: #f0f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .instructions h3 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .instructions li {
+            color: #475569;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+        }
+        
+        .instructions li i {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .angle-display {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="assessment-container">
+        <h2>🦾 Real-Time Physio Assessment</h2>
+        <p class="subtitle">AI-powered movement analysis using TensorFlow.js</p>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3><i class="fas fa-list-check"></i> How to use:</h3>
+            <ul>
+                <li>
+                    <i class="fas fa-camera"></i>
+                    Position yourself so the camera sees your full upper body
+                </li>
+                <li>
+                    <i class="fas fa-person"></i>
+                    Stand facing the camera with arms visible
+                </li>
+                <li>
+                    <i class="fas fa-chart-line"></i>
+                    Watch your joint angles in real-time
+                </li>
+                <li>
+                    <i class="fas fa-hand"></i>
+                    Focus on your affected side (based on your profile)
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Camera Section -->
+        <div class="camera-section">
+            <div class="video-wrapper">
+                <video id="video" width="640" height="480" autoplay muted></video>
+                <canvas id="canvas" width="640" height="480"></canvas>
+            </div>
+        </div>
+        
+        <!-- Injured Hand Info -->
+        <div class="hand-info" id="handInfo">
+            <div class="hand-badge" id="handBadge">Right Hand</div>
+            <div>
+                <strong>Targeted Side</strong>
+                <p style="color: #64748b; font-size: 14px;">Focus on your affected arm during assessment</p>
+            </div>
+        </div>
+        
+        <!-- Angle Measurements -->
+        <div class="angle-display">
+            <div class="angle-item">
+                <span class="angle-label">
+                    <i class="fas fa-arrow-up"></i> Left Shoulder
+                </span>
+                <span>
+                    <span class="angle-value" id="leftShoulderAngle">0</span>
+                    <span class="angle-unit">°</span>
+                </span>
+            </div>
+            <div class="angle-item">
+                <span class="angle-label">
+                    <i class="fas fa-arrow-left"></i> Left Elbow
+                </span>
+                <span>
+                    <span class="angle-value" id="leftElbowAngle">0</span>
+                    <span class="angle-unit">°</span>
+                </span>
+            </div>
+            <div class="angle-item">
+                <span class="angle-label">
+                    <i class="fas fa-arrow-up"></i> Right Shoulder
+                </span>
+                <span>
+                    <span class="angle-value" id="rightShoulderAngle">0</span>
+                    <span class="angle-unit">°</span>
+                </span>
+            </div>
+            <div class="angle-item">
+                <span class="angle-label">
+                    <i class="fas fa-arrow-left"></i> Right Elbow
+                </span>
+                <span>
+                    <span class="angle-value" id="rightElbowAngle">0</span>
+                    <span class="angle-unit">°</span>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Feedback Box -->
+        <div class="feedback-box" id="feedbackBox">
+            <div class="feedback-text" id="feedbackText">
+                <i class="fas fa-info-circle"></i> 
+                Position yourself in front of the camera to begin
+            </div>
+        </div>
+        
+        <!-- Button Group -->
+        <div class="button-group">
+            <button class="btn-back" onclick="goBack()">
+                <span>←</span> Back to Dashboard
+            </button>
+            <button class="btn-save" onclick="saveAssessment()" id="saveBtn">
+                <i class="fas fa-save"></i> Save Assessment Data
+            </button>
+        </div>
+    </div>
+
+    <!-- TensorFlow and Pose Detection Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@latest"></script>
+    
+    <script>
+        // ==================== GLOBAL VARIABLES ====================
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let detector;
+        let prevAngles = {
+            leftShoulder: null,
+            leftElbow: null,
+            rightShoulder: null,
+            rightElbow: null
+        };
+        const SMOOTHING = 0.7;
+        
+        // For saving assessment data
+        let assessmentData = [];
+        let isRecording = false;
+        let recordingInterval;
+
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const userType = localStorage.getItem('userType');
+        
+        if (!token && userType !== 'patient') {
+            window.location.href = "{% url 'gamer_login' %}";
+        }
+
+        // Set injured hand from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const injuredHand = localStorage.getItem('injuredHand') || 'Right';
+            document.getElementById('handBadge').textContent = injuredHand + ' Hand';
+        });
+
+        // ==================== ANGLE CALCULATION ====================
+        function calculateAngle(a, b, c) {
+            const ba = [a[0]-b[0], a[1]-b[1]];
+            const bc = [c[0]-b[0], c[1]-b[1]];
+            const dot = ba[0]*bc[0] + ba[1]*bc[1];
+            const normBA = Math.sqrt(ba[0]**2 + ba[1]**2);
+            const normBC = Math.sqrt(bc[0]**2 + bc[1]**2);
+            
+            if (normBA === 0 || normBC === 0) return 0;
+            
+            let cosine = dot / (normBA * normBC);
+            cosine = Math.min(Math.max(cosine, -1), 1);
+            return Math.acos(cosine) * (180 / Math.PI);
+        }
+
+        function smoothAngle(prev, current, alpha = SMOOTHING) {
+            if (prev === null) return current;
+            return alpha * prev + (1 - alpha) * current;
+        }
+
+        // ==================== DRAW CONNECTIONS ====================
+        function drawKeypoints(keypoints) {
+            keypoints.forEach(kp => {
+                if (kp.score > 0.5) {
+                    ctx.beginPath();
+                    ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+                }
+            });
+        }
+
+        // ==================== UPDATE UI ANGLES ====================
+        function updateUIAngles(angles) {
+            document.getElementById('leftShoulderAngle').textContent = Math.round(angles.leftShoulder);
+            document.getElementById('leftElbowAngle').textContent = Math.round(angles.leftElbow);
+            document.getElementById('rightShoulderAngle').textContent = Math.round(angles.rightShoulder);
+            document.getElementById('rightElbowAngle').textContent = Math.round(angles.rightElbow);
+            
+            // Update feedback based on angles
+            updateFeedback(angles);
+        }
+
+        function updateFeedback(angles) {
+            const injuredHand = localStorage.getItem('injuredHand') || 'Right';
+            const feedbackEl = document.getElementById('feedbackText');
+            
+            if (injuredHand === 'Right') {
+                if (angles.rightShoulder > 90) {
+                    feedbackEl.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Good shoulder elevation!';
+                } else if (angles.rightShoulder > 45) {
+                    feedbackEl.innerHTML = '<i class="fas fa-arrow-up" style="color: #f59e0b;"></i> Raise your arm higher';
+                } else {
+                    feedbackEl.innerHTML = '<i class="fas fa-hand" style="color: #3b82f6;"></i> Focus on your right arm movement';
+                }
+            } else {
+                if (angles.leftShoulder > 90) {
+                    feedbackEl.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Good shoulder elevation!';
+                } else if (angles.leftShoulder > 45) {
+                    feedbackEl.innerHTML = '<i class="fas fa-arrow-up" style="color: #f59e0b;"></i> Raise your arm higher';
+                } else {
+                    feedbackEl.innerHTML = '<i class="fas fa-hand" style="color: #3b82f6;"></i> Focus on your left arm movement';
+                }
+            }
+        }
+
+        // ==================== PROCESS POSE ====================
+        function processPose(pose) {
+            const keypoints = pose.keypoints;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Check if we have enough keypoints
+            if (keypoints.length < 13) return;
+
+            // Landmark indices (MoveNet / BlazePose)
+            const leftShoulder = [keypoints[5].x, keypoints[5].y];
+            const leftElbow = [keypoints[7].x, keypoints[7].y];
+            const leftWrist = [keypoints[9].x, keypoints[9].y];
+
+            const rightShoulder = [keypoints[6].x, keypoints[6].y];
+            const rightElbow = [keypoints[8].x, keypoints[8].y];
+            const rightWrist = [keypoints[10].x, keypoints[10].y];
+            
+            const leftHip = [keypoints[11].x, keypoints[11].y];
+            const rightHip = [keypoints[12].x, keypoints[12].y];
+
+            // Calculate angles
+            let leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+            let leftShoulderAngle = calculateAngle(leftHip, leftShoulder, leftElbow);
+            let rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist);
+            let rightShoulderAngle = calculateAngle(rightHip, rightShoulder, rightElbow);
+
+            // Smooth angles
+            leftElbowAngle = smoothAngle(prevAngles.leftElbow, leftElbowAngle);
+            leftShoulderAngle = smoothAngle(prevAngles.leftShoulder, leftShoulderAngle);
+            rightElbowAngle = smoothAngle(prevAngles.rightElbow, rightElbowAngle);
+            rightShoulderAngle = smoothAngle(prevAngles.rightShoulder, rightShoulderAngle);
+
+            // Save to prevAngles
+            prevAngles = { 
+                leftElbow: leftElbowAngle, 
+                leftShoulder: leftShoulderAngle,
+                rightElbow: rightElbowAngle, 
+                rightShoulder: rightShoulderAngle 
+            };
+
+            // Update UI
+            updateUIAngles({
+                leftShoulder: leftShoulderAngle,
+                leftElbow: leftElbowAngle,
+                rightShoulder: rightShoulderAngle,
+                rightElbow: rightElbowAngle
+            });
+
+            // Draw keypoints
+            drawKeypoints(keypoints);
+            
+            // Draw connections (optional)
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            
+            // Draw left arm
+            ctx.beginPath();
+            ctx.moveTo(leftShoulder[0], leftShoulder[1]);
+            ctx.lineTo(leftElbow[0], leftElbow[1]);
+            ctx.lineTo(leftWrist[0], leftWrist[1]);
+            ctx.stroke();
+            
+            // Draw right arm
+            ctx.beginPath();
+            ctx.moveTo(rightShoulder[0], rightShoulder[1]);
+            ctx.lineTo(rightElbow[0], rightElbow[1]);
+            ctx.lineTo(rightWrist[0], rightWrist[1]);
+            ctx.stroke();
+            
+            // Record data if recording
+            if (isRecording) {
+                assessmentData.push({
+                    timestamp: new Date().toISOString(),
+                    leftShoulder: leftShoulderAngle,
+                    leftElbow: leftElbowAngle,
+                    rightShoulder: rightShoulderAngle,
+                    rightElbow: rightElbowAngle
+                });
+            }
+        }
+
+        // ==================== VIDEO SETUP ====================
+        async function setupCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 640, 
+                        height: 480,
+                        facingMode: 'user'
+                    } 
+                });
+                video.srcObject = stream;
+                return new Promise(resolve => {
+                    video.onloadedmetadata = () => { resolve(video); };
+                });
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                document.getElementById('feedbackText').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Camera access denied. Please allow camera access.';
+                throw error;
+            }
+        }
+
+        // ==================== SAVE ASSESSMENT ====================
+        function saveAssessment() {
+            if (assessmentData.length === 0) {
+                alert('No assessment data to save. Please wait for angles to be detected.');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
+            // Calculate summary statistics
+            const avgLeftShoulder = assessmentData.reduce((sum, d) => sum + d.leftShoulder, 0) / assessmentData.length;
+            const avgLeftElbow = assessmentData.reduce((sum, d) => sum + d.leftElbow, 0) / assessmentData.length;
+            const avgRightShoulder = assessmentData.reduce((sum, d) => sum + d.rightShoulder, 0) / assessmentData.length;
+            const avgRightElbow = assessmentData.reduce((sum, d) => sum + d.rightElbow, 0) / assessmentData.length;
+            
+            const summary = {
+                patientId: localStorage.getItem('patientId'),
+                timestamp: new Date().toISOString(),
+                duration: assessmentData.length / 10, // approx seconds (10fps)
+                averages: {
+                    leftShoulder: Math.round(avgLeftShoulder),
+                    leftElbow: Math.round(avgLeftElbow),
+                    rightShoulder: Math.round(avgRightShoulder),
+                    rightElbow: Math.round(avgRightElbow)
+                },
+                rawData: assessmentData.slice(-100) // last 100 samples
+            };
+            
+            // Save to localStorage for now (in production, send to server)
+            localStorage.setItem('lastAssessment', JSON.stringify(summary));
+            
+            // Simulate API call
+            setTimeout(() => {
+                showNotification('Assessment data saved successfully!', 'success');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Assessment Data';
+            }, 1500);
+        }
+
+        // ==================== MAIN ====================
+        async function main() {
+            try {
+                await setupCamera();
+                
+                // Load pose detection model
+                const detectorConfig = { 
+                    modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING 
+                };
+                detector = await poseDetection.createDetector(
+                    poseDetection.SupportedModels.MoveNet, 
+                    detectorConfig
+                );
+                
+                document.getElementById('feedbackText').innerHTML = 
+                    '<i class="fas fa-check-circle" style="color: #10b981;"></i> Model loaded! Position yourself in frame.';
+                
+                // Start recording assessment data automatically
+                isRecording = true;
+
+                async function renderLoop() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    try {
+                        const poses = await detector.estimatePoses(video);
+                        if (poses.length > 0) {
+                            processPose(poses[0]);
+                        } else {
+                            document.getElementById('feedbackText').innerHTML = 
+                                '<i class="fas fa-user" style="color: #f59e0b;"></i> No pose detected. Stand in frame.';
+                        }
+                    } catch (error) {
+                        console.error('Error estimating pose:', error);
+                    }
+
+                    requestAnimationFrame(renderLoop);
+                }
+
+                renderLoop();
+                
+            } catch (error) {
+                console.error('Error in main:', error);
+            }
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function goBack() {
+            if (confirm('Are you sure? Your assessment data will be saved.')) {
+                // Stop recording
+                isRecording = false;
+                
+                // Stop camera
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
+                
+                window.location.href = "{% url 'patient_dashboard' %}";
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+            };
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Start the application
+        main();
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+    
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</body>
+</html>
