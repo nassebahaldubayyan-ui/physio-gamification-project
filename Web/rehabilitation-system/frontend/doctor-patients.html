@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients List - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .doctor-info {
+            text-align: center;
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+        }
+        
+        .doctor-info h4 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .doctor-info p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            flex: 1;
+        }
+        
+        .sidebar li {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+        }
+        
+        .sidebar li.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #60a5fa;
+            font-weight: 600;
+        }
+        
+        .sidebar li:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-bottom p {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+        
+        .sidebar-bottom p:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h2 {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .search-bar {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            width: 300px;
+        }
+        
+        .search-bar input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 16px;
+        }
+        
+        .search-bar span {
+            color: #94a3b8;
+        }
+        
+        .patients-table {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 15px 10px;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover td {
+            background: #f8fafc;
+        }
+        
+        .patient-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .btn-details {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-details:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-back {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="doctor-info">
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Therapist • #TH001</p>
+            </div>
+
+            <ul>
+                <li onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
+                <li class="active"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='doctor-messages.html'"><span>💬</span> Messages</li>
+                <li onclick="window.location.href='profile.html'"><span>👤</span> User Profile</li>
+            </ul>
+
+            <div class="sidebar-bottom">
+                <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
+                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Patients List</h2>
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search patients..." id="searchPatient" onkeyup="searchPatients()">
+                </div>
+            </div>
+
+            <div class="patients-table">
+                <table id="patientsTable">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Age</th>
+                            <th>Condition</th>
+                            <th>Status</th>
+                            <th>Last Session</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody">
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">A</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Ali Ahmed</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT001</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>8 years</td>
+                            <td>Motor Disability</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>2 hours ago</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT001')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #48bb78, #68d391);">S</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Sara Khaled</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT002</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>7 years</td>
+                            <td>Arm Weakness</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>5 hours ago</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT002')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #ed8936, #f6ad55);">O</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Omar Hassan</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT003</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>9 years</td>
+                            <td>Movement Disorder</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>Yesterday</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT003')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="btn-back" onclick="window.location.href='doctor.html'">
+                <span>←</span> Back to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || !user.id || user.role !== 'doctor') {
+            window.location.href = 'doctor-login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+            const doctorId = localStorage.getItem('doctorId') || 'TH001';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
+            
+            document.getElementById('doctorName').textContent = doctorName;
+            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
+        });
+
+        function searchPatients() {
+            const input = document.getElementById('searchPatient');
+            const filter = input.value.toLowerCase();
+            const rows = document.getElementById('patientsTableBody').getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const patientName = row.cells[0]?.textContent.toLowerCase() || '';
+                if (patientName.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        function viewPatientDetails(patientId) {
+            window.location.href = `doctor-patient-details.html?patient=${patientId}`;
+        }
+        
+        function logoutDoctor() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
