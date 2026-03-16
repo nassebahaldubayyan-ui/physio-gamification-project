@@ -27,19 +27,19 @@ function goDoctorLogin() {
 // ============================================
 
 function goPatients() {
-    window.location.href = "/doctor/patients/";
+    window.location.href = "/doctor-patients/";
 }
 
 function goPatientDetails(patientId) {
-    window.location.href = `/doctor/patient-details/?patient=${patientId}`;
+    window.location.href = `/doctor-patient-details/?patient=${patientId}`;
 }
 
 function goDoctorMessages() {
-    window.location.href = "/doctor/messages/";
+    window.location.href = "/doctor-messages/";
 }
 
 function goPerformance() {
-    window.location.href = "/doctor/performance/";
+    window.location.href = "/doctor-performance/";
 }
 
 function goDoctorProfile() {
@@ -55,17 +55,15 @@ function goDoctorSettings() {
 // ============================================
 
 function goGame(gameNumber) {
-    if (gameNumber === 1) window.location.href = "/games/catching-stars/";
-    else if (gameNumber === 2) window.location.href = "/games/matching/";
-    else if (gameNumber === 3) window.location.href = "/games/catching-objects/";
+    window.location.href = `/patient-game/?game=${gameNumber}`;
 }
 
 function goResult() {
-    window.location.href = "/patient/result/";
+    window.location.href = "/patient-result/";
 }
 
 function goChat() {
-    window.location.href = "/patient/chat/";
+    window.location.href = "/patient-chat/";
 }
 
 function goPatientProfile() {
@@ -76,40 +74,9 @@ function goPatientSettings() {
     window.location.href = "/settings/";
 }
 
-// ============================================
-// PATIENT LOGIN FUNCTION
-// ============================================
-
-function loginGamer() {
-    const name = document.getElementById('playerName')?.value.trim();
-    const id = document.getElementById('playerId')?.value.trim();
-    
-    if (!name || !id) {
-        alert('Please enter both name and player ID');
-        return;
-    }
-    
-    // Valid patients database (simulated)
-    const validPlayers = {
-        'PT001': { name: 'Ali', level: 4, condition: 'Motor Disability' },
-        'PT002': { name: 'Sara', level: 3, condition: 'Arm Weakness' },
-        'PT003': { name: 'Omar', level: 5, condition: 'Movement Disorder' }
-    };
-    
-    if (validPlayers[id]) {
-        localStorage.setItem('patientName', validPlayers[id].name);
-        localStorage.setItem('patientId', id);
-        localStorage.setItem('patientLevel', validPlayers[id].level);
-        localStorage.setItem('patientCondition', validPlayers[id].condition);
-        localStorage.setItem('userType', 'patient');
-        window.location.href = '/patient/';
-    } else {
-        alert('Invalid Player ID. Please check and try again.');
-    }
-}
 
 // ============================================
-// DOCTOR LOGIN FUNCTION
+// DOCTOR LOGIN FUNCTION (SIMULATED)
 // ============================================
 
 function loginDoctor() {
@@ -117,7 +84,7 @@ function loginDoctor() {
     const id = document.getElementById('doctorId')?.value.trim();
     
     if (!email || !id) {
-        alert('Please enter both email and doctor ID');
+        showNotification('Please enter both email and doctor ID', 'error');
         return;
     }
     
@@ -137,6 +104,7 @@ function loginDoctor() {
         }
     };
     
+    // Verify email matches doctor ID
     if (validDoctors[id] && validDoctors[id].email === email) {
         localStorage.setItem('userType', 'doctor');
         localStorage.setItem('doctorId', id);
@@ -146,7 +114,7 @@ function loginDoctor() {
         localStorage.setItem('doctorPhone', validDoctors[id].phone);
         window.location.href = '/doctor/';
     } else {
-        alert('Invalid credentials. Please check your email and doctor ID.');
+        showNotification('Invalid credentials. Please check your email and doctor ID.', 'error');
     }
 }
 
@@ -178,10 +146,80 @@ function logoutPatient() {
 }
 
 // ============================================
+// MESSAGING SYSTEM
+// ============================================
+
+function sendPatientMessage(patientId, message) {
+    let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
+    
+    if (!conversations[patientId]) {
+        conversations[patientId] = {
+            patientName: localStorage.getItem('patientName') || 'Unknown',
+            patientId: patientId,
+            messages: []
+        };
+    }
+    
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    conversations[patientId].messages.push({
+        sender: 'patient',
+        text: message,
+        time: timeString
+    });
+    
+    localStorage.setItem('conversations', JSON.stringify(conversations));
+    return conversations[patientId];
+}
+
+function sendDoctorReply(patientId, message) {
+    let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
+    
+    if (conversations[patientId]) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
+        conversations[patientId].messages.push({
+            sender: 'doctor',
+            text: message,
+            time: timeString
+        });
+        
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+        return true;
+    }
+    return false;
+}
+
+function getConversations() {
+    return JSON.parse(localStorage.getItem('conversations')) || {};
+}
+
+function getConversation(patientId) {
+    const conversations = getConversations();
+    return conversations[patientId] || null;
+}
+
+// ============================================
 // NOTIFICATION SYSTEM
 // ============================================
 
-function showNotification(message, type = 'info') {
+function showNotification(message, type = 'info', duration = 3000) {
+    // Check if notification container exists, if not create it
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        `;
+        document.body.appendChild(container);
+    }
+    
     const notification = document.createElement('div');
     notification.textContent = message;
     
@@ -193,24 +231,30 @@ function showNotification(message, type = 'info') {
     };
     
     notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
         padding: 15px 25px;
         border-radius: 8px;
         background: ${colors[type] || colors.info};
         color: white;
         font-weight: 500;
-        z-index: 1000;
+        margin-bottom: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         animation: slideIn 0.3s ease;
+        cursor: pointer;
     `;
     
-    document.body.appendChild(notification);
+    notification.onclick = function() {
+        this.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => this.remove(), 300);
+    };
+    
+    container.appendChild(notification);
     
     setTimeout(() => {
-        notification.remove();
-    }, 3000);
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, duration);
 }
 
 // ============================================
@@ -224,7 +268,9 @@ function loadSettings() {
         language: 'en',
         darkMode: false,
         largeText: false,
-        animations: true
+        animations: true,
+        twoFactor: false,
+        sessionTimeout: true
     };
     return settings;
 }
@@ -232,6 +278,30 @@ function loadSettings() {
 function saveSettings(settings) {
     localStorage.setItem('userSettings', JSON.stringify(settings));
     showNotification('Settings saved successfully!', 'success');
+    applySettings(settings);
+}
+
+function applySettings(settings) {
+    // Apply dark mode
+    if (settings.darkMode) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    
+    // Apply large text
+    if (settings.largeText) {
+        document.body.classList.add('large-text');
+    } else {
+        document.body.classList.remove('large-text');
+    }
+    
+    // Apply language
+    if (settings.language === 'ar') {
+        document.documentElement.dir = 'rtl';
+    } else {
+        document.documentElement.dir = 'ltr';
+    }
 }
 
 // ============================================
@@ -248,7 +318,131 @@ function formatTime(date) {
     return new Date(date).toLocaleTimeString('en-US', options);
 }
 
-// Add animation styles
+function formatDateTime(date) {
+    const options = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    return new Date(date).toLocaleDateString('en-US', options);
+}
+
+// ============================================
+// LOCAL STORAGE HELPERS
+// ============================================
+
+function setItem(key, value) {
+    if (typeof value === 'object') {
+        localStorage.setItem(key, JSON.stringify(value));
+    } else {
+        localStorage.setItem(key, value);
+    }
+}
+
+function getItem(key, defaultValue = null) {
+    const value = localStorage.getItem(key);
+    if (value === null) return defaultValue;
+    
+    try {
+        return JSON.parse(value);
+    } catch {
+        return value;
+    }
+}
+
+function removeItem(key) {
+    localStorage.removeItem(key);
+}
+
+function clearStorage() {
+    localStorage.clear();
+}
+
+// ============================================
+// USER TYPE CHECK
+// ============================================
+
+function isDoctor() {
+    return localStorage.getItem('userType') === 'doctor';
+}
+
+function isPatient() {
+    return localStorage.getItem('userType') === 'patient';
+}
+
+function getCurrentUser() {
+    const userType = localStorage.getItem('userType');
+    if (userType === 'doctor') {
+        return {
+            type: 'doctor',
+            id: localStorage.getItem('doctorId'),
+            name: localStorage.getItem('doctorName'),
+            email: localStorage.getItem('doctorEmail'),
+            specialty: localStorage.getItem('doctorSpecialty')
+        };
+    } else if (userType === 'patient') {
+        return {
+            type: 'patient',
+            id: localStorage.getItem('patientId'),
+            name: localStorage.getItem('patientName'),
+            level: localStorage.getItem('patientLevel'),
+            condition: localStorage.getItem('patientCondition')
+        };
+    }
+    return null;
+}
+
+// ============================================
+// API HELPERS (for Django backend)
+// ============================================
+
+async function apiGet(url) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('API GET error:', error);
+        showNotification('Connection error', 'error');
+        return null;
+    }
+}
+
+async function apiPost(url, data) {
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('API POST error:', error);
+        showNotification('Connection error', 'error');
+        return null;
+    }
+}
+
+function getCsrfToken() {
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    return cookieValue || '';
+}
+
+// ============================================
+// ANIMATION STYLES
+// ============================================
+
 (function addAnimationStyles() {
     if (!document.querySelector('#animation-styles')) {
         const style = document.createElement('style');
@@ -259,16 +453,68 @@ function formatTime(date) {
                 to { transform: translateX(0); opacity: 1; }
             }
             
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
             }
             
             @keyframes pulse {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.05); }
             }
+            
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            .dark-mode {
+                background: #1a1a2e !important;
+                color: #e0e0e0 !important;
+            }
+            
+            .large-text {
+                font-size: 120% !important;
+            }
+            
+            .loading-spinner {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255,255,255,.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
         `;
         document.head.appendChild(style);
     }
 })();
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply saved settings
+    const settings = loadSettings();
+    applySettings(settings);
+    
+    // Check if user is logged in for protected pages
+    const protectedPages = ['/patient/', '/doctor/', '/profile/', '/settings/'];
+    const currentPath = window.location.pathname;
+    
+    if (protectedPages.includes(currentPath)) {
+        const user = getCurrentUser();
+        if (!user) {
+            window.location.href = '/';
+        }
+    }
+});

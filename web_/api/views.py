@@ -26,6 +26,9 @@ def settings(request):
 def select_patient(request):
     return render(request, 'select-patient.html')
 
+def edit_profile(request):
+    return render(request, 'edit-profile.html')
+
 # Patient Pages
 def patient_dashboard(request):
     return render(request, 'patient/patient.html')
@@ -39,8 +42,17 @@ def patient_game(request):
 def patient_result(request):
     return render(request, 'patient/patient-result.html')
 
+def patient_progress(request):
+    return render(request, 'patient-progress.html')
+
 def edit_patient_profile(request):
-    return render(request, 'patient/edit-patient-profile.html')
+    return render(request, 'edit-patient-profile.html')
+
+def capture_video(request):
+    return render(request, 'patient/capture-video.html')
+
+def physio_assessment(request):
+    return render(request, 'aitest.html')
 
 # Doctor Pages
 def doctor_dashboard(request):
@@ -59,7 +71,7 @@ def doctor_performance(request):
     return render(request, 'doctor/doctor-performance.html')
 
 def edit_doctor_profile(request):
-    return render(request, 'doctor/edit-doctor-profile.html')
+    return render(request, 'edit-doctor-profile.html')
 
 # Game Pages
 def game_catching_stars(request):
@@ -73,7 +85,6 @@ def game_matching(request):
 
 
 # ========== APIs ==========
-
 @csrf_exempt
 def api_login(request):
     if request.method == "POST":
@@ -82,9 +93,14 @@ def api_login(request):
             email = data.get("email")
             password = data.get("password")
             
+            print(f"Login attempt: {email}")  
+            
             try:
                 user = Users.objects.get(email=email, is_active=True)
+                print(f"User found: {user.name}")  
+                
                 if check_password(password, user.password):
+                    print("Password correct")  
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
@@ -93,15 +109,16 @@ def api_login(request):
                             "name": user.name,
                             "email": user.email,
                             "role": user.role,
-                            "phone": user.phone,
-                            "avatar": user.avatar
                         }
                     })
                 else:
+                    print("Password incorrect")  
                     return JsonResponse({"success": False, "error": "Wrong password"}, status=401)
             except Users.DoesNotExist:
+                print("User not found")  
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
         except Exception as e:
+            print(f"Error: {str(e)}")  
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
@@ -177,24 +194,40 @@ def api_get_messages(request):
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
+@csrf_exempt
+def api_send_message(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            sender_id = data.get("sender_id")
+            receiver_id = data.get("receiver_id")
+            content = data.get("content")
+            
+            if not sender_id or not receiver_id or not content:
+                return JsonResponse({"error": "sender_id, receiver_id and content required"}, status=400)
+            
+            message = Messages.objects.create(
+                sender_id=sender_id,
+                receiver_id=receiver_id,
+                content=content,
+                is_read=False
+            )
+            
+            return JsonResponse({
+                "success": True,
+                "message": "Message sent",
+                "data": {
+                    "id": message.id,
+                    "sender_id": message.sender_id,
+                    "receiver_id": message.receiver_id,
+                    "content": message.content,
+                    "timestamp": message.timestamp.isoformat()
+                }
+            }, status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
 def api_test(request):
     return JsonResponse({"message": "Django backend working"})
-
-
-
-# Add this function to your existing views.py
-
-def capture_video(request):
-    """
-    Page for capturing initial assessment video with AI analysis
-    """
-    return render(request, 'patient/capture-video.html')
-
-
-# Add this function to your existing views.py
-
-def physio_assessment(request):
-    """
-    Page for real-time physio assessment using TensorFlow.js pose detection
-    """
-    return render(request, 'patient/physio-assessment.html')
