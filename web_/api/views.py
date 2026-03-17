@@ -2,12 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Users, Messages, Patient
-from .serializers import PatientSerializer
+from .models import Users, Messages
 import json
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 # ========== HTML PAGES ==========
 
@@ -30,9 +26,6 @@ def settings(request):
 def select_patient(request):
     return render(request, 'select-patient.html')
 
-def edit_profile(request):
-    return render(request, 'edit-profile.html')
-
 # Patient Pages
 def patient_dashboard(request):
     return render(request, 'patient/patient.html')
@@ -46,17 +39,14 @@ def patient_game(request):
 def patient_result(request):
     return render(request, 'patient/patient-result.html')
 
-def patient_progress(request):
-    return render(request, 'patient-progress.html')
-
 def edit_patient_profile(request):
-    return render(request, 'edit-patient-profile.html')
+    return render(request, 'patient/edit-patient-profile.html')
 
 def capture_video(request):
     return render(request, 'patient/capture-video.html')
 
 def physio_assessment(request):
-    return render(request, 'aitest.html')
+    return render(request, 'patient/physio-assessment.html')
 
 # Doctor Pages
 def doctor_dashboard(request):
@@ -75,7 +65,7 @@ def doctor_performance(request):
     return render(request, 'doctor/doctor-performance.html')
 
 def edit_doctor_profile(request):
-    return render(request, 'edit-doctor-profile.html')
+    return render(request, 'doctor/edit-doctor-profile.html')
 
 # Game Pages
 def game_catching_stars(request):
@@ -89,6 +79,9 @@ def game_matching(request):
 
 
 # ========== APIs ==========
+
+from django.contrib.auth import login as auth_login
+
 @csrf_exempt
 def api_login(request):
     if request.method == "POST":
@@ -96,29 +89,73 @@ def api_login(request):
             data = json.loads(request.body)
             email = data.get("email")
             password = data.get("password")
-                        
+            
+            print(f"🔍 Login attempt: {email}")
+            
+            from .models import Users
+            from django.contrib.auth.hashers import check_password
+            
             try:
-                user = Users.objects.get(email=email, is_active=True)                
+                user = Users.objects.get(email=email, is_active=True)
+                print(f"✅ User found: {user.name}, Role: {user.role}")
+                
                 if check_password(password, user.password):
+                    print("✅ Password correct")
+                    
+                    # ❗ مهم: نخزن المستخدم في الجلسة
+                    # Django expects a User object with specific methods
+                    # We need to create a compatible user object
+                    
+                    from django.contrib.auth.models import User as AuthUser
+                    
+                    # Create a Django auth user object
+                    auth_user, created = AuthUser.objects.get_or_create(
+                        username=user.email,
+                        defaults={
+                            'email': user.email,
+                            'first_name': user.name.split()[0] if user.name else '',
+                            'last_name': user.name.split()[-1] if user.name and len(user.name.split()) > 1 else '',
+                            'is_active': True
+                        }
+                    )
+                    
+                    # Set password
+                    auth_user.set_password(password)
+                    auth_user.save()
+                    
+                    # Log the user in
+                    auth_login(request, auth_user)
+                    
+                    print(f"✅ User logged in successfully")
+                    
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
+                        "user_type": 'patient' if user.role == 'patient' else 'doctor',
+                        "user_id": user.id,
+                        "username": user.name,
+                        "first_name": user.name.split()[0] if user.name else '',
+                        "last_name": user.name.split()[-1] if user.name and len(user.name.split()) > 1 else '',
                         "user": {
                             "id": user.id,
                             "name": user.name,
                             "email": user.email,
-                            "role": user.role,
+                            "role": user.role
                         }
                     })
                 else:
+                    print("❌ Wrong password")
                     return JsonResponse({"success": False, "error": "Wrong password"}, status=401)
+                    
             except Users.DoesNotExist:
+                print("❌ User not found")
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
+                
         except Exception as e:
+            print(f"🔥 Error: {str(e)}")
             return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
     return JsonResponse({"error": "Method not allowed"}, status=405)
-
-
 @csrf_exempt
 def api_register(request):
     if request.method == "POST":
@@ -185,41 +222,6 @@ def api_get_messages(request):
                 })
             
             return JsonResponse({"messages": messages_list})
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Method not allowed"}, status=405)
-
-
-@csrf_exempt
-def api_send_message(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            sender_id = data.get("sender_id")
-            receiver_id = data.get("receiver_id")
-            content = data.get("content")
-            
-            if not sender_id or not receiver_id or not content:
-                return JsonResponse({"error": "sender_id, receiver_id and content required"}, status=400)
-            
-            message = Messages.objects.create(
-                sender_id=sender_id,
-                receiver_id=receiver_id,
-                content=content,
-                is_read=False
-            )
-            
-            return JsonResponse({
-                "success": True,
-                "message": "Message sent",
-                "data": {
-                    "id": message.id,
-                    "sender_id": message.sender_id,
-                    "receiver_id": message.receiver_id,
-                    "content": message.content,
-                    "timestamp": message.timestamp.isoformat()
-                }
-            }, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Method not allowed"}, status=405)

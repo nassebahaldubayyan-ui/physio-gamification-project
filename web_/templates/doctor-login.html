@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Login - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -137,6 +138,9 @@
 </head>
 <body>
     <div class="login-container">
+        <!-- Hidden CSRF Token for Django -->
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+        
         <div class="avatar">
             <i class="fas fa-user-md"></i>
         </div>
@@ -145,8 +149,8 @@
         <p>Enter your credentials to access the dashboard</p>
         
         <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="email" placeholder="Enter your email">
+            <label>Username or Email</label>
+            <input type="text" id="username" placeholder="Enter your username or email">
         </div>
         
         <div class="input-group">
@@ -154,23 +158,24 @@
             <input type="password" id="password" placeholder="Enter your password">
         </div>
         
-        <div class="error-message" id="errorMessage">Invalid email or password for doctor account</div>
+        <div class="error-message" id="errorMessage">Invalid username or password for doctor account</div>
         <div class="loading" id="loading">Logging in...</div>
         
         <button class="login-btn" onclick="loginDoctor()">Login to Dashboard</button>
         
-        <button class="back-btn" onclick="window.location.href='{% url 'index' %}'">
+        <button class="back-btn" onclick="goBack()">
             <span>←</span> Back to Main Menu
         </button>
     </div>
 
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
         async function loginDoctor() {
-            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             
-            if (!email || !password) {
-                showError('Please enter both email and password');
+            if (!username || !password) {
+                showError('Please enter both username/email and password');
                 return;
             }
 
@@ -178,32 +183,41 @@
             document.getElementById('errorMessage').style.display = 'none';
 
             try {
-                const response = await fetch('{% url "doctor_login" %}', {
+                const response = await fetch("{% url 'api_login' %}", {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.getElementById('csrfToken').value
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ 
+                        username: username,
+                        password: password 
+                    })
                 });
 
                 const data = await response.json();
 
-                if (data.success && data.user && data.user.role === 'doctor') {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    localStorage.setItem('userType', 'doctor');
-                    localStorage.setItem('doctorId', data.user.doctor_id || data.user.id);
-                    localStorage.setItem('doctorName', data.user.name);
-                    localStorage.setItem('doctorEmail', data.user.email);
-                    localStorage.setItem('doctorSpecialty', data.user.specialty || 'Physiotherapy');
-
-                    window.location.href = '{% url "doctor_dashboard" %}';
+                if (data.success) {
+                    // Check if user is a doctor
+                    if (data.user_type === 'doctor') {
+                        // Store user data in localStorage
+                        localStorage.setItem('isAuthenticated', 'true');
+                        localStorage.setItem('userType', data.user_type);
+                        localStorage.setItem('username', data.username);
+                        localStorage.setItem('firstName', data.first_name || '');
+                        localStorage.setItem('lastName', data.last_name || '');
+                        
+                        // Redirect to doctor dashboard
+                        window.location.href = "{% url 'doctor_dashboard' %}";
+                    } else {
+                        showError('This account is not registered as a doctor. Please use the correct login page.');
+                    }
                 } else {
-                    showError('Invalid email or password for doctor account');
+                    showError(data.error || 'Invalid username or password');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showError('Connection error. Make sure the server is running.');
+                showError('Connection error. Please try again.');
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
@@ -213,7 +227,32 @@
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.style.display = 'block';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
         }
+
+        function goBack() {
+            window.location.href = "{% url 'index' %}";
+        }
+
+        // Add enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginDoctor();
+            }
+        });
+
+        // Pre-fill if coming from another page (optional)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if already logged in as doctor
+            if (localStorage.getItem('isAuthenticated') === 'true' && 
+                localStorage.getItem('userType') === 'doctor') {
+                window.location.href = "{% url 'doctor_dashboard' %}";
+            }
+        });
     </script>
 </body>
 </html>

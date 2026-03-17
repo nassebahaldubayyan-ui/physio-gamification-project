@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Details - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -513,6 +514,9 @@
     </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+    
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -520,19 +524,26 @@
                 <div class="avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #TH001</p>
+                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
+                <p id="doctorInfo">
+                    {% if user.doctor_profile.specialization %}
+                        {{ user.doctor_profile.specialization }}
+                    {% else %}
+                        Physiotherapy
+                    {% endif %} 
+                    • #{{ user.id }}
+                </p>
             </div>
             <ul>
-                <li onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
-                <li class="active"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
-                <li onclick="window.location.href='doctor-messages.html'"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='profile.html'"><span>👤</span> User Profile</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'" class="active"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
+                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
-                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
+                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
+                <li onclick="logoutDoctor()"><span>🚪</span> Log Out</li>
             </div>
         </div>
 
@@ -554,16 +565,23 @@
             <div class="patient-header-card">
                 <div class="patient-info-main">
                     <div id="patientPhotoContainer">
-                        <img id="patientPhoto" class="patient-photo" style="display: none;" alt="Patient photo">
-                        <div id="patientPhotoPlaceholder" class="patient-photo-placeholder">
-                            <span id="avatarInitial">A</span>
-                        </div>
+                        {% if patient.user.profile_picture %}
+                            <img id="patientPhoto" class="patient-photo" src="{{ patient.user.profile_picture.url }}" alt="Patient photo">
+                            <div id="patientPhotoPlaceholder" class="patient-photo-placeholder" style="display: none;">
+                                <span id="avatarInitial">{{ patient.user.first_name|first|default:"A" }}</span>
+                            </div>
+                        {% else %}
+                            <img id="patientPhoto" class="patient-photo" style="display: none;" alt="Patient photo">
+                            <div id="patientPhotoPlaceholder" class="patient-photo-placeholder">
+                                <span id="avatarInitial">{{ patient.user.first_name|first|default:"A" }}</span>
+                            </div>
+                        {% endif %}
                     </div>
                     <div>
-                        <h1 id="patientName">Ali Ahmed</h1>
+                        <h1 id="patientName">{{ patient.user.get_full_name }}</h1>
                         <div>
                             <span class="status-badge good" id="patientStatus">In Progress</span>
-                            <span class="patient-id" id="patientId">ID: PT001</span>
+                            <span class="patient-id" id="patientId">ID: {{ patient.id }}</span>
                         </div>
                     </div>
                 </div>
@@ -577,19 +595,25 @@
             <div class="quick-stats">
                 <div class="quick-stat-card">
                     <div class="quick-stat-label">Age</div>
-                    <div class="quick-stat-value" id="quickAge">8 years</div>
+                    <div class="quick-stat-value" id="quickAge">
+                        {% if patient.date_of_birth %}
+                            {{ patient.date_of_birth|timesince }} old
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="quick-stat-card">
                     <div class="quick-stat-label">Affected Hand</div>
-                    <div class="quick-stat-value" id="quickAffectedHand">Right</div>
+                    <div class="quick-stat-value" id="quickAffectedHand">-</div>
                 </div>
                 <div class="quick-stat-card">
                     <div class="quick-stat-label">Current Level</div>
-                    <div class="quick-stat-value" id="quickLevel">4</div>
+                    <div class="quick-stat-value" id="quickLevel">-</div>
                 </div>
                 <div class="quick-stat-card">
                     <div class="quick-stat-label">Sessions</div>
-                    <div class="quick-stat-value" id="quickSessions">15</div>
+                    <div class="quick-stat-value" id="quickSessions">{{ patient.game_sessions.count }}</div>
                 </div>
             </div>
 
@@ -600,31 +624,33 @@
                     <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
                     <div class="info-row">
                         <span class="info-label">Full Name</span>
-                        <span class="info-value" id="fullName">Ali Ahmed</span>
+                        <span class="info-value" id="fullName">{{ patient.user.get_full_name }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Age</span>
-                        <span class="info-value" id="age">8 years</span>
+                        <span class="info-value" id="age">
+                            {% if patient.date_of_birth %}
+                                {{ patient.date_of_birth|timesince }} old
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Gender</span>
-                        <span class="info-value" id="gender">Male</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Affected Hand</span>
-                        <span class="info-value" id="affectedHand">Right Hand</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Contact</span>
-                        <span class="info-value" id="contact">+966 50 111 1111</span>
+                        <span class="info-label">Username</span>
+                        <span class="info-value" id="username">{{ patient.user.username }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Email</span>
-                        <span class="info-value" id="email">ali.ahmed@email.com</span>
+                        <span class="info-value" id="email">{{ patient.user.email }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Address</span>
-                        <span class="info-value" id="address">123 Main St, Riyadh</span>
+                        <span class="info-label">Phone</span>
+                        <span class="info-value" id="contact">{{ patient.user.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Bio</span>
+                        <span class="info-value" id="bio">{{ patient.user.bio|default:"No bio" }}</span>
                     </div>
                 </div>
 
@@ -632,80 +658,45 @@
                 <div class="info-card">
                     <h3><i class="fas fa-notes-medical"></i> Medical Information</h3>
                     <div class="info-row">
-                        <span class="info-label">Condition</span>
-                        <span class="info-value highlight" id="condition">Motor Disability</span>
+                        <span class="info-label">Medical History</span>
+                        <span class="info-value" id="medicalHistory">{{ patient.medical_history|default:"No medical history recorded" }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Therapy Type</span>
-                        <span class="info-value" id="therapyType">Physical Therapy</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Current Level</span>
-                        <span class="info-value highlight" id="currentLevel">Level 4</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Start Date</span>
-                        <span class="info-value" id="startDate">10 Jan 2026</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Next Session</span>
-                        <span class="info-value" id="nextSession">01 Aug 2026</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Emergency Contact</span>
-                        <span class="info-value" id="emergencyContact">Fatima Ahmed - 0501111112</span>
+                        <span class="info-label">Assigned Doctor</span>
+                        <span class="info-value" id="assignedDoctor">
+                            {% if patient.assigned_doctor %}
+                                Dr. {{ patient.assigned_doctor.get_full_name }}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
 
                 <!-- Strength Measurements -->
                 <div class="info-card">
-                    <h3><i class="fas fa-dumbbell"></i> Strength Measurements</h3>
+                    <h3><i class="fas fa-dumbbell"></i> Recent Game Performance</h3>
                     
-                    <div class="strength-grid">
-                        <div class="strength-item">
-                            <div class="strength-label">Shoulder</div>
-                            <div class="strength-value" id="shoulderStrength">85%</div>
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="shoulderBar" style="width: 85%"></div>
+                    <div class="strength-grid" id="gamePerformance">
+                        {% for session in patient.game_sessions.all|slice:":5" %}
+                            <div class="strength-item">
+                                <div class="strength-label">{{ session.game.name }}</div>
+                                <div class="strength-value">{{ session.score }}%</div>
+                                <div class="strength-bar">
+                                    <div class="strength-fill" style="width: {{ session.score }}%"></div>
+                                </div>
+                                <small>{{ session.started_at|date:"M d, Y" }}</small>
                             </div>
-                        </div>
-                        
-                        <div class="strength-item">
-                            <div class="strength-label">Elbow</div>
-                            <div class="strength-value" id="elbowStrength">78%</div>
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="elbowBar" style="width: 78%"></div>
+                        {% empty %}
+                            <div class="strength-item">
+                                <div class="strength-label">No games played yet</div>
                             </div>
-                        </div>
-                        
-                        <div class="strength-item">
-                            <div class="strength-label">Wrist</div>
-                            <div class="strength-value" id="wristStrength">82%</div>
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="wristBar" style="width: 82%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="strength-item">
-                            <div class="strength-label">Grip</div>
-                            <div class="strength-value" id="gripStrength">79%</div>
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="gripBar" style="width: 79%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="strength-item">
-                            <div class="strength-label">External Rotation</div>
-                            <div class="strength-value" id="rotationStrength">92%</div>
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="rotationBar" style="width: 92%"></div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                     
                     <div style="margin-top: 15px; text-align: right;">
-                        <span class="info-label">Last Updated:</span>
-                        <span class="info-value" id="lastUpdated">15 Mar 2026</span>
+                        <span class="info-label">Total Sessions:</span>
+                        <span class="info-value" id="totalSessions">{{ patient.game_sessions.count }}</span>
                     </div>
                 </div>
             </div>
@@ -720,11 +711,24 @@
                         </div>
                         <div class="video-info">
                             <h4 id="videoTitle">Initial Assessment</h4>
-                            <p class="video-date" id="videoDate">Date: Not recorded yet</p>
-                            <button class="btn-play-video" id="playVideoBtn" onclick="playVideo()" style="display: none;">
-                                <i class="fas fa-play"></i> Play Video
-                            </button>
-                            <p class="no-video" id="noVideoMsg">No assessment video available</p>
+                            <p class="video-date" id="videoDate">
+                                {% if patient.assessments.exists %}
+                                    Date: {{ patient.assessments.last.date|date:"d M Y" }}
+                                {% else %}
+                                    Date: Not recorded yet
+                                {% endif %}
+                            </p>
+                            {% if patient.assessments.exists and patient.assessments.last.video %}
+                                <button class="btn-play-video" id="playVideoBtn" onclick="playVideo('{{ patient.assessments.last.video.url }}')">
+                                    <i class="fas fa-play"></i> Play Video
+                                </button>
+                                <p class="no-video" id="noVideoMsg" style="display: none;">No assessment video available</p>
+                            {% else %}
+                                <button class="btn-play-video" id="playVideoBtn" style="display: none;">
+                                    <i class="fas fa-play"></i> Play Video
+                                </button>
+                                <p class="no-video" id="noVideoMsg">No assessment video available</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -733,259 +737,119 @@
             <!-- AI Recommendation -->
             <div class="ai-recommendation">
                 <h3><i class="fas fa-robot"></i> AI Recommendation</h3>
-                <p id="aiRecommendation">Increase difficulty level for next session. Patient shows good improvement in accuracy. Recommend moving to Level 5 next week. Focus on affected hand (Right) exercises.</p>
+                <p id="aiRecommendation">
+                    Based on recent game sessions, 
+                    {% if patient.game_sessions.exists %}
+                        patient shows 
+                        {% with avg=patient.game_sessions.all|dictsort:"score" %}
+                            {% if avg.last.score > 80 %}
+                                excellent progress. Consider increasing difficulty.
+                            {% elif avg.last.score > 60 %}
+                                good improvement. Keep current difficulty level.
+                            {% else %}
+                                needs more practice. Focus on basic exercises.
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        No game data available yet. Encourage patient to start playing.
+                    {% endif %}
+                </p>
             </div>
 
             <!-- Back Button -->
-            <button class="btn-back" onclick="window.location.href='doctor-patients.html'">
+            <button class="btn-back" onclick="window.location.href='{% url 'doctor_patients' %}'">
                 <span>←</span> Back to Patients List
             </button>
         </div>
     </div>
 
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentPatientId = 'PT001';
-        let patientData = null;
+        // Check if user is authenticated and is doctor
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        const userType = "{{ user.user_type }}";
         
-        // Load doctor info from localStorage
+        if (!isAuthenticated || userType !== 'doctor') {
+            window.location.href = "{% url 'doctor_login' %}";
+        }
+
+        // Django variables
+        const csrfToken = document.getElementById('csrfToken').value;
+        const patientId = {{ patient.id }};
+        const doctorId = {{ user.id }};
+
+        // Load doctor info
         document.addEventListener('DOMContentLoaded', function() {
-            // Load doctor info
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'TH001';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
-            
-            // Update sidebar with doctor info
-            const nameElement = document.getElementById('doctorName');
-            const infoElement = document.getElementById('doctorInfo');
-            
-            if (nameElement) nameElement.textContent = doctorName;
-            if (infoElement) infoElement.textContent = `${doctorSpecialty} • #${doctorId}`; 
-            
-            // Load patient data based on URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const patientId = urlParams.get('patient') || 'PT001';
-            currentPatientId = patientId;
-            
-            loadPatientData(patientId);
+            loadDoctorInfo();
+            loadPatientStats();
         });
-        
-        function loadPatientData(patientId) {
-            // Patient database with all new fields
-            const patientData = {
-                'PT001': {
-                    id: 'PT001',
-                    name: 'Ali Ahmed',
-                    age: '8 years',
-                    gender: 'Male',
-                    affectedHand: 'right',
-                    affectedHandText: 'Right Hand',
-                    contact: '+966 50 111 1111',
-                    email: 'ali.ahmed@email.com',
-                    address: '123 Main Street, Riyadh',
-                    emergency: 'Fatima Ahmed - 0501111112',
-                    level: 'Level 4',
-                    currentLevel: 4,
-                    accuracy: '82%',
-                    score: '82%',
-                    sessions: '15 sessions',
-                    sessionCount: 15,
-                    condition: 'Motor Disability',
-                    therapyType: 'Physical Therapy',
-                    startDate: '10 Jan 2026',
-                    nextSession: '01 Aug 2026',
-                    status: 'In Progress',
-                    
-                    // Strength measurements
-                    shoulderStrength: 85,
-                    elbowStrength: 78,
-                    wristStrength: 82,
-                    gripStrength: 79,
-                    rotationStrength: 92,
-                    
-                    // Assessment video
-                    hasVideo: true,
-                    videoUrl: '/uploads/patient_PT001_assessment_1234567890.webm',
-                    videoDate: '15 Mar 2026',
-                    
-                    // Photo - Set to false to show letter
-                    hasPhoto: false,
-                    
-                    recommendation: 'Increase difficulty level for next session. Patient shows good improvement in accuracy. Focus on affected hand (Right) exercises. Recommend moving to Level 5 next week.'
-                },
-                'PT002': {
-                    id: 'PT002',
-                    name: 'Sara Khaled',
-                    age: '7 years',
-                    gender: 'Female',
-                    affectedHand: 'left',
-                    affectedHandText: 'Left Hand',
-                    contact: '+966 50 222 2222',
-                    email: 'sara.khaled@email.com',
-                    address: '456 Park Avenue, Riyadh',
-                    emergency: 'Khaled Ali - 0502222221',
-                    level: 'Level 3',
-                    currentLevel: 3,
-                    accuracy: '89%',
-                    score: '89%',
-                    sessions: '12 sessions',
-                    sessionCount: 12,
-                    condition: 'Arm Weakness',
-                    therapyType: 'Occupational Therapy',
-                    startDate: '05 Feb 2026',
-                    nextSession: '03 Aug 2026',
-                    status: 'In Progress',
-                    
-                    // Strength measurements
-                    shoulderStrength: 92,
-                    elbowStrength: 88,
-                    wristStrength: 86,
-                    gripStrength: 89,
-                    rotationStrength: 88,
-                    
-                    // Assessment video
-                    hasVideo: false,
-                    
-                    // Photo - Set to false to show letter
-                    hasPhoto: false,
-                    
-                    recommendation: 'Focus on strength building exercises. Patient shows good progress but needs more repetitions. Left hand needs extra attention.'
-                },
-                'PT003': {
-                    id: 'PT003',
-                    name: 'Omar Hassan',
-                    age: '9 years',
-                    gender: 'Male',
-                    affectedHand: 'both',
-                    affectedHandText: 'Both Hands',
-                    contact: '+966 50 333 3333',
-                    email: 'omar.hassan@email.com',
-                    address: '789 Garden Street, Riyadh',
-                    emergency: 'Hassan Omar - 0503333332',
-                    level: 'Level 5',
-                    currentLevel: 5,
-                    accuracy: '94%',
-                    score: '94%',
-                    sessions: '28 sessions',
-                    sessionCount: 28,
-                    condition: 'Movement Disorder',
-                    therapyType: 'Developmental Therapy',
-                    startDate: '20 Mar 2026',
-                    nextSession: '05 Aug 2026',
-                    status: 'Completed',
-                    
-                    // Strength measurements
-                    shoulderStrength: 88,
-                    elbowStrength: 85,
-                    wristStrength: 90,
-                    gripStrength: 85,
-                    rotationStrength: 96,
-                    
-                    // Assessment video
-                    hasVideo: true,
-                    videoUrl: '/uploads/patient_PT003_assessment_1234567890.webm',
-                    videoDate: '10 Mar 2026',
-                    
-                    // Photo - Set to false to show letter
-                    hasPhoto: false,
-                    
-                    recommendation: 'Excellent progress! Patient ready for advanced challenges. Consider introducing new game mechanics. Both hands showing good coordination.'
-                }
-            };
+
+        function loadDoctorInfo() {
+            const doctorName = "{{ user.get_full_name }}";
+            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
             
-            const patient = patientData[patientId] || patientData['PT001'];
-            
-            // Update all fields
-            document.getElementById('patientName').textContent = patient.name;
-            document.getElementById('patientId').textContent = `ID: ${patient.id}`;
-            document.getElementById('patientStatus').textContent = patient.status;
-            document.getElementById('overallScore').textContent = patient.score;
-            
-            document.getElementById('fullName').textContent = patient.name;
-            document.getElementById('age').textContent = patient.age;
-            document.getElementById('gender').textContent = patient.gender;
-            document.getElementById('affectedHand').textContent = patient.affectedHandText;
-            document.getElementById('contact').textContent = patient.contact;
-            document.getElementById('email').textContent = patient.email;
-            document.getElementById('address').textContent = patient.address;
-            document.getElementById('emergencyContact').textContent = patient.emergency;
-            
-            document.getElementById('condition').textContent = patient.condition;
-            document.getElementById('therapyType').textContent = patient.therapyType;
-            document.getElementById('currentLevel').textContent = patient.level;
-            document.getElementById('startDate').textContent = patient.startDate;
-            document.getElementById('nextSession').textContent = patient.nextSession;
-            
-            // Quick stats
-            document.getElementById('quickAge').textContent = patient.age;
-            document.getElementById('quickAffectedHand').textContent = patient.affectedHandText.split(' ')[0];
-            document.getElementById('quickLevel').textContent = patient.currentLevel;
-            document.getElementById('quickSessions').textContent = patient.sessionCount;
-            
-            // Strength measurements
-            document.getElementById('shoulderStrength').textContent = patient.shoulderStrength + '%';
-            document.getElementById('shoulderBar').style.width = patient.shoulderStrength + '%';
-            
-            document.getElementById('elbowStrength').textContent = patient.elbowStrength + '%';
-            document.getElementById('elbowBar').style.width = patient.elbowStrength + '%';
-            
-            document.getElementById('wristStrength').textContent = patient.wristStrength + '%';
-            document.getElementById('wristBar').style.width = patient.wristStrength + '%';
-            
-            document.getElementById('gripStrength').textContent = patient.gripStrength + '%';
-            document.getElementById('gripBar').style.width = patient.gripStrength + '%';
-            
-            document.getElementById('rotationStrength').textContent = patient.rotationStrength + '%';
-            document.getElementById('rotationBar').style.width = patient.rotationStrength + '%';
-            
-            // Last updated
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-            
-            // AI Recommendation
-            document.getElementById('aiRecommendation').textContent = patient.recommendation;
-            
-            // Avatar initial - Always show letter
-            document.getElementById('avatarInitial').textContent = patient.name.charAt(0);
-            document.getElementById('patientPhoto').style.display = 'none';
-            document.getElementById('patientPhotoPlaceholder').style.display = 'flex';
-            
-            // Handle video
-            if (patient.hasVideo && patient.videoUrl) {
-                document.getElementById('videoPlaceholder').innerHTML = '<i class="fas fa-video" style="font-size: 48px;"></i>';
-                document.getElementById('videoDate').textContent = 'Date: ' + patient.videoDate;
-                document.getElementById('playVideoBtn').style.display = 'inline-flex';
-                document.getElementById('noVideoMsg').style.display = 'none';
+            document.getElementById('doctorName').textContent = doctorName || 'Dr. Ahmad';
+        }
+
+        async function loadPatientStats() {
+            try {
+                const response = await fetch(`/api/patient-stats/{{ patient.id }}/`, {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
                 
-                // Store video URL for play function
-                window.currentVideoUrl = patient.videoUrl;
-            } else {
-                document.getElementById('playVideoBtn').style.display = 'none';
-                document.getElementById('noVideoMsg').style.display = 'block';
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStats(data);
+                }
+            } catch (error) {
+                console.error('Error loading patient stats:', error);
             }
         }
-        
+
+        function updateStats(data) {
+            // Update overall score
+            if (data.avg_score) {
+                document.getElementById('overallScore').textContent = data.avg_score + '%';
+            }
+            
+            // Update quick stats
+            document.getElementById('quickAffectedHand').textContent = data.affected_hand || '-';
+            document.getElementById('quickLevel').textContent = data.current_level || '-';
+        }
+
         function contactPatient() {
             // Go to messages page with this patient selected
-            window.location.href = `doctor-messages.html?patient=${currentPatientId}`;
+            window.location.href = "{% url 'doctor_messages' %}?patient={{ patient.id }}";
         }
-        
+
         function viewProgress() {
-            // Go to progress charts page
-            window.location.href = `patient-progress.html?patient=${currentPatientId}`;
+            // Go to progress page
+            window.location.href = "{% url 'patient_progress' %}?patient={{ patient.id }}";
         }
-        
-        function playVideo() {
-            if (window.currentVideoUrl) {
-                // Open video in new window or modal
-                window.open('http://localhost:5000' + window.currentVideoUrl, '_blank');
+
+        function playVideo(videoUrl) {
+            if (videoUrl) {
+                // Open video in new tab
+                window.open(videoUrl, '_blank');
             } else {
                 alert('No video available');
             }
         }
-        
+
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
+                fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                }).finally(() => {
+                    localStorage.clear();
+                    window.location.href = "{% url 'index' %}";
+                });
             }
         }
     </script>

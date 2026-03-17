@@ -2,240 +2,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Session Results - Rehabilitation System</title>
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-<style>
-body {
-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-min-height: 100vh;
-display: flex;
-justify-content: center;
-align-items: center;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.result-container {
-max-width: 600px;
-width: 90%;
-background: rgba(255, 255, 255, 0.1);
-backdrop-filter: blur(10px);
-border-radius: 40px;
-padding: 50px;
-border: 3px solid rgba(255, 255, 255, 0.2);
-text-align: center;
-color: white;
-}
-
-.result-icon {
-font-size: 80px;
-margin-bottom: 20px;
-animation: bounce 1s ease;
-}
-
-@keyframes bounce {
-0%, 100% { transform: scale(1); }
-50% { transform: scale(1.2); }
-}
-
-.result-title {
-font-size: 42px;
-font-weight: 800;
-margin-bottom: 15px;
-background: linear-gradient(135deg, #48bb78, #38a169);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-
-.result-subtitle {
-color: #a0aec0;
-font-size: 18px;
-margin-bottom: 40px;
-}
-
-.result-cards {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-gap: 20px;
-margin-bottom: 40px;
-}
-
-.result-card {
-background: rgba(255, 255, 255, 0.05);
-border-radius: 20px;
-padding: 25px 15px;
-border: 2px solid rgba(255, 255, 255, 0.1);
-transition: all 0.3s;
-}
-
-.result-card:hover {
-transform: translateY(-5px);
-border-color: #48bb78;
-}
-
-.card-icon {
-font-size: 40px;
-margin-bottom: 15px;
-}
-
-.card-value {
-font-size: 36px;
-font-weight: 700;
-color: #48bb78;
-margin-bottom: 5px;
-}
-
-.card-label {
-color: #a0aec0;
-font-size: 14px;
-text-transform: uppercase;
-letter-spacing: 1px;
-}
-
-.action-buttons {
-display: flex;
-gap: 15px;
-justify-content: center;
-margin-bottom: 25px;
-}
-
-.btn-action {
-padding: 15px 35px;
-border: none;
-border-radius: 50px;
-font-size: 18px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s;
-display: flex;
-align-items: center;
-gap: 10px;
-}
-
-.btn-repeat {
-background: linear-gradient(135deg, #48bb78, #38a169);
-color: white;
-}
-
-.btn-next {
-background: linear-gradient(135deg, #4299e1, #3182ce);
-color: white;
-}
-
-.btn-home {
-background: rgba(255, 255, 255, 0.1);
-color: white;
-border: 2px solid white;
-}
-
-.btn-action:hover {
-transform: translateY(-5px);
-box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
-}
-
-.btn-next:hover {
-box-shadow: 0 10px 25px rgba(66, 153, 225, 0.3);
-}
-
-.btn-home:hover {
-background: rgba(255, 255, 255, 0.2);
-}
-
-.motivation-message {
-margin-top: 30px;
-padding: 20px;
-background: rgba(72, 187, 120, 0.1);
-border-radius: 15px;
-border-left: 4px solid #48bb78;
-font-size: 18px;
-color: #c6f6d5;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Results - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .result-container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            color: white;
+        }
+        
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .result-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .result-subtitle {
+            color: #a0aec0;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: #48bb78;
+        }
+        
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .card-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #48bb78;
+            margin-bottom: 5px;
+        }
+        
+        .card-label {
+            color: #a0aec0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-repeat {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+        
+        .btn-next {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+        
+        .btn-home {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid white;
+            margin-top: 15px;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
+        }
+        
+        .btn-next:hover {
+            box-shadow: 0 10px 25px rgba(66, 153, 225, 0.3);
+        }
+        
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .motivation-message {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(72, 187, 120, 0.1);
+            border-radius: 15px;
+            border-left: 4px solid #48bb78;
+            font-size: 18px;
+            color: #c6f6d5;
+        }
+        
+        .game-details {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .game-details h3 {
+            color: #48bb78;
+            margin-bottom: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #a0aec0;
+        }
+        
+        .detail-value {
+            color: white;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .result-container {
+                padding: 30px;
+            }
+            
+            .result-title {
+                font-size: 32px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="result-container">
-<div class="result-icon">🏆</div>
-<h1 class="result-title">Great Job!</h1>
-<p class="result-subtitle">You've completed your therapy session</p>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
 
-<div class="result-cards">
-<div class="result-card">
-<div class="card-icon">🎯</div>
-<div class="card-value" id="score">{{ score }}%</div>
-<div class="card-label">Score</div>
-</div>
-<div class="result-card">
-<div class="card-icon">📊</div>
-<div class="card-value" id="accuracy">{{ accuracy }}%</div>
-<div class="card-label">Accuracy</div>
-</div>
-<div class="result-card">
-<div class="card-icon">😊</div>
-<div class="card-value" id="painLevel">{{ pain_level }}</div>
-<div class="card-label">Pain Level</div>
-</div>
-<div class="result-card">
-<div class="card-icon">🎮</div>
-<div class="card-value" id="funLevel">{{ fun_level }}</div>
-<div class="card-label">Fun Level</div>
-</div>
-</div>
+    <div class="result-container">
+        <div class="result-icon">🏆</div>
+        <h1 class="result-title">Great Job!</h1>
+        <p class="result-subtitle">You've completed your therapy session</p>
 
-<div class="action-buttons">
-<button class="btn-action btn-repeat" onclick="repeatLevel()">
-<span>🔄</span> Repeat Level
-</button>
-<button class="btn-action btn-next" onclick="nextLevel()">
-<span>⬆️</span> Next Level
-</button>
-</div>
+        <!-- Game Details -->
+        <div class="game-details" id="gameDetails">
+            <h3 id="gameName">Catching Stars</h3>
+            <div class="detail-row">
+                <span class="detail-label">Duration</span>
+                <span class="detail-value" id="duration">3:45 minutes</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Level</span>
+                <span class="detail-value" id="level">Level 4</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-value" id="date">March 17, 2026</span>
+            </div>
+        </div>
 
-<button class="btn-action btn-home" onclick="goPatient()">
-<span>🏠</span> Home
-</button>
+        <div class="result-cards">
+            <div class="result-card">
+                <div class="card-icon">🎯</div>
+                <div class="card-value" id="score">80%</div>
+                <div class="card-label">Score</div>
+            </div>
+            <div class="result-card">
+                <div class="card-icon">📊</div>
+                <div class="card-value" id="accuracy">85%</div>
+                <div class="card-label">Accuracy</div>
+            </div>
+            <div class="result-card">
+                <div class="card-icon">😊</div>
+                <div class="card-value" id="painLevel">Low</div>
+                <div class="card-label">Pain Level</div>
+            </div>
+            <div class="result-card">
+                <div class="card-icon">🎮</div>
+                <div class="card-value" id="funLevel">High</div>
+                <div class="card-label">Fun Level</div>
+            </div>
+        </div>
 
-<div class="motivation-message" id="motivation">
-⭐ You're making excellent progress! Keep it up!
-</div>
-</div>
+        <div class="action-buttons">
+            <button class="btn-action btn-repeat" onclick="repeatLevel()">
+                <span>🔄</span> Repeat Level
+            </button>
+            <button class="btn-action btn-next" onclick="nextLevel()">
+                <span>⬆️</span> Next Level
+            </button>
+        </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-// Load session results from context variables
-const score = '{{ score }}' || '80';
-const accuracy = '{{ accuracy }}' || '85';
-const painLevel = '{{ pain_level }}' || 'Low';
-const funLevel = '{{ fun_level }}' || 'High';
+        <button class="btn-action btn-home" onclick="goHome()">
+            <span>🏠</span> Home
+        </button>
 
-document.getElementById('score').textContent = score + '%';
-document.getElementById('accuracy').textContent = accuracy + '%';
-document.getElementById('painLevel').textContent = painLevel;
-document.getElementById('funLevel').textContent = funLevel;
+        <div class="motivation-message" id="motivation">
+            ⭐ You're making excellent progress! Keep it up!
+        </div>
+    </div>
 
-// Motivation messages
-const messages = [
-"⭐ You're making excellent progress! Keep it up!",
-"🎯 Great accuracy today! Your hard work is paying off!",
-"💪 Strong session! You're getting better every time!",
-"🌟 Fantastic effort! Your dedication is inspiring!",
-"🎉 Amazing work! You're on the path to recovery!"
-];
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        // Check if user is authenticated
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        if (!isAuthenticated) {
+            window.location.href = "{% url 'gamer_login' %}";
+        }
 
-document.getElementById('motivation').textContent = messages[Math.floor(Math.random() * messages.length)];
-});
+        // Django variables
+        const csrfToken = document.getElementById('csrfToken').value;
+        const userId = {{ user.id }};
+        const userType = "{{ user.user_type }}";
 
-function repeatLevel() {
-const gameNumber = new URLSearchParams(window.location.search).get('game') || '1';
-window.location.href = `patient-game.html?game=${gameNumber}`;
-}
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSessionResults();
+        });
 
-function nextLevel() {
-const gameNumber = new URLSearchParams(window.location.search).get('game') || '1';
-let nextLevel = parseInt(gameNumber) + 1;
-if (nextLevel > 3) nextLevel = 1;
-window.location.href = `patient-game.html?game=${nextLevel}`;
-}
-</script>
+        function loadSessionResults() {
+            // Get session data from URL or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session') || localStorage.getItem('lastSessionId');
+            const gameType = urlParams.get('game') || localStorage.getItem('lastGameType') || 'catching_stars';
+            
+            // Set game name based on type
+            const gameNames = {
+                'catching_stars': 'Catching Stars',
+                'matching': 'Matching Game',
+                'catching_objects': 'Catching Objects'
+            };
+            document.getElementById('gameName').textContent = gameNames[gameType] || 'Therapy Game';
+            
+            // Load from localStorage or API
+            const score = localStorage.getItem('lastSessionScore') || '85';
+            const accuracy = localStorage.getItem('lastSessionAccuracy') || '92';
+            const painLevel = localStorage.getItem('lastSessionPain') || 'Low';
+            const funLevel = localStorage.getItem('lastSessionFun') || 'High';
+            const duration = localStorage.getItem('lastSessionDuration') || '3:45';
+            const level = localStorage.getItem('lastSessionLevel') || '4';
+            
+            document.getElementById('score').textContent = score + '%';
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('painLevel').textContent = painLevel;
+            document.getElementById('funLevel').textContent = funLevel;
+            document.getElementById('duration').textContent = duration;
+            document.getElementById('level').textContent = 'Level ' + level;
+            
+            // Set current date
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date').textContent = today.toLocaleDateString('en-US', options);
+            
+            // Load motivation message
+            loadMotivationMessage(score);
+            
+            // If we have a session ID, try to load from API
+            if (sessionId) {
+                loadSessionFromAPI(sessionId);
+            }
+        }
+
+        async function loadSessionFromAPI(sessionId) {
+            try {
+                const response = await fetch(`/api/game-session/${sessionId}/`, {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('score').textContent = data.session.score + '%';
+                    document.getElementById('duration').textContent = formatDuration(data.session.duration_seconds);
+                    
+                    // Calculate accuracy from game data
+                    const accuracy = calculateAccuracy(data.session);
+                    document.getElementById('accuracy').textContent = accuracy + '%';
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+            }
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function calculateAccuracy(session) {
+            // This would depend on your game data structure
+            return 85; // Placeholder
+        }
+
+        function loadMotivationMessage(score) {
+            const messages = [
+                { min: 90, max: 100, text: "🌟 EXCELLENT! You're a superstar! Keep up the amazing work!" },
+                { min: 80, max: 89, text: "⭐ Great job! You're making fantastic progress!" },
+                { min: 70, max: 79, text: "💪 Good work! You're getting stronger every session!" },
+                { min: 60, max: 69, text: "🎯 Nice effort! Every game makes you better!" },
+                { min: 0, max: 59, text: "👍 Keep practicing! You'll improve with each session!" }
+            ];
+            
+            const scoreNum = parseInt(score) || 80;
+            const message = messages.find(m => scoreNum >= m.min && scoreNum <= m.max) || messages[1];
+            
+            document.getElementById('motivation').textContent = message.text;
+        }
+
+        async function repeatLevel() {
+            const gameType = localStorage.getItem('lastGameType') || 'catching_stars';
+            window.location.href = "{% url 'patient_game' %}?game=" + gameType;
+        }
+
+        async function nextLevel() {
+            const currentLevel = parseInt(localStorage.getItem('lastSessionLevel') || '1');
+            const nextLevel = currentLevel + 1;
+            
+            // Check if next level is available
+            if (nextLevel <= 5) { // Max level 5
+                localStorage.setItem('lastSessionLevel', nextLevel);
+                const gameType = localStorage.getItem('lastGameType') || 'catching_stars';
+                window.location.href = "{% url 'patient_game' %}?game=" + gameType + "&level=" + nextLevel;
+            } else {
+                alert('Congratulations! You completed all levels! 🎉');
+                goHome();
+            }
+        }
+
+        function goHome() {
+            if (userType === 'patient') {
+                window.location.href = "{% url 'patient_dashboard' %}";
+            } else {
+                window.location.href = "{% url 'index' %}";
+            }
+        }
+    </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -502,6 +503,9 @@
     </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+    
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -509,19 +513,26 @@
                 <div class="avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #DR003</p>
+                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
+                <p id="doctorInfo">
+                    {% if user.doctor_profile.specialization %}
+                        {{ user.doctor_profile.specialization }}
+                    {% else %}
+                        Physiotherapy
+                    {% endif %} 
+                    • #{{ user.id }}
+                </p>
             </div>
             <ul>
-                <li onclick="window.location.href='doctor.html'"><span>🏠</span> Home</li>
-                <li onclick="window.location.href='doctor-patients.html'"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='doctor-performance.html'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
                 <li class="active"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='profile.html'"><span>👤</span> User Profile</li>
+                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='settings.html'"><span>⚙</span> Settings</p>
-                <p onclick="logout()"><span>🚪</span> Log Out</p>
+                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
+                <li onclick="logout()"><span>🚪</span> Log Out</li>
             </div>
         </div>
 
@@ -545,9 +556,9 @@
                     <div class="patient-selector">
                         <select id="patientSelect">
                             <option value="">-- Select a patient --</option>
-                            <option value="PT001">Ali Ahmed (PT001)</option>
-                            <option value="PT002">Sara Khaled (PT002)</option>
-                            <option value="PT003">Omar Hassan (PT003)</option>
+                            {% for patient in user.patients.all %}
+                                <option value="{{ patient.id }}">{{ patient.user.get_full_name }} (ID: {{ patient.id }})</option>
+                            {% endfor %}
                         </select>
                         <button class="start-chat-btn" onclick="startNewChat()">
                             <span>💬</span> Start New Conversation
@@ -570,67 +581,105 @@
                         <div class="chat-header" id="chatHeader"></div>
                         <div class="chat-messages" id="chatMessages"></div>
                         <div class="chat-input">
-                            <input type="text" id="replyMessage" placeholder="Type your reply...">
+                            <input type="text" id="replyMessage" placeholder="Type your reply..." onkeypress="handleKeyPress(event)">
                             <button onclick="sendReply()">Send</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button class="btn-back" onclick="window.location.href='doctor.html'">
+            <button class="btn-back" onclick="window.location.href='{% url 'doctor_dashboard' %}'">
                 <span>←</span> Back to Dashboard
             </button>
         </div>
     </div>
 
-    <script>
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+    <!-- New Message Modal -->
+    <div id="newMessageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; width: 400px;">
+            <h3 style="margin-bottom: 20px;">New Message</h3>
+            <select id="modalPatientSelect" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                <option value="">Select Patient</option>
+                {% for patient in user.patients.all %}
+                    <option value="{{ patient.id }}">{{ patient.user.get_full_name }}</option>
+                {% endfor %}
+            </select>
+            <textarea id="modalMessage" placeholder="Type your message..." rows="4" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e2e8f0; border-radius: 10px;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="sendNewMessage()" style="flex: 2; padding: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px;">Send</button>
+                <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-        if (!token || !user.id || user.role !== 'doctor') {
-            window.location.href = 'doctor-login.html';
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        // Check if user is authenticated and is doctor
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        const userType = "{{ user.user_type }}";
+        
+        if (!isAuthenticated || userType !== 'doctor') {
+            window.location.href = "{% url 'doctor_login' %}";
         }
 
-        const patients = {
-            'PT001': { id: 2, name: 'Ali Ahmed', avatar: 'A', color: '#4299e1' },
-            'PT002': { id: 3, name: 'Sara Khaled', avatar: 'S', color: '#48bb78' },
-            'PT003': { id: 4, name: 'Omar Hassan', avatar: 'O', color: '#ed8936' }
-        };
-
+        // Django variables passed to JavaScript
+        const doctorId = {{ user.id }};
+        const csrfToken = document.getElementById('csrfToken').value;
+        
+        // State management
         let currentPatientId = null;
-        let conversations = {
-            'PT001': {
-                patientName: 'Ali Ahmed',
-                avatar: 'A',
-                avatarColor: '#4299e1',
-                messages: [
-                    { sender: 'patient', text: 'I feel better today. The exercises are helping a lot!', time: '2:30 PM' },
-                    { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
-                ]
-            },
-            'PT002': {
-                patientName: 'Sara Khaled',
-                avatar: 'S',
-                avatarColor: '#48bb78',
-                messages: [
-                    { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
-                ]
-            }
-        };
+        let conversations = {};
         let currentMessages = [];
 
+        // Load conversations on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadDoctorInfo();
-            renderConversationsList();
+            loadConversations();
         });
 
         function loadDoctorInfo() {
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
+            const doctorName = "{{ user.get_full_name }}";
+            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
             
-            document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
+            document.getElementById('doctorName').textContent = doctorName || 'Dr. Ahmad';
+        }
+
+        async function loadConversations() {
+            try {
+                const response = await fetch('/api/get-conversations/', {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    conversations = data.conversations;
+                    renderConversationsList();
+                } else {
+                    console.error('Error loading conversations:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                // Use dummy data for testing
+                conversations = {
+                    '1': {
+                        patientName: 'Ali Ahmed',
+                        messages: [
+                            { sender: 'patient', text: 'I feel better today. The exercises are helping a lot!', time: '2:30 PM' },
+                            { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
+                        ]
+                    },
+                    '2': {
+                        patientName: 'Sara Khaled',
+                        messages: [
+                            { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
+                        ]
+                    }
+                };
+                renderConversationsList();
+            }
         }
 
         function renderConversationsList() {
@@ -639,14 +688,14 @@
 
             Object.keys(conversations).forEach(patientId => {
                 const conv = conversations[patientId];
-                const lastMsg = conv.messages[conv.messages.length - 1];
+                const lastMsg = conv.messages[conv.messages.length - 1] || { text: 'No messages yet', time: '' };
 
                 const item = document.createElement('div');
                 item.className = `conversation-item ${currentPatientId === patientId ? 'active' : ''}`;
                 item.setAttribute('data-patient-id', patientId);
                 item.onclick = () => selectConversation(patientId);
                 
-                item.innerHTML = ` 
+                item.innerHTML = `
                     <div class="conv-avatar">
                         <i class="fas fa-user-circle"></i>
                     </div>
@@ -654,7 +703,7 @@
                         <div class="conv-name">${conv.patientName}</div>
                         <div class="conv-last">${lastMsg.text}</div>
                     </div>
-                    <div class="conv-time">${lastMsg.time}</div>
+                    <div class="conv-time">${lastMsg.time || ''}</div>
                 `;
                 list.appendChild(item);
             });
@@ -665,17 +714,18 @@
             
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('data-patient-id') === patientId) {
+                if (item.getAttribute('data-patient-id') == patientId) {
                     item.classList.add('active');
                 }
             });
 
             const conv = conversations[patientId];
+            if (!conv) return;
             
             document.getElementById('noChatSelected').style.display = 'none';
             document.getElementById('activeChat').style.display = 'flex';
 
-            document.getElementById('chatHeader').innerHTML = ` 
+            document.getElementById('chatHeader').innerHTML = `
                 <div class="chat-header-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
@@ -685,8 +735,11 @@
                 </div>
             `;
 
-            currentMessages = conv.messages;
+            currentMessages = conv.messages || [];
             renderMessages();
+            
+            // Mark messages as read
+            markMessagesAsRead(patientId);
         }
 
         function renderMessages() {
@@ -696,16 +749,31 @@
             currentMessages.forEach(msg => {
                 const div = document.createElement('div');
                 div.className = `message ${msg.sender}`;
-                div.innerHTML = ` 
+                div.innerHTML = `
                     <div class="message-content">
                         ${msg.text}
-                        <div class="message-time">${msg.time}</div>
+                        <div class="message-time">${msg.time || new Date().toLocaleTimeString()}</div>
                     </div>
                 `;
                 container.appendChild(div);
             });
             
             container.scrollTop = container.scrollHeight;
+        }
+
+        async function markMessagesAsRead(patientId) {
+            try {
+                await fetch('/api/mark-messages-read/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ patient_id: patientId })
+                });
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+            }
         }
 
         function startNewChat() {
@@ -715,14 +783,13 @@
                 return;
             }
 
+            // Get patient name from select option
+            const select = document.getElementById('patientSelect');
+            const patientName = select.options[select.selectedIndex].text.split(' (')[0];
+
             if (!conversations[patientId]) {
-                const patientName = patientId === 'PT001' ? 'Ali Ahmed' : 
-                                   patientId === 'PT002' ? 'Sara Khaled' : 'Omar Hassan';
-                
                 conversations[patientId] = {
                     patientName: patientName,
-                    avatar: patientId.charAt(0),
-                    avatarColor: patientId === 'PT001' ? '#4299e1' : patientId === 'PT002' ? '#48bb78' : '#ed8936',
                     messages: []
                 };
             }
@@ -730,7 +797,7 @@
             selectConversation(patientId);
         }
 
-        function sendReply() {
+        async function sendReply() {
             const input = document.getElementById('replyMessage');
             const message = input.value.trim();
             
@@ -738,6 +805,7 @@
 
             const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             
+            // Add message to UI immediately
             conversations[currentPatientId].messages.push({
                 sender: 'doctor',
                 text: message,
@@ -748,6 +816,29 @@
             renderMessages();
             renderConversationsList();
             input.value = '';
+
+            // Send to server
+            try {
+                await fetch('/api/send-message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        patient_id: currentPatientId,
+                        message: message
+                    })
+                });
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendReply();
+            }
         }
 
         function showNewMessageModal() {
@@ -756,6 +847,7 @@
 
         function closeModal() {
             document.getElementById('newMessageModal').style.display = 'none';
+            document.getElementById('modalMessage').value = '';
         }
 
         function sendNewMessage() {
@@ -767,7 +859,18 @@
                 return;
             }
 
-            startNewChat();
+            // Get patient name
+            const select = document.getElementById('modalPatientSelect');
+            const patientName = select.options[select.selectedIndex].text;
+
+            if (!conversations[patientId]) {
+                conversations[patientId] = {
+                    patientName: patientName,
+                    messages: []
+                };
+            }
+
+            selectConversation(patientId);
             
             setTimeout(() => {
                 document.getElementById('replyMessage').value = message;
@@ -775,19 +878,19 @@
             }, 100);
 
             closeModal();
-            document.getElementById('modalMessage').value = '';
         }
-
-        document.getElementById('replyMessage').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendReply();
-            }
-        });
 
         function logout() {
             if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
+                fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                }).finally(() => {
+                    localStorage.clear();
+                    window.location.href = "{% url 'index' %}";
+                });
             }
         }
     </script>

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patients Performance - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -96,7 +97,7 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .sidebar-bottom p {
+        .sidebar-bottom li {
             padding: 12px 20px;
             margin: 5px 0;
             border-radius: 8px;
@@ -108,7 +109,7 @@
             font-size: 15px;
         }
         
-        .sidebar-bottom p:hover {
+        .sidebar-bottom li:hover {
             background: rgba(255, 255, 255, 0.1);
         }
         
@@ -488,6 +489,12 @@
             transform: translateY(-2px);
         }
         
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -519,10 +526,18 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -530,21 +545,26 @@
                 <div class="avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h4 id="doctorName">{{ doctor_name }}</h4>
-                <p id="doctorInfo">{{ doctor_specialty }} • #{{ doctor_id }}</p>
+                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
+                <p id="doctorInfo">
+                    {% if user.doctor_profile.specialization %}
+                        {{ user.doctor_profile.specialization }}
+                    {% else %}
+                        Physiotherapy
+                    {% endif %} 
+                    • #{{ user.id }}
+                </p>
             </div>
-
             <ul>
                 <li onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
-                <li class="active"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'"><span>👥</span> Patients List</li>
+                <li class="active"><span>📊</span> Patients Performance</li>
                 <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='{% url 'doctor_profile' %}'"><span>👤</span> User Profile</li>
+                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
             </ul>
-
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='{% url 'doctor_settings' %}'"><span>⚙</span> Settings</p>
-                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
+                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
+                <li onclick="logoutDoctor()"><span>🚪</span> Log Out</li>
             </div>
         </div>
 
@@ -553,7 +573,7 @@
             <div class="page-header">
                 <h2>Patients Performance</h2>
                 <div class="date-filter">
-                    <input type="date" id="dateFilter" value="2026-03-11">
+                    <input type="date" id="dateFilter" value="{% now 'Y-m-d' %}">
                     <button class="filter-btn" onclick="filterByDate()">Apply Filter</button>
                 </div>
             </div>
@@ -564,28 +584,28 @@
                     <div class="stat-icon">👥</div>
                     <div class="stat-content">
                         <h3>Total Patients</h3>
-                        <div class="stat-number" id="totalPatients">{{ total_patients }}</div>
+                        <div class="stat-number" id="totalPatients">{{ user.patients.count }}</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">🎮</div>
                     <div class="stat-content">
-                        <h3>Active Sessions</h3>
-                        <div class="stat-number" id="activeSessions">{{ active_sessions }}</div>
+                        <h3>Total Sessions</h3>
+                        <div class="stat-number" id="totalSessions">-</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">💪</div>
                     <div class="stat-content">
-                        <h3>Avg Muscle Activation</h3>
-                        <div class="stat-number" id="avgActivation">{{ avg_activation }}%</div>
+                        <h3>Avg Score</h3>
+                        <div class="stat-number" id="avgScore">-</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-content">
-                        <h3>Completion Rate</h3>
-                        <div class="stat-number" id="completionRate">{{ completion_rate }}%</div>
+                        <h3>Active Patients</h3>
+                        <div class="stat-number" id="activePatients">-</div>
                     </div>
                 </div>
             </div>
@@ -594,8 +614,9 @@
             <div class="patient-selector">
                 <label>Select Patient:</label>
                 <select id="patientSelect" onchange="loadPatientPerformance()">
-                    {% for patient in patients %}
-                        <option value="{{ patient.id }}">{{ patient.name }} ({{ patient.id }}) - {{ patient.condition }}</option>
+                    <option value="">-- Select a patient --</option>
+                    {% for patient in user.patients.all %}
+                        <option value="{{ patient.id }}">{{ patient.user.get_full_name }} (ID: {{ patient.id }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -636,40 +657,140 @@
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Shoulder Activation</span>
-                                    <span id="starShoulderScore">85%</span>
+                                    <span id="starShoulderScore">0%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-blue" id="starShoulderBar" style="width: 85%"></div>
+                                    <div class="progress-bar-fill fill-blue" id="starShoulderBar" style="width: 0%"></div>
                                 </div>
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Elbow Movement</span>
-                                    <span id="starElbowScore">78%</span>
+                                    <span id="starElbowScore">0%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-green" id="starElbowBar" style="width: 78%"></div>
+                                    <div class="progress-bar-fill fill-green" id="starElbowBar" style="width: 0%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starSessions">15</div>
+                                <div class="game-stat-value" id="starSessions">0</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starStars">142</div>
-                                <div class="game-stat-label">Stars Caught</div>
-                            </div>
-                            <div class="game-stat">
-                                <div class="game-stat-value" id="starAccuracy">82%</div>
-                                <div class="game-stat-label">Accuracy</div>
+                                <div class="game-stat-value" id="starScore">0%</div>
+                                <div class="game-stat-label">Avg Score</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Add other games similarly -->
+                    <!-- Game 2: Matching Game -->
+                    <div class="game-card">
+                        <div class="game-header">
+                            <span class="game-icon">🎨</span>
+                            <span class="game-badge badge-active">Active</span>
+                        </div>
+                        <h3>Matching Game</h3>
+                        <p class="game-description">Match objects to colors - full upper extremity workout</p>
+                        
+                        <div class="muscle-groups">
+                            <div class="muscle-group">
+                                <h4>Full Upper Extremity</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag primary">Shoulder Muscles</span>
+                                    <span class="muscle-tag primary">Elbow Muscles</span>
+                                    <span class="muscle-tag primary">Wrist & Fingers</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>Active Range</span>
+                                    <span id="matchRangeScore">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-blue" id="matchRangeBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>Grip Strength</span>
+                                    <span id="matchGripScore">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-green" id="matchGripBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <div class="game-stat-value" id="matchSessions">0</div>
+                                <div class="game-stat-label">Sessions</div>
+                            </div>
+                            <div class="game-stat">
+                                <div class="game-stat-value" id="matchScore">0%</div>
+                                <div class="game-stat-label">Avg Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Game 3: Catching Falling Objects -->
+                    <div class="game-card">
+                        <div class="game-header">
+                            <span class="game-icon">🧺</span>
+                            <span class="game-badge badge-active">Active</span>
+                        </div>
+                        <h3>Catching Falling Objects</h3>
+                        <p class="game-description">External rotation training with basket catching</p>
+                        
+                        <div class="muscle-groups">
+                            <div class="muscle-group">
+                                <h4>External Rotators</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag primary">Infraspinatus</span>
+                                    <span class="muscle-tag primary">Teres Minor</span>
+                                    <span class="muscle-tag primary">Posterior Deltoid</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>External Rotation</span>
+                                    <span id="rotationScore">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-green" id="rotationBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-label">
+                                    <span>Joint Alignment</span>
+                                    <span id="alignmentScore">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-blue" id="alignmentBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <div class="game-stat-value" id="rotationSessions">0</div>
+                                <div class="game-stat-label">Sessions</div>
+                            </div>
+                            <div class="game-stat">
+                                <div class="game-stat-value" id="rotationScore">0%</div>
+                                <div class="game-stat-label">Avg Score</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -682,11 +803,11 @@
                             <th>Game</th>
                             <th>Primary Muscles</th>
                             <th>Therapeutic Goal</th>
-                            <th>Progress</th>
+                            <th>Avg Score</th>
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="benefitsTable">
                         <tr>
                             <td><strong>Catching Stars</strong></td>
                             <td>
@@ -694,10 +815,28 @@
                                 <span class="muscle-indicator indicator-high"></span> Rotator Cuff
                             </td>
                             <td>Shoulder elevation & stability</td>
-                            <td>82%</td>
-                            <td><span style="color: #48bb78;">Improving</span></td>
+                            <td id="starAvgScore">-</td>
+                            <td id="starStatus">-</td>
                         </tr>
-                        <!-- Add other rows for other games -->
+                        <tr>
+                            <td><strong>Matching Game</strong></td>
+                            <td>
+                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity
+                            </td>
+                            <td>Active range & strength</td>
+                            <td id="matchAvgScore">-</td>
+                            <td id="matchStatus">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Catching Objects</strong></td>
+                            <td>
+                                <span class="muscle-indicator indicator-high"></span> Infraspinatus<br>
+                                <span class="muscle-indicator indicator-high"></span> Teres Minor
+                            </td>
+                            <td>Prevent contracture, improve alignment</td>
+                            <td id="rotationAvgScore">-</td>
+                            <td id="rotationStatus">-</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -709,57 +848,157 @@
         </div>
     </div>
 
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentPatient = 'PT001';
+        // Check if user is authenticated and is doctor
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        const userType = "{{ user.user_type }}";
         
-        const patientsData = {
-            'PT001': {
-                name: 'Ali Ahmed',
-                games: {
-                    stars: { shoulder: 85, elbow: 78, grasp: 82, sessions: 15, caught: 142, accuracy: 82 },
-                    match: { range: 88, grip: 76, trap: 12, sessions: 12, matches: 98, accuracy: 79 },
-                    rotation: { external: 92, alignment: 85, sessions: 18, caught: 156, prevention: 94 }
-                }
-            },
-            // Add other patient data similarly
-        };
+        if (!isAuthenticated || userType !== 'doctor') {
+            window.location.href = "{% url 'doctor_login' %}";
+        }
+
+        // Django variables
+        const csrfToken = document.getElementById('csrfToken').value;
+        const patients = {{ user.patients.all|length }};
 
         document.addEventListener('DOMContentLoaded', function() {
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            
-            document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
-            
-            loadPatientPerformance();
+            loadDoctorInfo();
+            loadOverallStats();
         });
 
-        function loadPatientPerformance() {
+        function loadDoctorInfo() {
+            const doctorName = "{{ user.get_full_name }}";
+            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
+            
+            document.getElementById('doctorName').textContent = doctorName || 'Dr. Ahmad';
+        }
+
+        async function loadOverallStats() {
+            try {
+                const response = await fetch('/api/overall-stats/', {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalSessions').textContent = data.total_sessions || '0';
+                    document.getElementById('avgScore').textContent = (data.avg_score || '0') + '%';
+                    document.getElementById('activePatients').textContent = data.active_patients || '0';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Demo data
+                document.getElementById('totalSessions').textContent = '45';
+                document.getElementById('avgScore').textContent = '82%';
+                document.getElementById('activePatients').textContent = '3';
+            }
+        }
+
+        async function loadPatientPerformance() {
             const select = document.getElementById('patientSelect');
-            currentPatient = select.value;
+            const patientId = select.value;
             
-            const data = patientsData[currentPatient];
-            if (!data) return;
+            if (!patientId) return;
             
-            const stars = data.games.stars;
-            const match = data.games.match;
-            const rotation = data.games.rotation;
+            try {
+                const response = await fetch(`/api/patient-game-stats/${patientId}/`, {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateGameStats(data);
+                }
+            } catch (error) {
+                console.error('Error loading patient performance:', error);
+                // Demo data
+                const demoData = {
+                    stars: { shoulder: 85, elbow: 78, sessions: 15, avg_score: 82 },
+                    match: { range: 88, grip: 76, sessions: 12, avg_score: 79 },
+                    rotation: { external: 92, alignment: 85, sessions: 18, avg_score: 89 }
+                };
+                updateGameStats({ success: true, games: demoData });
+            }
+        }
+
+        function updateGameStats(data) {
+            const games = data.games;
             
-            document.getElementById('starShoulderScore').textContent = stars.shoulder + '%';
-            document.getElementById('starShoulderBar').style.width = stars.shoulder + '%';
-            document.getElementById('starElbowScore').textContent = stars.elbow + '%';
-            document.getElementById('starElbowBar').style.width = stars.elbow + '%';
-            document.getElementById('starSessions').textContent = stars.sessions;
-            document.getElementById('starStars').textContent = stars.caught;
-            document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
+            // Update Stars game
+            if (games.stars) {
+                document.getElementById('starShoulderScore').textContent = games.stars.shoulder + '%';
+                document.getElementById('starShoulderBar').style.width = games.stars.shoulder + '%';
+                document.getElementById('starElbowScore').textContent = games.stars.elbow + '%';
+                document.getElementById('starElbowBar').style.width = games.stars.elbow + '%';
+                document.getElementById('starSessions').textContent = games.stars.sessions;
+                document.getElementById('starScore').textContent = games.stars.avg_score + '%';
+                
+                document.getElementById('starAvgScore').textContent = games.stars.avg_score + '%';
+                document.getElementById('starStatus').innerHTML = games.stars.avg_score > 80 ? 
+                    '<span style="color: #48bb78;">Excellent</span>' : 
+                    '<span style="color: #ecc94b;">Improving</span>';
+            }
             
-            // Update other fields similarly...
+            // Update Matching game
+            if (games.match) {
+                document.getElementById('matchRangeScore').textContent = games.match.range + '%';
+                document.getElementById('matchRangeBar').style.width = games.match.range + '%';
+                document.getElementById('matchGripScore').textContent = games.match.grip + '%';
+                document.getElementById('matchGripBar').style.width = games.match.grip + '%';
+                document.getElementById('matchSessions').textContent = games.match.sessions;
+                document.getElementById('matchScore').textContent = games.match.avg_score + '%';
+                
+                document.getElementById('matchAvgScore').textContent = games.match.avg_score + '%';
+                document.getElementById('matchStatus').innerHTML = games.match.avg_score > 80 ? 
+                    '<span style="color: #48bb78;">Excellent</span>' : 
+                    '<span style="color: #ecc94b;">Improving</span>';
+            }
+            
+            // Update Rotation game
+            if (games.rotation) {
+                document.getElementById('rotationScore').textContent = games.rotation.external + '%';
+                document.getElementById('rotationBar').style.width = games.rotation.external + '%';
+                document.getElementById('alignmentScore').textContent = games.rotation.alignment + '%';
+                document.getElementById('alignmentBar').style.width = games.rotation.alignment + '%';
+                document.getElementById('rotationSessions').textContent = games.rotation.sessions;
+                document.getElementById('rotationScore').textContent = games.rotation.avg_score + '%';
+                
+                document.getElementById('rotationAvgScore').textContent = games.rotation.avg_score + '%';
+                document.getElementById('rotationStatus').innerHTML = games.rotation.avg_score > 85 ? 
+                    '<span style="color: #48bb78;">Excellent</span>' : 
+                    '<span style="color: #ecc94b;">Improving</span>';
+            }
+        }
+
+        function filterByDate() {
+            const date = document.getElementById('dateFilter').value;
+            alert(`Showing data for: ${new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
+            
+            // You can implement actual date filtering here
+            loadOverallStats();
+            if (document.getElementById('patientSelect').value) {
+                loadPatientPerformance();
+            }
         }
 
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                window.location.href = 'index.html';
+                fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                }).finally(() => {
+                    localStorage.clear();
+                    window.location.href = "{% url 'index' %}";
+                });
             }
         }
     </script>

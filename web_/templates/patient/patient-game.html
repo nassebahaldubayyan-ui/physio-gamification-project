@@ -5,9 +5,502 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Therapy Game - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .game-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .game-title h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .game-title p {
+            color: #a0aec0;
+            font-size: 16px;
+        }
+        
+        .game-stats {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-label {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #48bb78;
+        }
+        
+        /* Game Selection Cards */
+        .game-selection {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: #48bb78;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+        
+        .game-card.active {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+        }
+        
+        .game-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .game-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .game-card p {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .muscle-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .muscle-tag {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+        }
+        
+        /* Game Screen */
+        .game-screen {
+            background: #0f3460;
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 25px;
+            border: 3px solid #e94560;
+            box-shadow: 0 20px 40px rgba(233, 69, 96, 0.3);
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+        }
+        
+        .game-area {
+            width: 100%;
+            min-height: 300px;
+            position: relative;
+        }
+        
+        /* Game 1: Catching Stars */
+        .stars-game {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(180deg, #0a1a2f, #1a2f4a);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: gold;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: fall 3s linear infinite;
+            cursor: pointer;
+            filter: drop-shadow(0 0 10px gold);
+        }
+        
+        @keyframes fall {
+            from { top: -50px; }
+            to { top: 100%; }
+        }
+        
+        .basket {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 60px;
+            background: #8b4513;
+            border-radius: 0 0 30px 30px;
+            border: 3px solid #654321;
+            transition: left 0.1s ease;
+        }
+        
+        .basket::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 10px;
+            width: 80px;
+            height: 15px;
+            background: #a0522d;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        /* Game 2: Matching Game */
+        .matching-game {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 300px;
+        }
+        
+        .objects-area {
+            background: #1e2a3a;
+            border-radius: 15px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .game-object {
+            width: 80px;
+            height: 80px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: grab;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .game-object:active {
+            cursor: grabbing;
+        }
+        
+        .boxes-area {
+            background: #1e2a3a;
+            border-radius: 15px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .color-box {
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        
+        .color-box.red { background: #ff4757; }
+        .color-box.blue { background: #1e90ff; }
+        .color-box.green { background: #2ed573; }
+        .color-box.yellow { background: #ffa502; color: #000; }
+        
+        /* Game 3: Catching Falling Objects (External Rotation) */
+        .rotation-game {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(180deg, #87CEEB, #4682B4);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .falling-object {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ff6347;
+            border-radius: 50%;
+            animation: fallObject 2s linear infinite;
+        }
+        
+        @keyframes fallObject {
+            from { top: -30px; }
+            to { top: 100%; }
+        }
+        
+        .rotating-basket {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 50px;
+            background: #8b4513;
+            border-radius: 0 0 20px 20px;
+            transition: transform 0.1s ease;
+            transform-origin: center center;
+        }
+        
+        .rotating-basket::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            width: 60px;
+            height: 10px;
+            background: #a0522d;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        /* Therapeutic Info Panel */
+        .therapy-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .therapy-info h3 {
+            color: #48bb78;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .muscle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .muscle-group {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+        }
+        
+        .muscle-group h4 {
+            color: #48bb78;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .muscle-list {
+            list-style: none;
+        }
+        
+        .muscle-list li {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .muscle-list li::before {
+            content: '•';
+            color: #48bb78;
+            position: absolute;
+            left: 0;
+        }
+        
+        .warning-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(233, 69, 96, 0.1);
+            border-left: 4px solid #e94560;
+            border-radius: 8px;
+            color: #ffb3b3;
+            font-size: 14px;
+        }
+        
+        /* Game Controls */
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .btn-game {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        
+        .btn-back {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .posture-warning {
+            color: #e94560;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-selection {
+                grid-template-columns: 1fr;
+            }
+            
+            .muscle-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+
     <div class="game-container">
         <!-- Game Header -->
         <div class="game-header">
@@ -18,111 +511,63 @@
             <div class="game-stats">
                 <div class="stat">
                     <div class="stat-label">Patient</div>
-                    <div class="stat-value" id="patientNameDisplay">Ali</div>
+                    <div class="stat-value" id="patientNameDisplay">{{ user.first_name|default:"Ali" }}</div>
                 </div>
                 <div class="stat">
                     <div class="stat-label">Level</div>
-                    <div class="stat-value" id="patientLevelDisplay">4</div>
+                    <div class="stat-value" id="patientLevelDisplay">{% if patient.current_level %}{{ patient.current_level }}{% else %}4{% endif %}</div>
                 </div>
             </div>
         </div>
 
         <!-- Game Selection Cards -->
         <div class="game-selection">
-            <div class="game-card" onclick="selectGame(1)" id="game1Card">
-                <div class="game-icon">⭐</div>
-                <h3>Catching Stars</h3>
-                <p>Reach up to catch stars and improve shoulder mobility</p>
+            {% for game in games %}
+            <div class="game-card" onclick="selectGame('{{ game.game_type }}', {{ game.id }})" id="game{{ game.id }}Card">
+                <div class="game-icon">
+                    {% if game.game_type == 'catching_stars' %}⭐
+                    {% elif game.game_type == 'matching' %}🎨
+                    {% elif game.game_type == 'catching_objects' %}🧺
+                    {% endif %}
+                </div>
+                <h3>{{ game.name }}</h3>
+                <p>{{ game.description|truncatechars:50 }}</p>
                 <div class="muscle-tags">
-                    <span class="muscle-tag">Deltoid</span>
-                    <span class="muscle-tag">Rotator Cuff</span>
-                    <span class="muscle-tag">Biceps</span>
-                    <span class="muscle-tag">Triceps</span>
-                    <span class="muscle-tag">Wrist Flexors</span>
+                    <span class="muscle-tag">Level {{ game.difficulty_level }}</span>
+                    <span class="muscle-tag">{{ game.get_game_type_display }}</span>
                 </div>
             </div>
-
-            <div class="game-card" onclick="selectGame(2)" id="game2Card">
-                <div class="game-icon">🎨</div>
-                <h3>Matching Game</h3>
-                <p>Match objects to colors - full upper extremity workout</p>
-                <div class="muscle-tags">
-                    <span class="muscle-tag">Shoulder Muscles</span>
-                    <span class="muscle-tag">Elbow Muscles</span>
-                    <span class="muscle-tag">Wrist & Fingers</span>
-                    <span class="muscle-tag">Grip Strength</span>
-                </div>
-                <div class="warning-box" style="margin-top: 10px; font-size: 12px;">
-                    ⚠️ Avoid shoulder shrugging (upper trapezius)
-                </div>
+            {% empty %}
+            <div class="game-card">
+                <h3>No games available</h3>
+                <p>Please check back later</p>
             </div>
-
-            <div class="game-card" onclick="selectGame(3)" id="game3Card">
-                <div class="game-icon">🧺</div>
-                <h3>Catching Falling Objects</h3>
-                <p>External rotation training with basket catching</p>
-                <div class="muscle-tags">
-                    <span class="muscle-tag">External Rotators</span>
-                    <span class="muscle-tag">Infraspinatus</span>
-                    <span class="muscle-tag">Teres Minor</span>
-                    <span class="muscle-tag">Posterior Deltoid</span>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <!-- Game Screen -->
         <div class="game-screen" id="gameScreen">
             <div class="game-area" id="gameArea">
-                <!-- Game 1: Catching Stars -->
-                <div id="game1" class="stars-game" style="display: none;">
-                    <div class="star" style="left: 20%; animation-duration: 2.5s;"></div>
-                    <div class="star" style="left: 50%; animation-duration: 3s;"></div>
-                    <div class="star" style="left: 80%; animation-duration: 2s;"></div>
-                    <div class="basket" id="basket"></div>
-                </div>
-
-                <!-- Game 2: Matching Game -->
-                <div id="game2" class="matching-game" style="display: none;">
-                    <div class="objects-area" id="objectsArea">
-                        <div class="game-object" draggable="true" data-color="red" style="background: #ff4757;">🔴</div>
-                        <div class="game-object" draggable="true" data-color="blue" style="background: #1e90ff;">🔵</div>
-                        <div class="game-object" draggable="true" data-color="green" style="background: #2ed573;">🟢</div>
-                        <div class="game-object" draggable="true" data-color="yellow" style="background: #ffa502;">🟡</div>
-                    </div>
-                    <div class="boxes-area" id="boxesArea">
-                        <div class="color-box red" data-color="red">RED</div>
-                        <div class="color-box blue" data-color="blue">BLUE</div>
-                        <div class="color-box green" data-color="green">GREEN</div>
-                        <div class="color-box yellow" data-color="yellow">YELLOW</div>
-                    </div>
-                </div>
-
-                <!-- Game 3: Catching Falling Objects -->
-                <div id="game3" class="rotation-game" style="display: none;">
-                    <div class="falling-object" style="left: 30%;"></div>
-                    <div class="falling-object" style="left: 60%;"></div>
-                    <div class="rotating-basket" id="rotatingBasket" style="left: 50%; transform: rotate(0deg);"></div>
-                </div>
+                <!-- Game content will be loaded dynamically -->
+                <div class="stars-game" id="starsGame" style="display: none;"></div>
+                <div class="matching-game" id="matchingGame" style="display: none;"></div>
+                <div class="rotation-game" id="rotationGame" style="display: none;"></div>
             </div>
         </div>
 
         <!-- Therapeutic Information Panel -->
         <div class="therapy-info">
-            <h3 id="therapyTitle">Therapeutic Goals: Catching Stars</h3>
-            <div class="muscle-grid" id="muscleGrid">
-                <!-- Will be populated by JavaScript -->
-            </div>
-            <div class="warning-box" id="therapyWarning">
-                ⚠️ Maintain proper posture. Avoid shoulder shrugging to prevent upper trapezius overuse.
-            </div>
+            <h3 id="therapyTitle">Select a game to see therapeutic goals</h3>
+            <div class="muscle-grid" id="muscleGrid"></div>
+            <div class="warning-box" id="therapyWarning"></div>
         </div>
 
         <!-- Game Controls -->
         <div class="game-controls">
-            <button class="btn-game btn-primary" onclick="startGame()">
+            <button class="btn-game btn-primary" onclick="startGame()" id="startBtn">
                 <span>▶️</span> Start Game
             </button>
-            <button class="btn-game btn-secondary" onclick="pauseGame()">
+            <button class="btn-game btn-secondary" onclick="pauseGame()" id="pauseBtn">
                 <span>⏸️</span> Pause
             </button>
         </div>
@@ -133,75 +578,124 @@
         </button>
     </div>
 
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentGame = 1;
-        let gameInterval;
+        // Check if user is authenticated and is patient
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        const userType = "{{ user.user_type }}";
+        
+        if (!isAuthenticated || userType !== 'patient') {
+            window.location.href = "{% url 'gamer_login' %}";
+        }
+
+        // Django variables
+        const csrfToken = document.getElementById('csrfToken').value;
+        const patientId = {{ patient.id }};
+        
+        // Game state
+        let currentGame = null;
+        let currentGameId = null;
+        let sessionId = null;
+        let gameInterval = null;
         let score = 0;
         
-        // Therapeutic goals data based on PDF
+        // Therapeutic goals data
         const therapyGoals = {
-            1: {
+            'catching_stars': {
                 title: 'Catching Stars',
                 muscles: [
                     { group: 'Shoulder Muscles', targets: ['Deltoid (arm elevation)', 'Rotator Cuff (stability)'] },
                     { group: 'Elbow Muscles', targets: ['Biceps (flexion)', 'Triceps (extension)'] },
                     { group: 'Wrist & Fingers', targets: ['Wrist flexors/extensors', 'Finger flexors (grasping)'] }
                 ],
-                warning: 'Reaching up activates shoulder muscles. Bring star to bag target for elbow work.',
-                color: '#48bb78'
+                warning: 'Reaching up activates shoulder muscles. Focus on smooth, controlled movements.'
             },
-            2: {
+            'matching': {
                 title: 'Matching Game',
                 muscles: [
                     { group: 'Shoulder Muscles', targets: ['Deltoid', 'Rotator Cuff', 'Shoulder stabilizers'] },
                     { group: 'Elbow Muscles', targets: ['Biceps', 'Triceps', 'Brachioradialis'] },
                     { group: 'Wrist & Fingers', targets: ['Wrist flexors', 'Finger flexors', 'Grip muscles'] }
                 ],
-                warning: '⚠️ CRITICAL: Avoid shoulder shrugging! Monitor upper trapezius overuse. Focus on active range and strength.',
-                color: '#ffa502'
+                warning: '⚠️ CRITICAL: Avoid shoulder shrugging! Keep shoulders down and relaxed.'
             },
-            3: {
+            'catching_objects': {
                 title: 'Catching Falling Objects',
                 muscles: [
                     { group: 'Shoulder External Rotators', targets: ['Infraspinatus', 'Teres Minor', 'Posterior Deltoid'] },
-                    { group: 'Therapeutic Benefits', targets: ['Prevent shoulder contracture', 'Improve joint alignment', 'Reduce subluxation', 'Restore functional reach'] }
+                    { group: 'Therapeutic Benefits', targets: ['Prevent shoulder contracture', 'Improve joint alignment', 'Reduce subluxation'] }
                 ],
-                warning: 'Focus on external rotation movement. This helps prevent contractures and improves joint alignment.',
-                color: '#e94560'
+                warning: 'Focus on external rotation movement. This helps prevent contractures.'
             }
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            const patientName = localStorage.getItem('patientName') || 'Ali';
-            const patientLevel = localStorage.getItem('patientLevel') || '4';
-            
-            document.getElementById('patientNameDisplay').textContent = patientName;
-            document.getElementById('patientLevelDisplay').textContent = patientLevel;
-            
-            selectGame(1); // Default to first game
+            loadPatientData();
+            setupMouseTracking();
         });
 
-        function selectGame(gameNumber) {
-            currentGame = gameNumber;
+        function loadPatientData() {
+            const patientName = "{{ user.first_name|default:'' }}";
+            if (!patientName) {
+                document.getElementById('patientNameDisplay').textContent = localStorage.getItem('patientName') || 'Ali';
+            }
+        }
+
+        function setupMouseTracking() {
+            document.addEventListener('mousemove', function(e) {
+                const gameScreen = document.getElementById('gameScreen');
+                const rect = gameScreen.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const relativeX = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                
+                // Update basket positions
+                updateBasketPositions(relativeX);
+            });
+        }
+
+        function updateBasketPositions(x) {
+            const basket = document.getElementById('basket');
+            const rotatingBasket = document.getElementById('rotatingBasket');
             
-            // Update card styles
-            for (let i = 1; i <= 3; i++) {
-                const card = document.getElementById(`game${i}Card`);
-                const gameArea = document.getElementById(`game${i}`);
-                if (i === gameNumber) {
-                    card.classList.add('active');
-                    gameArea.style.display = 'block';
-                } else {
-                    card.classList.remove('active');
-                    gameArea.style.display = 'none';
-                }
+            if (basket) {
+                basket.style.left = x + '%';
             }
             
+            if (rotatingBasket) {
+                rotatingBasket.style.left = x + '%';
+                const rotation = (x - 50) * 0.5;
+                rotatingBasket.style.transform = `rotate(${rotation}deg)`;
+            }
+        }
+
+        function selectGame(gameType, gameId) {
+            currentGame = gameType;
+            currentGameId = gameId;
+            
+            // Update active card
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show appropriate game area
+            document.getElementById('starsGame').style.display = gameType === 'catching_stars' ? 'block' : 'none';
+            document.getElementById('matchingGame').style.display = gameType === 'matching' ? 'grid' : 'none';
+            document.getElementById('rotationGame').style.display = gameType === 'catching_objects' ? 'block' : 'none';
+            
             // Update therapy info
-            const goals = therapyGoals[gameNumber];
+            updateTherapyInfo(gameType);
+            
+            // Load game content
+            loadGameContent(gameType);
+        }
+
+        function updateTherapyInfo(gameType) {
+            const goals = therapyGoals[gameType];
+            if (!goals) return;
+            
             document.getElementById('therapyTitle').textContent = `Therapeutic Goals: ${goals.title}`;
             
-            // Update muscle grid
             const muscleGrid = document.getElementById('muscleGrid');
             muscleGrid.innerHTML = '';
             
@@ -217,23 +711,96 @@
                 muscleGrid.appendChild(div);
             });
             
-            // Update warning
             document.getElementById('therapyWarning').textContent = goals.warning;
         }
 
-        function startGame() {
-            // Reset score
+        function loadGameContent(gameType) {
+            if (gameType === 'catching_stars') {
+                loadStarsGame();
+            } else if (gameType === 'matching') {
+                loadMatchingGame();
+            } else if (gameType === 'catching_objects') {
+                loadRotationGame();
+            }
+        }
+
+        function loadStarsGame() {
+            const gameArea = document.getElementById('starsGame');
+            gameArea.innerHTML = `
+                <div class="star" style="left: 20%; animation-duration: 2.5s;"></div>
+                <div class="star" style="left: 50%; animation-duration: 3s;"></div>
+                <div class="star" style="left: 80%; animation-duration: 2s;"></div>
+                <div class="basket" id="basket"></div>
+                <div class="score-display" id="gameScore">Score: 0</div>
+            `;
+        }
+
+        function loadMatchingGame() {
+            const gameArea = document.getElementById('matchingGame');
+            gameArea.innerHTML = `
+                <div class="objects-area" id="objectsArea">
+                    <div class="game-object" draggable="true" data-color="red" style="background: #ff4757;">🔴</div>
+                    <div class="game-object" draggable="true" data-color="blue" style="background: #1e90ff;">🔵</div>
+                    <div class="game-object" draggable="true" data-color="green" style="background: #2ed573;">🟢</div>
+                    <div class="game-object" draggable="true" data-color="yellow" style="background: #ffa502;">🟡</div>
+                </div>
+                <div class="boxes-area" id="boxesArea">
+                    <div class="color-box red" data-color="red">RED</div>
+                    <div class="color-box blue" data-color="blue">BLUE</div>
+                    <div class="color-box green" data-color="green">GREEN</div>
+                    <div class="color-box yellow" data-color="yellow">YELLOW</div>
+                </div>
+                <div class="score-display" id="gameScore">Score: 0</div>
+            `;
+        }
+
+        function loadRotationGame() {
+            const gameArea = document.getElementById('rotationGame');
+            gameArea.innerHTML = `
+                <div class="falling-object" style="left: 30%;"></div>
+                <div class="falling-object" style="left: 60%;"></div>
+                <div class="rotating-basket" id="rotatingBasket" style="left: 50%; transform: rotate(0deg);"></div>
+                <div class="score-display" id="gameScore">Score: 0</div>
+            `;
+        }
+
+        async function startGame() {
+            if (!currentGame) {
+                showNotification('Please select a game first', 'warning');
+                return;
+            }
+            
             score = 0;
+            updateScore();
             
-            // Clear any existing interval
-            if (gameInterval) clearInterval(gameInterval);
+            // Create game session
+            try {
+                const response = await fetch('/api/create-game-session/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        game_type: currentGame,
+                        game_id: currentGameId
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    sessionId = data.session_id;
+                }
+            } catch (error) {
+                console.error('Error creating session:', error);
+            }
             
-            // Start game based on selection
-            if (currentGame === 1) {
+            // Start game logic
+            if (currentGame === 'catching_stars') {
                 startStarsGame();
-            } else if (currentGame === 2) {
+            } else if (currentGame === 'matching') {
                 startMatchingGame();
-            } else if (currentGame === 3) {
+            } else if (currentGame === 'catching_objects') {
                 startRotationGame();
             }
             
@@ -241,32 +808,30 @@
         }
 
         function startStarsGame() {
-            const gameArea = document.getElementById('game1');
-            gameArea.innerHTML = `
-                <div class="star" style="left: 20%; animation-duration: 2.5s;"></div>
-                <div class="star" style="left: 50%; animation-duration: 3s;"></div>
-                <div class="star" style="left: 80%; animation-duration: 2s;"></div>
-                <div class="basket" id="basket"></div>
-            `;
+            const gameArea = document.getElementById('starsGame');
             
             // Add click handlers to stars
+            if (gameInterval) clearInterval(gameInterval);
+            
             gameInterval = setInterval(() => {
-                const stars = gameArea.querySelectorAll('.star');
+                const stars = gameArea.querySelectorAll('.star:not(.clicked)');
                 stars.forEach(star => {
-                    star.addEventListener('click', function() {
+                    star.addEventListener('click', function starClick() {
                         score += 10;
+                        this.classList.add('clicked');
                         this.remove();
-                        showNotification(`+10 points! Shoulder elevation complete. Score: ${score}`);
+                        updateScore();
+                        showNotification(`+10 points! Score: ${score}`);
                         
                         // Add new star
-                        if (stars.length < 3) {
+                        if (gameArea.querySelectorAll('.star').length < 3) {
                             const newStar = document.createElement('div');
                             newStar.className = 'star';
                             newStar.style.left = Math.random() * 80 + 10 + '%';
                             newStar.style.animationDuration = (Math.random() * 2 + 2) + 's';
                             gameArea.appendChild(newStar);
                         }
-                    });
+                    }, { once: true });
                 });
             }, 1000);
         }
@@ -310,6 +875,7 @@
             
             if (color === boxColor) {
                 score += 20;
+                updateScore();
                 showNotification(`✓ Correct match! +20 points. Score: ${score}`);
                 e.target.style.transform = 'scale(1.1)';
                 setTimeout(() => e.target.style.transform = 'scale(1)', 200);
@@ -319,12 +885,9 @@
         }
 
         function startRotationGame() {
-            const gameArea = document.getElementById('game3');
-            gameArea.innerHTML = `
-                <div class="falling-object" style="left: 30%;"></div>
-                <div class="falling-object" style="left: 60%;"></div>
-                <div class="rotating-basket" id="rotatingBasket" style="left: 50%; transform: rotate(0deg);"></div>
-            `;
+            const gameArea = document.getElementById('rotationGame');
+            
+            if (gameInterval) clearInterval(gameInterval);
             
             gameInterval = setInterval(() => {
                 const objects = gameArea.querySelectorAll('.falling-object');
@@ -336,21 +899,23 @@
                     
                     // Check collision
                     if (objRect.bottom >= basketRect.top && 
-                        objRect.left >= basketRect.left && 
-                        objRect.right <= basketRect.right) {
+                        objRect.left >= basketRect.left - 20 && 
+                        objRect.right <= basketRect.right + 20) {
                         score += 15;
                         obj.remove();
-                        showNotification(`✓ Caught! External rotation good. Score: ${score}`);
-                    }
-                    
-                    // Add new object
-                    if (objects.length < 3) {
-                        const newObj = document.createElement('div');
-                        newObj.className = 'falling-object';
-                        newObj.style.left = Math.random() * 70 + 15 + '%';
-                        gameArea.appendChild(newObj);
+                        updateScore();
+                        showNotification(`✓ Caught! +15 points. Score: ${score}`);
                     }
                 });
+                
+                // Add new objects
+                if (gameArea.querySelectorAll('.falling-object').length < 3) {
+                    const newObj = document.createElement('div');
+                    newObj.className = 'falling-object';
+                    newObj.style.left = Math.random() * 70 + 15 + '%';
+                    newObj.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+                    gameArea.appendChild(newObj);
+                }
             }, 500);
         }
 
@@ -359,32 +924,48 @@
                 clearInterval(gameInterval);
                 gameInterval = null;
                 showNotification('Game paused');
+                document.getElementById('pauseBtn').innerHTML = '<span>▶️</span> Resume';
             } else {
                 startGame();
+                document.getElementById('pauseBtn').innerHTML = '<span>⏸️</span> Pause';
+            }
+        }
+
+        function updateScore() {
+            const scoreDisplay = document.getElementById('gameScore');
+            if (scoreDisplay) {
+                scoreDisplay.textContent = `Score: ${score}`;
+            }
+        }
+
+        async function saveScore() {
+            if (sessionId && score > 0) {
+                try {
+                    await fetch('/api/save-game-score/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            score: score,
+                            completed: true
+                        })
+                    });
+                } catch (error) {
+                    console.error('Error saving score:', error);
+                }
             }
         }
 
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
-            notification.textContent = message;
-            
-            const colors = {
-                success: 'linear-gradient(135deg, #48bb78, #38a169)',
-                warning: 'linear-gradient(135deg, #e94560, #c73e54)'
-            };
-            
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: ${colors[type] || colors.success};
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
+            notification.className = 'message';
+            notification.style.background = type === 'success' ? 
+                'linear-gradient(135deg, #48bb78, #38a169)' : 
+                'linear-gradient(135deg, #e94560, #c73e54)';
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
             
             document.body.appendChild(notification);
             
@@ -394,8 +975,21 @@
         }
 
         function goBack() {
-            window.location.href = 'patient.html';
+            if (score > 0) {
+                saveScore();
+            }
+            window.location.href = "{% url 'patient_dashboard' %}";
         }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (gameInterval) {
+                clearInterval(gameInterval);
+            }
+            if (score > 0) {
+                saveScore();
+            }
+        });
     </script>
 </body>
 </html>

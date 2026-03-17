@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
             margin: 0;
@@ -88,6 +90,7 @@
             border: 4px solid white;
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
             margin-bottom: 15px;
+            object-fit: cover;
         }
         
         .change-photo-btn {
@@ -239,6 +242,43 @@
             border-bottom: 2px solid #f1f5f9;
         }
         
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -247,10 +287,17 @@
             .form-group.full-width {
                 grid-column: span 1;
             }
+            
+            .edit-container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+
     <div class="edit-container">
         <div class="edit-header">
             <button class="back-btn" onclick="goBack()">←</button>
@@ -259,116 +306,110 @@
 
         <!-- Profile Image -->
         <div class="profile-image-section">
-            <div class="profile-image" id="profileImage">A</div>
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" class="profile-image" id="profileImage" alt="Profile">
+            {% else %}
+                <div class="profile-image" id="profileImage">{{ user.first_name|first|default:"U" }}</div>
+            {% endif %}
             <button class="change-photo-btn" onclick="changePhoto()">
                 <span>📷</span> Change Photo
             </button>
+            <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="uploadPhoto(this)">
         </div>
 
         <!-- Personal Information -->
         <div class="section-title">Personal Information</div>
         <div class="form-grid">
             <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-input" id="fullName" placeholder="Enter your full name">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-input" id="firstName" value="{{ user.first_name|default:'' }}" placeholder="Enter your first name">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-input" id="lastName" value="{{ user.last_name|default:'' }}" placeholder="Enter your last name">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" id="username" value="{{ user.username }}" disabled>
             </div>
             
             <div class="form-group">
                 <label class="form-label">User ID</label>
-                <input type="text" class="form-input" id="userId" disabled>
+                <input type="text" class="form-input" id="userId" value="{{ user.id }}" disabled>
             </div>
             
             <div class="form-group">
                 <label class="form-label">Email Address</label>
-                <input type="email" class="form-input" id="email" placeholder="email@example.com">
+                <input type="email" class="form-input" id="email" value="{{ user.email|default:'' }}" placeholder="email@example.com">
             </div>
             
             <div class="form-group">
                 <label class="form-label">Phone Number</label>
-                <input type="tel" class="form-input" id="phone" placeholder="+966 5X XXX XXXX">
+                <input type="tel" class="form-input" id="phone" value="{{ user.phone|default:'' }}" placeholder="+966 5X XXX XXXX">
             </div>
             
             <div class="form-group">
                 <label class="form-label">Date of Birth</label>
-                <input type="date" class="form-input" id="dob">
+                <input type="date" class="form-input" id="dob" value="{% if user.patient_profile.date_of_birth %}{{ user.patient_profile.date_of_birth|date:'Y-m-d' }}{% endif %}">
             </div>
             
             <div class="form-group">
                 <label class="form-label">Gender</label>
                 <div class="radio-group">
                     <label class="radio-option">
-                        <input type="radio" name="gender" value="male" id="genderMale"> Male
+                        <input type="radio" name="gender" value="male" id="genderMale" {% if user.patient_profile.gender == 'male' %}checked{% endif %}> Male
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="gender" value="female" id="genderFemale"> Female
+                        <input type="radio" name="gender" value="female" id="genderFemale" {% if user.patient_profile.gender == 'female' %}checked{% endif %}> Female
                     </label>
                 </div>
             </div>
         </div>
 
-        <!-- Medical/Professional Information (ظهر حسب نوع المستخدم) -->
-        <div id="patientSection" style="display: none;">
+        <!-- Patient Section -->
+        <div id="patientSection" {% if user.user_type != 'patient' %}style="display: none;"{% endif %}>
             <div class="section-title">Medical Information</div>
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Condition</label>
-                    <select class="form-select" id="patientCondition">
-                        <option value="Motor Disability">Motor Disability</option>
-                        <option value="Arm Weakness">Arm Weakness</option>
-                        <option value="Movement Disorder">Movement Disorder</option>
-                        <option value="Hand Rehabilitation">Hand Rehabilitation</option>
-                        <option value="Wrist Recovery">Wrist Recovery</option>
-                    </select>
+                    <label class="form-label">Medical History</label>
+                    <textarea class="form-input" id="medicalHistory" rows="3">{{ patient.medical_history|default:'' }}</textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Therapy Type</label>
-                    <select class="form-select" id="therapyType">
-                        <option value="Physical Therapy">Physical Therapy</option>
-                        <option value="Occupational Therapy">Occupational Therapy</option>
-                        <option value="Developmental Therapy">Developmental Therapy</option>
-                    </select>
+                    <label class="form-label">Assigned Doctor</label>
+                    <input type="text" class="form-input" id="assignedDoctor" value="{% if patient.assigned_doctor %}Dr. {{ patient.assigned_doctor.get_full_name }}{% else %}Not assigned{% endif %}" disabled>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Current Level</label>
-                    <select class="form-select" id="currentLevel">
-                        <option value="1">Level 1 - Beginner</option>
-                        <option value="2">Level 2 - Intermediate</option>
-                        <option value="3">Level 3 - Advanced</option>
-                        <option value="4">Level 4 - Expert</option>
-                        <option value="5">Level 5 - Master</option>
+                    <label class="form-label">Affected Hand</label>
+                    <select class="form-select" id="affectedHand">
+                        <option value="right" {% if patient.affected_hand == 'right' %}selected{% endif %}>Right Hand</option>
+                        <option value="left" {% if patient.affected_hand == 'left' %}selected{% endif %}>Left Hand</option>
+                        <option value="both" {% if patient.affected_hand == 'both' %}selected{% endif %}>Both Hands</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div id="doctorSection" style="display: none;">
+        <!-- Doctor Section -->
+        <div id="doctorSection" {% if user.user_type != 'doctor' %}style="display: none;"{% endif %}>
             <div class="section-title">Professional Information</div>
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Specialty</label>
-                    <select class="form-select" id="doctorSpecialty">
-                        <option value="Physiotherapy">Physiotherapy</option>
-                        <option value="Occupational Therapy">Occupational Therapy</option>
-                        <option value="Speech Therapy">Speech Therapy</option>
-                        <option value="Physical Medicine">Physical Medicine</option>
-                    </select>
+                    <label class="form-label">Specialization</label>
+                    <input type="text" class="form-input" id="specialization" value="{{ doctor.specialization|default:'' }}" placeholder="e.g., Physiotherapy">
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">License Number</label>
-                    <input type="text" class="form-input" id="licenseNumber" placeholder="Enter license number">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Hospital/Clinic</label>
-                    <input type="text" class="form-input" id="clinic" placeholder="Hospital or clinic name">
+                    <input type="text" class="form-input" id="licenseNumber" value="{{ doctor.license_number|default:'' }}" placeholder="Enter license number">
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Years of Experience</label>
-                    <input type="number" class="form-input" id="experience" placeholder="Years" min="0" max="50">
+                    <input type="number" class="form-input" id="experience" value="{{ doctor.years_experience|default:'0' }}" placeholder="Years" min="0" max="50">
                 </div>
             </div>
         </div>
@@ -378,25 +419,31 @@
         <div class="form-grid">
             <div class="form-group full-width">
                 <label class="form-label">Address Line</label>
-                <input type="text" class="form-input" id="address" placeholder="Street address">
+                <input type="text" class="form-input" id="address" value="{{ user.address|default:'' }}" placeholder="Street address">
             </div>
             
             <div class="form-group">
                 <label class="form-label">City</label>
-                <input type="text" class="form-input" id="city" placeholder="City">
+                <input type="text" class="form-input" id="city" value="{{ user.city|default:'' }}" placeholder="City">
             </div>
             
             <div class="form-group">
                 <label class="form-label">Country</label>
                 <select class="form-select" id="country">
-                    <option value="Saudi Arabia">Saudi Arabia</option>
-                    <option value="UAE">UAE</option>
-                    <option value="Kuwait">Kuwait</option>
-                    <option value="Qatar">Qatar</option>
-                    <option value="Bahrain">Bahrain</option>
-                    <option value="Oman">Oman</option>
+                    <option value="Saudi Arabia" {% if user.country == 'Saudi Arabia' %}selected{% endif %}>Saudi Arabia</option>
+                    <option value="UAE" {% if user.country == 'UAE' %}selected{% endif %}>UAE</option>
+                    <option value="Kuwait" {% if user.country == 'Kuwait' %}selected{% endif %}>Kuwait</option>
+                    <option value="Qatar" {% if user.country == 'Qatar' %}selected{% endif %}>Qatar</option>
+                    <option value="Bahrain" {% if user.country == 'Bahrain' %}selected{% endif %}>Bahrain</option>
+                    <option value="Oman" {% if user.country == 'Oman' %}selected{% endif %}>Oman</option>
                 </select>
             </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group full-width">
+            <label class="form-label">Bio</label>
+            <textarea class="form-input" id="bio" rows="3">{{ user.bio|default:'' }}</textarea>
         </div>
 
         <!-- Action Buttons -->
@@ -410,190 +457,166 @@
         </div>
     </div>
 
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let userType = 'patient';
-        let userId = '';
-        
+        // Check if user is authenticated
+        const isAuthenticated = {{ user.is_authenticated|lower }};
+        if (!isAuthenticated) {
+            window.location.href = "{% url 'gamer_login' %}";
+        }
+
+        // Django variables
+        const csrfToken = document.getElementById('csrfToken').value;
+        const userType = "{{ user.user_type }}";
+        const userId = {{ user.id }};
+
         document.addEventListener('DOMContentLoaded', function() {
-            loadUserData();
+            // Format phone number
+            document.getElementById('phone').addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9+]/g, '');
+            });
         });
-        
-        function loadUserData() {
-            userType = localStorage.getItem('userType') || 'patient';
-            userId = userType === 'doctor' ? localStorage.getItem('doctorId') : localStorage.getItem('patientId');
-            
-            // Show appropriate sections
-            if (userType === 'doctor') {
-                document.getElementById('doctorSection').style.display = 'block';
-                document.getElementById('patientSection').style.display = 'none';
-                loadDoctorData();
-            } else {
-                document.getElementById('doctorSection').style.display = 'none';
-                document.getElementById('patientSection').style.display = 'block';
-                loadPatientData();
+
+        function changePhoto() {
+            document.getElementById('photoInput').click();
+        }
+
+        async function uploadPhoto(input) {
+            if (!input.files || !input.files[0]) return;
+
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            try {
+                const response = await fetch('/api/upload-profile-picture/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update profile image display
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const profileImage = document.getElementById('profileImage');
+                        profileImage.src = e.target.result;
+                        profileImage.classList.add('profile-image');
+                        profileImage.style.objectFit = 'cover';
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    showNotification('Profile photo updated!');
+                } else {
+                    showError('Error uploading photo');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Connection error');
             }
         }
-        
-        function loadPatientData() {
-            const patientId = localStorage.getItem('patientId') || 'PT001';
-            const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
-            const patientCondition = localStorage.getItem('patientCondition') || 'Motor Disability';
-            const patientLevel = localStorage.getItem('patientLevel') || '4';
-            
-            document.getElementById('profileImage').textContent = patientName.charAt(0);
-            document.getElementById('fullName').value = patientName;
-            document.getElementById('userId').value = patientId;
-            
-            // Patient-specific data based on ID
-            if (patientId === 'PT001') {
-                document.getElementById('email').value = 'ali.ahmed@email.com';
-                document.getElementById('phone').value = '+966 50 111 1111';
-                document.getElementById('dob').value = '2018-01-15';
-                document.getElementById('genderMale').checked = true;
-                document.getElementById('patientCondition').value = 'Motor Disability';
-                document.getElementById('therapyType').value = 'Physical Therapy';
-                document.getElementById('currentLevel').value = '4';
-                document.getElementById('address').value = 'Al Olaya Street';
-                document.getElementById('city').value = 'Riyadh';
-                document.getElementById('country').value = 'Saudi Arabia';
-            } else if (patientId === 'PT002') {
-                document.getElementById('email').value = 'sara.khaled@email.com';
-                document.getElementById('phone').value = '+966 50 222 2222';
-                document.getElementById('dob').value = '2019-03-20';
-                document.getElementById('genderFemale').checked = true;
-                document.getElementById('patientCondition').value = 'Arm Weakness';
-                document.getElementById('therapyType').value = 'Occupational Therapy';
-                document.getElementById('currentLevel').value = '3';
-                document.getElementById('address').value = 'Al Malaz District';
-                document.getElementById('city').value = 'Riyadh';
-                document.getElementById('country').value = 'Saudi Arabia';
-            } else if (patientId === 'PT003') {
-                document.getElementById('email').value = 'omar.hassan@email.com';
-                document.getElementById('phone').value = '+966 50 333 3333';
-                document.getElementById('dob').value = '2017-11-05';
-                document.getElementById('genderMale').checked = true;
-                document.getElementById('patientCondition').value = 'Movement Disorder';
-                document.getElementById('therapyType').value = 'Developmental Therapy';
-                document.getElementById('currentLevel').value = '5';
-                document.getElementById('address').value = 'Al Narjis';
-                document.getElementById('city').value = 'Riyadh';
-                document.getElementById('country').value = 'Saudi Arabia';
-            }
-        }
-        
-        function loadDoctorData() {
-            const doctorId = localStorage.getItem('doctorId') || 'TH001';
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorEmail = localStorage.getItem('doctorEmail') || 'dr.ahmad@clinic.com';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            const doctorPhone = localStorage.getItem('doctorPhone') || '+966 50 000 0000';
-            
-            document.getElementById('profileImage').textContent = doctorName.charAt(0);
-            document.getElementById('fullName').value = doctorName;
-            document.getElementById('userId').value = doctorId;
-            document.getElementById('email').value = doctorEmail;
-            document.getElementById('phone').value = doctorPhone;
-            document.getElementById('dob').value = '1985-06-15';
-            document.getElementById('genderMale').checked = true;
-            
-            // Doctor-specific fields
-            document.getElementById('doctorSpecialty').value = doctorSpecialty;
-            document.getElementById('licenseNumber').value = 'LIC-' + doctorId;
-            document.getElementById('clinic').value = 'Rehabilitation Center';
-            document.getElementById('experience').value = '10';
-            
-            document.getElementById('address').value = 'Medical District';
-            document.getElementById('city').value = 'Riyadh';
-            document.getElementById('country').value = 'Saudi Arabia';
-        }
-        
-        function saveProfile() {
-            // Get form values
-            const fullName = document.getElementById('fullName').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const address = document.getElementById('address').value.trim();
-            const city = document.getElementById('city').value.trim();
-            const country = document.getElementById('country').value;
-            
-            if (!fullName || !email || !phone) {
-                alert('Please fill in all required fields');
+
+        async function saveProfile() {
+            // Get common form values
+            const formData = {
+                first_name: document.getElementById('firstName').value.trim(),
+                last_name: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                bio: document.getElementById('bio').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                country: document.getElementById('country').value,
+                gender: document.querySelector('input[name="gender"]:checked')?.value
+            };
+
+            // Validation
+            if (!formData.first_name || !formData.last_name) {
+                showError('First name and last name are required');
                 return;
             }
-            
-            // Save to localStorage based on user type
-            if (userType === 'doctor') {
-                localStorage.setItem('doctorName', fullName);
-                localStorage.setItem('doctorEmail', email);
-                localStorage.setItem('doctorPhone', phone);
-                
-                const specialty = document.getElementById('doctorSpecialty').value;
-                const license = document.getElementById('licenseNumber').value;
-                const clinic = document.getElementById('clinic').value;
-                const experience = document.getElementById('experience').value;
-                
-                localStorage.setItem('doctorSpecialty', specialty);
-                localStorage.setItem('doctorLicense', license);
-                localStorage.setItem('doctorClinic', clinic);
-                localStorage.setItem('doctorExperience', experience);
-            } else {
-                localStorage.setItem('patientName', fullName);
-                
-                const condition = document.getElementById('patientCondition').value;
-                const therapy = document.getElementById('therapyType').value;
-                const level = document.getElementById('currentLevel').value;
-                
-                localStorage.setItem('patientCondition', condition);
-                localStorage.setItem('patientTherapy', therapy);
-                localStorage.setItem('patientLevel', level);
+
+            if (!formData.email) {
+                showError('Email is required');
+                return;
             }
-            
-            // Save address info
-            localStorage.setItem('userAddress', address);
-            localStorage.setItem('userCity', city);
-            localStorage.setItem('userCountry', country);
-            
-            // Show success message
-            showNotification('Profile updated successfully!');
-            
-            // Go back to profile page
-            setTimeout(() => {
-                window.location.href = 'profile.html';
-            }, 1500);
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            // Add user type specific data
+            if (userType === 'patient') {
+                formData.medical_history = document.getElementById('medicalHistory')?.value.trim() || '';
+                formData.affected_hand = document.getElementById('affectedHand')?.value || 'right';
+                formData.date_of_birth = document.getElementById('dob')?.value || '';
+            } else if (userType === 'doctor') {
+                formData.specialization = document.getElementById('specialization')?.value.trim() || '';
+                formData.license_number = document.getElementById('licenseNumber')?.value.trim() || '';
+                formData.years_experience = parseInt(document.getElementById('experience')?.value) || 0;
+            }
+
+            try {
+                document.querySelector('.btn-save').disabled = true;
+                document.querySelector('.btn-save').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                const endpoint = userType === 'doctor' ? '/api/update-doctor-profile/' : '/api/update-patient-profile/';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update localStorage
+                    localStorage.setItem('userFirstName', formData.first_name);
+                    localStorage.setItem('userLastName', formData.last_name);
+                    localStorage.setItem('userName', `${formData.first_name} ${formData.last_name}`);
+                    localStorage.setItem('userEmail', formData.email);
+                    localStorage.setItem('userPhone', formData.phone);
+
+                    showNotification('Profile updated successfully!');
+                    setTimeout(() => window.location.href = "{% url 'profile' %}", 1500);
+                } else {
+                    showError(data.error || 'Error updating profile');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Connection error. Please try again.');
+            } finally {
+                document.querySelector('.btn-save').disabled = false;
+                document.querySelector('.btn-save').innerHTML = '💾 Save Changes';
+            }
         }
-        
-        function changePhoto() {
-            // Simulate photo change (in real app, this would open file picker)
-            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-            const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-            document.getElementById('profileImage').textContent = randomLetter;
-            showNotification('Profile photo updated!');
-        }
-        
+
         function goBack() {
-            window.location.href = 'profile.html';
+            window.location.href = "{% url 'profile' %}";
         }
-        
+
         function showNotification(message) {
             const notification = document.createElement('div');
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
+            notification.className = 'message';
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
             document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function showError(message) {
+            const error = document.createElement('div');
+            error.className = 'error-message';
+            error.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            document.body.appendChild(error);
+            setTimeout(() => error.remove(), 3000);
         }
     </script>
 </body>

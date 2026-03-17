@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rehabilitation System - Welcome</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
             margin: 0;
@@ -12,7 +14,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         .welcome-page {
             height: 100vh;
             display: flex;
@@ -22,7 +24,7 @@
             position: relative;
             overflow: hidden;
         }
-
+        
         .welcome-page::before {
             content: '';
             position: absolute;
@@ -32,12 +34,12 @@
             background-repeat: repeat;
             animation: rotate 60s linear infinite;
         }
-
+        
         @keyframes rotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-
+        
         .welcome-container {
             background: rgba(255, 255, 255, 0.95);
             padding: 50px;
@@ -50,7 +52,7 @@
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-
+        
         .welcome-title {
             font-size: 48px;
             font-weight: 800;
@@ -60,7 +62,7 @@
             margin-bottom: 10px;
             letter-spacing: 2px;
         }
-
+        
         .welcome-subtitle {
             color: #64748b;
             font-size: 18px;
@@ -68,14 +70,14 @@
             text-transform: uppercase;
             letter-spacing: 3px;
         }
-
+        
         .role-buttons {
             display: flex;
             gap: 20px;
             justify-content: center;
             margin-bottom: 30px;
         }
-
+        
         .role-btn {
             flex: 1;
             padding: 20px 30px;
@@ -90,43 +92,44 @@
             align-items: center;
             gap: 10px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
         }
-
+        
         .role-btn:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
         }
-
+        
         .role-btn:active {
             transform: translateY(0);
         }
-
+        
         .doctor-btn {
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-
+        
         .patient-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-
+        
         .floating-shapes {
             position: absolute;
             width: 100%;
             height: 100%;
             z-index: 1;
         }
-
+        
         .shape {
             position: absolute;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             animation: float 6s ease-in-out infinite;
         }
-
+        
         .shape1 {
             width: 100px;
             height: 100px;
@@ -134,7 +137,7 @@
             left: 10%;
             animation-delay: 0s;
         }
-
+        
         .shape2 {
             width: 150px;
             height: 150px;
@@ -142,7 +145,7 @@
             right: 10%;
             animation-delay: 2s;
         }
-
+        
         .shape3 {
             width: 70px;
             height: 70px;
@@ -150,37 +153,202 @@
             right: 20%;
             animation-delay: 4s;
         }
-
+        
         @keyframes float {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(10deg); }
         }
+        
+        /* Session status */
+        .session-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #64748b;
+            display: none;
+        }
+        
+        .session-status.active {
+            display: block;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .session-status a {
+            color: #1d4ed8;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        
+        .session-status a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .welcome-container {
+                width: 90%;
+                padding: 30px;
+            }
+            
+            .role-buttons {
+                flex-direction: column;
+            }
+            
+            .welcome-title {
+                font-size: 36px;
+            }
+            
+            .welcome-subtitle {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Hidden CSRF Token -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
+
     <div class="welcome-page">
         <div class="floating-shapes">
             <div class="shape shape1"></div>
             <div class="shape shape2"></div>
             <div class="shape shape3"></div>
         </div>
-
+        
         <div class="welcome-container">
             <h1 class="welcome-title">WELCOME</h1>
             <p class="welcome-subtitle">LOGIN AS</p>
-
+            
             <div class="role-buttons">
-                <button class="role-btn patient-btn" onclick="window.location.href='{% url 'gamer_login' %}'">
+                <a href="{% url 'gamer_login' %}" class="role-btn patient-btn">
+                    <i class="fas fa-gamepad" style="font-size: 32px;"></i>
                     <span>A GAMER</span>
                     <span style="font-size: 14px; opacity: 0.8;">Patient Interface</span>
-                </button>
-
-                <button class="role-btn doctor-btn" onclick="window.location.href='{% url 'doctor_login' %}'">
+                </a>
+                
+                <a href="{% url 'doctor_login' %}" class="role-btn doctor-btn">
+                    <i class="fas fa-user-md" style="font-size: 32px;"></i>
                     <span>A DOCTOR</span>
                     <span style="font-size: 14px; opacity: 0.8;">Therapist Interface</span>
-                </button>
+                </a>
+            </div>
+            
+            <!-- Session Status (shows if user is already logged in) -->
+            <div class="session-status" id="sessionStatus">
+                <i class="fas fa-user-circle"></i>
+                <span id="sessionMessage">You are already logged in.</span>
+                <a href="#" id="goToDashboard">Go to Dashboard</a>
+                <span> | </span>
+                <a href="#" onclick="logout()" style="color: #ef4444;">Logout</a>
             </div>
         </div>
     </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+        });
+
+        async function checkSession() {
+            const csrfToken = document.getElementById('csrfToken').value;
+            
+            try {
+                const response = await fetch('/api/user/', {
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // User is logged in
+                    const statusDiv = document.getElementById('sessionStatus');
+                    const messageSpan = document.getElementById('sessionMessage');
+                    const dashboardLink = document.getElementById('goToDashboard');
+                    
+                    let dashboardUrl = '';
+                    if (data.user_type === 'patient') {
+                        dashboardUrl = "{% url 'patient_dashboard' %}";
+                        messageSpan.innerHTML = `<i class="fas fa-gamepad"></i> Welcome back, ${data.first_name || 'Player'}!`;
+                    } else if (data.user_type === 'doctor') {
+                        dashboardUrl = "{% url 'doctor_dashboard' %}";
+                        messageSpan.innerHTML = `<i class="fas fa-user-md"></i> Welcome back, Dr. ${data.last_name || data.first_name || 'Doctor'}!`;
+                    }
+                    
+                    dashboardLink.href = dashboardUrl;
+                    statusDiv.classList.add('active');
+                }
+            } catch (error) {
+                console.log('No active session');
+            }
+        }
+
+        async function logout() {
+            const csrfToken = document.getElementById('csrfToken').value;
+            
+            try {
+                await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Hide session status
+                document.getElementById('sessionStatus').classList.remove('active');
+                
+                // Show notification
+                showNotification('Logged out successfully');
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Add slide animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
