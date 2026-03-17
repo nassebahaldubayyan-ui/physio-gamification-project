@@ -1,0 +1,584 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial Assessment Video - Rehabilitation System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="video-container">
+        <h2>📹 Initial Assessment Video</h2>
+        <p class="subtitle">Please perform each movement for 15 seconds</p>
+
+        <!-- Camera Permission Request -->
+        <div class="instructions" id="permissionBox">
+            <h3><i class="fas fa-camera"></i> Camera Access Required</h3>
+            <ul>
+                <li>
+                    <i class="fas fa-check"></i>
+                    We need access to your camera to record the assessment
+                </li>
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    Your video is private and only used for therapy tracking
+                </li>
+            </ul>
+            <div style="display: flex; gap: 15px; margin-top: 20px; justify-content: center;">
+                <button onclick="requestCameraPermission()" style="
+                    padding: 12px 30px;
+                    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-video"></i> Allow Camera
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions (shown after permission) -->
+        <div class="instructions" id="instructionsBox" style="display: none;">
+            <h3><i class="fas fa-list-check"></i> Instructions:</h3>
+            <ul>
+                <li>
+                    <i class="fas fa-person"></i>
+                    Stand where the camera can see your full arm
+                </li>
+                <li>
+                    <i class="fas fa-arrow-pointer"></i>
+                    Follow the highlighted movement for each exercise
+                </li>
+                <li>
+                    <i class="fas fa-spinner"></i>
+                    Perform each movement slowly and steadily
+                </li>
+                <li>
+                    <i class="fas fa-clock"></i>
+                    The timer will show you how long to do each exercise
+                </li>
+            </ul>
+        </div>
+
+        <!-- Movements Grid -->
+        <div class="movements-grid" id="movementsGrid" style="display: none;">
+            <div class="movement-card" id="move1">
+                <h4>
+                    <span>🤚</span> Grip Strength
+                </h4>
+                <p>Open and close your hand repeatedly</p>
+                <div class="movement-timer" id="move1Timer">0s / 15s</div>
+            </div>
+            <div class="movement-card" id="move2">
+                <h4>
+                    <span>🤚</span> Wrist Movement
+                </h4>
+                <p>Bend wrist up and down</p>
+                <div class="movement-timer" id="move2Timer">0s / 15s</div>
+            </div>
+            <div class="movement-card" id="move3">
+                <h4>
+                    <span>💪</span> Elbow Flexion
+                </h4>
+                <p>Bend and straighten elbow</p>
+                <div class="movement-timer" id="move3Timer">0s / 15s</div>
+            </div>
+            <div class="movement-card" id="move4">
+                <h4>
+                    <span>🦾</span> Shoulder Elevation
+                </h4>
+                <p>Raise arm to the side</p>
+                <div class="movement-timer" id="move4Timer">0s / 15s</div>
+            </div>
+            <div class="movement-card" id="move5">
+                <h4>
+                    <span>🤚</span> External Rotation
+                </h4>
+                <p>Rotate arm outward</p>
+                <div class="movement-timer" id="move5Timer">0s / 15s</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid - Camera + Analysis -->
+        <div class="main-grid" id="mainGrid" style="display: none;">
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <div class="video-container-box">
+                    <video id="originalVideo" autoplay playsinline></video>
+                    <img id="processedFrame" style="display: none;" alt="AI Processed Frame">
+                </div>
+            </div>
+
+            <!-- Analysis Panel -->
+            <div class="analysis-panel">
+                <h3>
+                    <i class="fas fa-robot"></i> 
+                    AI Movement Analysis
+                    <span class="status-badge status-success" id="aiStatus">Active</span>
+                </h3>
+
+                <!-- Injured Hand Info -->
+                <div class="hand-info" id="handInfo">
+                    <div class="hand-badge" id="handBadge">Right Hand</div>
+                    <div>
+                        <strong>Targeted Side</strong>
+                        <p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p>
+                    </div>
+                </div>
+
+                <!-- Angle Measurements -->
+                <div class="angle-display">
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-arrow-up"></i> Shoulder Angle
+                        </span>
+                        <span>
+                            <span class="angle-value" id="shoulderAngle">0</span>
+                            <span class="angle-unit">°</span>
+                        </span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-arrow-left"></i> Elbow Angle
+                        </span>
+                        <span>
+                            <span class="angle-value" id="elbowAngle">0</span>
+                            <span class="angle-unit">°</span>
+                        </span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">
+                            <i class="fas fa-hand"></i> Grip Strength
+                        </span>
+                        <span>
+                            <span class="angle-value" id="gripStrength">0</span>
+                            <span class="angle-unit">%</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Real-time Feedback -->
+                <div class="feedback-box" id="feedbackBox">
+                    <div class="feedback-text" id="feedbackText">
+                        <i class="fas fa-info-circle"></i> 
+                        Position yourself in front of the camera
+                    </div>
+                </div>
+
+                <!-- Movement Progress -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Movement Progress</span>
+                        <span id="movementProgressText">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="movementProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Current Movement Display -->
+        <div class="current-movement" id="currentMovement" style="display: none;">Ready to start</div>
+
+        <!-- Timer -->
+        <div class="timer" id="timer" style="display: none;">00:00</div>
+
+        <!-- Controls -->
+        <div class="controls" id="controls" style="display: none;">
+            <button class="btn-record" onclick="startRecording()" id="recordBtn">
+                <i class="fas fa-circle"></i> Start Recording
+            </button>
+            <button class="btn-stop" onclick="stopRecording()" id="stopBtn" disabled>
+                <i class="fas fa-square"></i> Stop
+            </button>
+            <button class="btn-play" onclick="playRecording()" id="playBtn" disabled>
+                <i class="fas fa-play"></i> Play
+            </button>
+            <button class="btn-save" onclick="saveVideo()" id="saveBtn" disabled>
+                <i class="fas fa-save"></i> Save Assessment
+            </button>
+            <button class="btn-retake" onclick="retakeVideo()" id="retakeBtn" disabled>
+                <i class="fas fa-redo"></i> Retake
+            </button>
+        </div>
+
+        <!-- Back Button -->
+        <button class="btn-back" onclick="goBack()" id="backBtn">
+            <span>←</span> Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        // ============================================
+        // Camera Permission and Basic Functions
+        // ============================================
+
+        let mediaRecorder;
+        let recordedChunks = [];
+        let videoStream;
+        let timerInterval;
+        let processingInterval;
+        let seconds = 0;
+        let currentMovementIndex = 0;
+        let isRecording = false;
+
+        const movements = [
+            { id: 'move1', name: 'Grip Strength', duration: 15 },
+            { id: 'move2', name: 'Wrist Movement', duration: 15 },
+            { id: 'move3', name: 'Elbow Flexion', duration: 15 },
+            { id: 'move4', name: 'Shoulder Elevation', duration: 15 },
+            { id: 'move5', name: 'External Rotation', duration: 15 }
+        ];
+
+        const totalDuration = movements.length * movements[0].duration;
+
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'gamer-login.html';
+        }
+
+        // ============================================
+        // Camera Permission Function
+        // ============================================
+
+        async function requestCameraPermission() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+
+                // Hide permission box, show everything else
+                document.getElementById('permissionBox').style.display = 'none';
+                document.getElementById('instructionsBox').style.display = 'block';
+                document.getElementById('movementsGrid').style.display = 'grid';
+                document.getElementById('mainGrid').style.display = 'grid';
+                document.getElementById('progressBar').style.display = 'block';
+                document.getElementById('currentMovement').style.display = 'block';
+                document.getElementById('timer').style.display = 'block';
+                document.getElementById('controls').style.display = 'flex';
+
+                const video = document.getElementById('originalVideo');
+                video.srcObject = videoStream;
+
+                // Start AI processing
+                startAIAnalysis();
+
+            } catch (error) {
+                alert('Camera access is required for assessment. Please allow camera access and try again.');
+                console.error(error);
+            }
+        }
+
+        // ============================================
+        // AI Processing with Python API
+        // ============================================
+
+        const AI_API_URL = 'http://localhost:5001';
+
+        async function processVideoFrame() {
+            const video = document.getElementById('originalVideo');
+            if (!video || !video.videoWidth) return;
+
+            // Capture frame from video
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            const frameData = canvas.toDataURL('image/jpeg', 0.8);
+            const injuredHand = localStorage.getItem('injuredHand') || 'right';
+
+            try {
+                const response = await fetch(`${AI_API_URL}/api/process-video`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        frame: frameData,
+                        injured_hand: injuredHand
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.processed_frame) {
+                    // Show processed frame
+                    const processedImg = document.getElementById('processedFrame');
+                    processedImg.style.display = 'block';
+                    processedImg.src = result.processed_frame;
+
+                    // Hide original video (optional - comment out if you want to see both)
+                    // document.getElementById('originalVideo').style.display = 'none';
+
+                    // Extract angles from frame (in a real implementation, the API would return angles too)
+                    // For now, we'll parse the image to get angles or use a separate endpoint
+                }
+            } catch (error) {
+                console.error('Error processing frame:', error);
+            }
+        }
+
+        function startAIAnalysis() {
+            if (processingInterval) clearInterval(processingInterval);
+            processingInterval = setInterval(processVideoFrame, 100); // Process every 100ms
+        }
+
+        function stopAIAnalysis() {
+            if (processingInterval) {
+                clearInterval(processingInterval);
+                processingInterval = null;
+            }
+        }
+
+        // ============================================
+        // Recording Functions
+        // ============================================
+
+        function startRecording() {
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(videoStream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('retakeBtn').disabled = false;
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            startTimer();
+            startMovementGuide();
+
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('currentMovement').textContent = 'Starting with: Grip Strength';
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(timerInterval);
+                stopAIAnalysis();
+
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('currentMovement').textContent = 'Recording stopped';
+            }
+        }
+
+        function startTimer() {
+            seconds = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+
+                // Update progress bar
+                const progress = (seconds / totalDuration) * 100;
+                document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+
+                // Update current movement based on time
+                const movementIndex = Math.floor(seconds / 15);
+                if (movementIndex < movements.length && movementIndex !== currentMovementIndex) {
+                    currentMovementIndex = movementIndex;
+                    updateCurrentMovement();
+                }
+
+                // Update movement timers
+                updateMovementTimers();
+
+                // Auto stop after all movements
+                if (seconds >= totalDuration) {
+                    stopRecording();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateCurrentMovement() {
+            if (currentMovementIndex < movements.length) {
+                const movement = movements[currentMovementIndex];
+                document.getElementById('currentMovement').textContent = `Now: ${movement.name}`;
+            }
+        }
+
+        function updateMovementTimers() {
+            movements.forEach((movement, index) => {
+                const timerEl = document.getElementById(`${movement.id}Timer`);
+                if (timerEl) {
+                    const elapsedInMovement = Math.max(0, Math.min(15, seconds - (index * 15)));
+                    timerEl.textContent = `${elapsedInMovement}s / 15s`;
+
+                    const card = document.getElementById(movement.id);
+                    if (index === currentMovementIndex) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function startMovementGuide() {
+            currentMovementIndex = 0;
+            updateCurrentMovement();
+        }
+
+        function playRecording() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const video = document.getElementById('originalVideo');
+
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+
+            video.srcObject = null;
+            video.src = url;
+            video.controls = true;
+            video.play();
+        }
+
+        function retakeVideo() {
+            recordedChunks = [];
+
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Reinitialize camera
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: 'user'
+                },
+                audio: false
+            }).then(stream => {
+                videoStream = stream;
+                const video = document.getElementById('originalVideo');
+                video.srcObject = videoStream;
+                video.src = '';
+                video.controls = false;
+
+                document.getElementById('playBtn').disabled = true;
+                document.getElementById('saveBtn').disabled = true;
+                document.getElementById('retakeBtn').disabled = true;
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+
+                // Reset timers
+                movements.forEach(movement => {
+                    document.getElementById(`${movement.id}Timer`).textContent = '0s / 15s';
+                    document.getElementById(movement.id).classList.remove('active');
+                });
+
+                seconds = 0;
+                updateTimerDisplay();
+                currentMovementIndex = 0;
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('currentMovement').textContent = 'Ready to start';
+
+                // Restart AI analysis
+                startAIAnalysis();
+            }).catch(error => {
+                console.error('Error reinitializing camera:', error);
+            });
+        }
+
+        async function saveVideo() {
+            if (recordedChunks.length === 0) {
+                alert('No recording to save');
+                return;
+            }
+
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const reader = new FileReader();
+
+            reader.readAsDataURL(blob);
+            reader.onloadend = async function() {
+                const base64data = reader.result;
+                const patientId = localStorage.getItem('patientId');
+
+                try {
+                    document.getElementById('saveBtn').disabled = true;
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+                    const response = await fetch('http://localhost:5000/api/patients/upload-assessment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            patientId: patientId,
+                            video: base64data
+                        })
+                    });
+
+                    if (response.ok) {
+                        alert('✅ Assessment video saved successfully!');
+                        localStorage.setItem('hasAssessmentVideo', 'true');
+                        localStorage.removeItem('assessmentSkipped');
+                        window.location.href = 'patient.html';
+                    } else {
+                        alert('Error saving video. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error saving video:', error);
+                    alert('Connection error. Please try again.');
+                } finally {
+                    document.getElementById('saveBtn').disabled = false;
+                    document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save Assessment';
+                }
+            };
+        }
+
+        function goBack() {
+            if (confirm('Are you sure? Your recording will not be saved.')) {
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
+                stopAIAnalysis();
+                window.location.href = 'patient.html';
+            }
+        }
+
+        // Stop AI analysis when leaving page
+        window.addEventListener('beforeunload', function() {
+            stopAIAnalysis();
+        });
+    </script>
+</body>
+</html>

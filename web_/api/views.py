@@ -2,8 +2,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Users, Messages
+from .models import Users, Messages, Patient
+from .serializers import PatientSerializer
 import json
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 # ========== HTML PAGES ==========
 
@@ -92,15 +96,10 @@ def api_login(request):
             data = json.loads(request.body)
             email = data.get("email")
             password = data.get("password")
-            
-            print(f"Login attempt: {email}")  
-            
+                        
             try:
-                user = Users.objects.get(email=email, is_active=True)
-                print(f"User found: {user.name}")  
-                
+                user = Users.objects.get(email=email, is_active=True)                
                 if check_password(password, user.password):
-                    print("Password correct")  
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
@@ -112,13 +111,10 @@ def api_login(request):
                         }
                     })
                 else:
-                    print("Password incorrect")  
                     return JsonResponse({"success": False, "error": "Wrong password"}, status=401)
             except Users.DoesNotExist:
-                print("User not found")  
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
         except Exception as e:
-            print(f"Error: {str(e)}")  
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     return JsonResponse({"error": "Method not allowed"}, status=405)
 

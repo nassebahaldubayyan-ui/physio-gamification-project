@@ -1,504 +1,441 @@
-{% extends "base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Rehabilitation System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-{% block title %}Doctor Dashboard - Rehabilitation System{% endblock %}
-
-{% block content %}
-<div class="dashboard-layout">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="doctor-info">
-            <div class="avatar">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <h4 id="doctorName">{{ doctor.name|default:"Dr. Ahmad" }}</h4>
-            <p id="doctorInfo">{{ doctor.specialty|default:"Therapist" }} • #{{ doctor.doctor_id|default:"TH001" }}</p>
-        </div>
-        <ul>
-            <li class="active" onclick="window.location.href='{% url 'doctor' %}'"><span>🏠</span> Home</li>
-            <li onclick="window.location.href='{% url 'doctor-patients' %}'"><span>👥</span> Patients List</li>
-            <li onclick="window.location.href='{% url 'doctor-performance' %}'"><span>📊</span> Patients Performance</li>
-            <li onclick="window.location.href='{% url 'doctor-messages' %}'"><span>💬</span> Messages</li>
-            <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
-        </ul>
-        <div class="sidebar-bottom">
-            <p onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</p>
-            <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="page-header">
-            <h2>Dashboard Overview</h2>
-            <p>👥 {{ active_patients_count|default:"3" }} Active Patients</p>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-cards">
-            <div class="stat-card-small">
-                <div class="stat-number-large" id="totalPatients">{{ total_patients|default:"3" }}</div>
-                <div class="stat-label-small">Total Patients</div>
-            </div>
-            <div class="stat-card-small">
-                <div class="stat-number-large" id="inProgressCount">{{ in_progress_count|default:"2" }}</div>
-                <div class="stat-label-small">In Progress</div>
-            </div>
-            <div class="stat-card-small">
-                <div class="stat-number-large" id="completedCount">{{ completed_count|default:"1" }}</div>
-                <div class="stat-label-small">Completed</div>
-            </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterPatients('all', this)">
-                All patients <span class="tab-count" id="allCount">{{ total_patients|default:"3" }}</span>
-            </button>
-            <button class="filter-tab" onclick="filterPatients('progress', this)">
-                In Progress <span class="tab-count" id="progressCount">{{ in_progress_count|default:"2" }}</span>
-            </button>
-            <button class="filter-tab" onclick="filterPatients('completed', this)">
-                Completed <span class="tab-count" id="completedFilterCount">{{ completed_count|default:"1" }}</span>
-            </button>
-        </div>
-
-        <!-- Patients Table -->
-        <div class="patients-table-container">
-            <div id="patientsList">
-                <!-- سيتم تعبئتها عبر JavaScript -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    .dashboard-layout {
-        display: flex;
-        min-height: 100vh;
-        background: #f8fafc;
-    }
-    
-    .sidebar {
-        width: 280px;
-        background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-        color: white;
-        padding: 30px 20px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .doctor-info {
-        text-align: center;
-        padding-bottom: 30px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .avatar {
-        width: 100px;
-        height: 100px;
-        background: transparent;
-        border-radius: 50%;
-        margin: 0 auto 15px;
-        border: 4px solid #60a5fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 60px;
-        color: #60a5fa;
-    }
-    
-    .doctor-info h4 {
-        font-size: 22px;
-        margin-bottom: 5px;
-        font-weight: 600;
-    }
-    
-    .doctor-info p {
-        color: #cbd5e1;
-        font-size: 14px;
-    }
-    
-    .sidebar ul {
-        list-style: none;
-        flex: 1;
-    }
-    
-    .sidebar li {
-        padding: 15px 20px;
-        margin: 8px 0;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 16px;
-        font-weight: 500;
-    }
-    
-    .sidebar li.active {
-        background: rgba(255, 255, 255, 0.15);
-        border-left: 4px solid #60a5fa;
-        font-weight: 600;
-    }
-    
-    .sidebar li:hover:not(.active) {
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateX(5px);
-    }
-    
-    .sidebar-bottom {
-        margin-top: auto;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .sidebar-bottom p {
-        padding: 12px 20px;
-        margin: 5px 0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 15px;
-    }
-    
-    .sidebar-bottom p:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .main-content {
-        flex: 1;
-        padding: 40px;
-        overflow-y: auto;
-        background: #f8fafc;
-    }
-    
-    .page-header {
-        margin-bottom: 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .page-header h2 {
-        color: #1e293b;
-        font-size: 32px;
-        font-weight: 700;
-        margin: 0;
-    }
-    
-    .page-header p {
-        color: #64748b;
-        font-size: 16px;
-        background: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
-    .stats-cards {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .stat-card-small {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .stat-number-large {
-        font-size: 36px;
-        font-weight: 700;
-        color: #3b82f6;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label-small {
-        color: #64748b;
-        font-size: 14px;
-    }
-    
-    .filter-tabs {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-    
-    .filter-tab {
-        padding: 10px 25px;
-        border: none;
-        background: #f1f5f9;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 15px;
-        font-weight: 500;
-        color: #475569;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .filter-tab.active {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        color: white;
-    }
-    
-    .filter-tab:hover:not(.active) {
-        background: #e2e8f0;
-    }
-    
-    .patients-table-container {
-        background: white;
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .patient-row {
-        display: flex;
-        align-items: center;
-        padding: 15px;
-        border-bottom: 1px solid #f1f5f9;
-        transition: all 0.3s;
-    }
-    
-    .patient-row:hover {
-        background: #f8fafc;
-    }
-    
-    .patient-row:last-child {
-        border-bottom: none;
-    }
-    
-    .patient-info-col {
-        flex: 2;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .patient-avatar-small {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-    }
-    
-    .patient-details-small h4 {
-        margin: 0 0 5px 0;
-        color: #1e293b;
-    }
-    
-    .patient-details-small p {
-        margin: 0;
-        color: #64748b;
-        font-size: 13px;
-    }
-    
-    .patient-stats-col {
-        flex: 3;
-        display: flex;
-        gap: 30px;
-    }
-    
-    .stat-item-small {
-        text-align: center;
-        min-width: 70px;
-    }
-    
-    .stat-value-small {
-        font-weight: 700;
-        color: #1e293b;
-    }
-    
-    .stat-label-small {
-        font-size: 12px;
-        color: #94a3b8;
-    }
-    
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .status-badge.in-progress {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
-    
-    .status-badge.completed {
-        background: #dcfce7;
-        color: #166534;
-    }
-    
-    .action-btn {
-        padding: 8px 15px;
-        background: #f1f5f9;
-        border: none;
-        border-radius: 8px;
-        color: #475569;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.3s;
-    }
-    
-    .action-btn:hover {
-        background: #3b82f6;
-        color: white;
-    }
-    
-    @media (max-width: 768px) {
         .dashboard-layout {
-            flex-direction: column;
+            display: flex;
+            min-height: 100vh;
+            background: #f8fafc;
         }
-        
-        .sidebar {
-            width: 100%;
-        }
-    }
-</style>
 
-<script>
-    // Patient data from Django context
-    const patients = {{ patients_json|safe|default:"[]" }};
-    let currentFilter = 'all';
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load doctor data from localStorage
-        const doctorName = localStorage.getItem('doctorName') || '{{ doctor.name|default:"Dr. Ahmad" }}';
-        const doctorId = localStorage.getItem('doctorId') || '{{ doctor.doctor_id|default:"TH001" }}';
-        const doctorSpecialty = localStorage.getItem('doctorSpecialty') || '{{ doctor.specialty|default:"Therapist" }}';
-        
-        // Update sidebar with doctor info
-        document.getElementById('doctorName').textContent = doctorName;
-        document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
-        
-        // Set user type
-        localStorage.setItem('userType', 'doctor');
-        
-        renderPatients();
-        updateCounts();
-    });
-    
-    function renderPatients() {
-        const filteredPatients = filterPatientsData();
-        const list = document.getElementById('patientsList');
-        if (!list) return;
-        
-        list.innerHTML = '';
-        
-        if (filteredPatients.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No patients found</div>';
-            return;
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
         }
-        
-        filteredPatients.forEach(patient => {
-            const statusText = patient.status === 'in-progress' ? 'In Progress' : 'Completed';
-            const statusClass = patient.status === 'in-progress' ? 'in-progress' : 'completed';
-            
-            const row = document.createElement('div');
-            row.className = 'patient-row';
-            row.innerHTML = `
-                <div class="patient-info-col">
-                    <div class="patient-avatar-small" style="background: ${patient.avatarColor}">${patient.avatar}</div>
-                    <div class="patient-details-small">
-                        <h4>${patient.name}</h4>
-                        <p>${patient.condition} • ${patient.age} years</p>
-                    </div>
-                </div>
-                <div class="patient-stats-col">
-                    <div class="stat-item-small">
-                        <div class="stat-value-small">Level ${patient.level}</div>
-                        <div class="stat-label-small">Current</div>
-                    </div>
-                    <div class="stat-item-small">
-                        <div class="stat-value-small">${patient.accuracy}%</div>
-                        <div class="stat-label-small">Accuracy</div>
-                    </div>
-                    <div class="stat-item-small">
-                        <div class="stat-value-small">${patient.sessions}</div>
-                        <div class="stat-label-small">Sessions</div>
-                    </div>
-                </div>
-                <div style="flex: 1; display: flex; align-items: center; gap: 15px;">
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                    <button class="action-btn" onclick="viewPatientDetails('${patient.id}')">View</button>
-                    <button class="action-btn" onclick="goToChat('${patient.id}')">Message</button>
-                </div>
-            `;
-            list.appendChild(row);
-        });
-    }
-    
-    function filterPatientsData() {
-        if (currentFilter === 'all') return patients;
-        if (currentFilter === 'progress') return patients.filter(p => p.status === 'in-progress');
-        if (currentFilter === 'completed') return patients.filter(p => p.status === 'completed');
-        return patients;
-    }
-    
-    function filterPatients(filter, element) {
-        currentFilter = filter;
-        
-        // Update tab buttons
-        document.querySelectorAll('.filter-tab').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        element.classList.add('active');
-        
-        // Re-render patients
-        renderPatients();
-    }
-    
-    function updateCounts() {
-        document.getElementById('totalPatients').textContent = patients.length;
-        document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-        document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;
-        document.getElementById('allCount').textContent = patients.length;
-        document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-        document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
-    }
-    
-    function viewPatientDetails(patientId) {
-        window.location.href = `{% url 'doctor-patient-details' %}?patient=${patientId}`;
-    }
-    
-    function goToChat(patientId) {
-        window.location.href = `{% url 'doctor-messages' %}?patient=${patientId}`;
-    }
-    
-    function logoutDoctor() {
-        if (confirm('Are you sure you want to log out?')) {
-            localStorage.clear();
-            window.location.href = '{% url 'index' %}';
+
+        .doctor-info {
+            text-align: center;
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-    }
-</script>
-{% endblock %}
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+        }
+
+        .doctor-info h4 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .doctor-info p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar li {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .sidebar li.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid #60a5fa;
+            font-weight: 600;
+        }
+
+        .sidebar li:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-bottom p {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .sidebar-bottom p:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h2 {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 16px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card-small {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number-large {
+            font-size: 36px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+
+        .stat-label-small {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .filter-tab {
+            padding: 10px 25px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #e2e8f0;
+        }
+
+        .patients-table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .patient-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.3s;
+        }
+
+        .patient-row:hover {
+            background: #f8fafc;
+        }
+
+        .patient-row:last-child {
+            border-bottom: none;
+        }
+
+        .patient-info-col {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .patient-avatar-small {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .patient-details-small h4 {
+            margin: 0 0 5px 0;
+            color: #1e293b;
+        }
+
+        .patient-details-small p {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .patient-stats-col {
+            flex: 3;
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item-small {
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .stat-value-small {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stat-label-small {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.in-progress {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            color: #475569;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="doctor-info">
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Therapist • #TH001</p>
+            </div>
+            <ul>
+                <li class="active" onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
+                <li onclick="window.location.href='{% url 'doctor_patients_list' %}'"><span>👥</span> Patients List</li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
+                <li onclick="window.location.href='{% url 'doctor_profile' %}'"><span>👤</span> User Profile</li>
+            </ul>
+            <div class="sidebar-bottom">
+                <p onclick="window.location.href='{% url 'doctor_settings' %}'"><span>⚙</span> Settings</p>
+                <p onclick="logoutDoctor()"><span>🚪</span> Log Out</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="page-header">
+                <h2>Dashboard Overview</h2>
+                <p>👥 {{ patients_count }} Active Patients</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                <div class="stat-card-small">
+                    <div class="stat-number-large" id="totalPatients">{{ patients_count }}</div>
+                    <div class="stat-label-small">Total Patients</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number-large" id="inProgressCount">{{ in_progress_count }}</div>
+                    <div class="stat-label-small">In Progress</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number-large" id="completedCount">{{ completed_count }}</div>
+                    <div class="stat-label-small">Completed</div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterPatients('all', this)">
+                    All patients <span class="tab-count" id="allCount">{{ patients_count }}</span>
+                </button>
+                <button class="filter-tab" onclick="filterPatients('progress', this)">
+                    In Progress <span class="tab-count" id="progressCount">{{ in_progress_count }}</span>
+                </button>
+                <button class="filter-tab" onclick="filterPatients('completed', this)">
+                    Completed <span class="tab-count" id="completedFilterCount">{{ completed_count }}</span>
+                </button>
+            </div>
+
+            <!-- Patients Table -->
+            <div class="patients-table-container">
+                <div id="patientsList">
+                    {% for patient in patients %}
+                    <div class="patient-row">
+                        <div class="patient-info-col">
+                            <div class="patient-avatar-small" style="background: {{ patient.avatar_color }}">{{ patient.avatar }}</div>
+                            <div class="patient-details-small">
+                                <h4>{{ patient.name }}</h4>
+                                <p>{{ patient.condition }} • {{ patient.age }} years</p>
+                            </div>
+                        </div>
+                        <div class="patient-stats-col">
+                            <div class="stat-item-small">
+                                <div class="stat-value-small">Level {{ patient.level }}</div>
+                                <div class="stat-label-small">Current</div>
+                            </div>
+                            <div class="stat-item-small">
+                                <div class="stat-value-small">{{ patient.accuracy }}%</div>
+                                <div class="stat-label-small">Accuracy</div>
+                            </div>
+                            <div class="stat-item-small">
+                                <div class="stat-value-small">{{ patient.sessions }}</div>
+                                <div class="stat-label-small">Sessions</div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; display: flex; align-items: center; gap: 15px;">
+                            <span class="status-badge {{ patient.status_class }}">{{ patient.status }}</span>
+                            <button class="action-btn" onclick="viewPatientDetails('{{ patient.id }}')">View</button>
+                            <button class="action-btn" onclick="goToChat('{{ patient.id }}')">Message</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterPatients(filter, element) {
+            // Filter logic (can be handled by Django)
+        }
+
+        function logoutDoctor() {
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+
+        function viewPatientDetails(patientId) {
+            window.location.href = '{% url 'doctor_patient_details' patient_id=patientId %}';
+        }
+
+        function goToChat(patientId) {
+            window.location.href = '{% url 'doctor_chat' patient_id=patientId %}';
+        }
+    </script>
+</body>
+</html>
