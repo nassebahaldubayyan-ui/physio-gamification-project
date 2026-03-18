@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Dashboard - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -36,7 +36,6 @@
             align-items: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .patient-info {
@@ -56,8 +55,6 @@
             font-size: 32px;
             color: white;
             font-weight: bold;
-            border: 3px solid white;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
         .patient-details h2 {
@@ -69,10 +66,6 @@
         .patient-details p {
             color: #64748b;
             font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
         }
         
         .level-badge {
@@ -82,6 +75,7 @@
             border-radius: 20px;
             font-weight: 600;
             font-size: 14px;
+            margin-left: 10px;
         }
         
         .header-actions {
@@ -128,8 +122,6 @@
             align-items: center;
             gap: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .stat-icon {
@@ -148,8 +140,6 @@
             color: #64748b;
             font-size: 13px;
             margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .stat-content .stat-value {
@@ -165,7 +155,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
         .games-grid {
@@ -182,35 +171,41 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
         }
         
         .game-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
         
-        .game-card::before {
+        .game-card:nth-child(1)::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 6px;
-        }
-        
-        .game-card[data-game="catching_stars"]::before {
             background: linear-gradient(90deg, #ffd700, #ffa500);
         }
         
-        .game-card[data-game="matching"]::before {
+        .game-card:nth-child(2)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
             background: linear-gradient(90deg, #48bb78, #38a169);
         }
         
-        .game-card[data-game="catching_objects"]::before {
+        .game-card:nth-child(3)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
             background: linear-gradient(90deg, #4299e1, #3182ce);
         }
         
@@ -232,8 +227,6 @@
             font-size: 14px;
             margin-bottom: 20px;
             text-align: center;
-            line-height: 1.5;
-            min-height: 60px;
         }
         
         .game-footer {
@@ -251,13 +244,11 @@
             border-radius: 20px;
             font-weight: 600;
             color: #667eea;
-            font-size: 14px;
         }
         
         .game-progress {
             color: #10b981;
             font-weight: 600;
-            font-size: 14px;
         }
         
         .contact-section {
@@ -267,9 +258,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
             margin-top: 30px;
         }
         
@@ -298,25 +286,12 @@
             margin-bottom: 5px;
         }
         
-        .contact-text p {
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
         .online-indicator {
             width: 8px;
             height: 8px;
             background: #10b981;
             border-radius: 50%;
             display: inline-block;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
         
         .contact-btn {
@@ -329,14 +304,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .contact-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
         }
         
         .logout-btn {
@@ -347,17 +318,12 @@
             border: 2px solid white;
             border-radius: 50px;
             font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .logout-btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-3px);
         }
         
         .loading {
@@ -366,108 +332,9 @@
             font-size: 20px;
             padding: 50px;
         }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
-        }
-        
-        .notification.success {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-        
-        .notification.info {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        .games-disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            cursor: not-allowed;
-        }
-        
-        .assessment-warning {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .assessment-warning button {
-            padding: 8px 20px;
-            background: #dc2626;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .assessment-warning button:hover {
-            background: #b91c1c;
-            transform: translateY(-2px);
-        }
-        
-        .camera-dialog {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-        
-        .camera-dialog-content {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-        }
         
         @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .games-grid {
+            .stats-grid, .games-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -479,16 +346,7 @@
                 text-align: center;
             }
             
-            .patient-info {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .games-grid {
+            .stats-grid, .games-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -497,29 +355,20 @@
                 gap: 20px;
                 text-align: center;
             }
-            
-            .assessment-warning {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-
     <div class="patient-dashboard" id="dashboard" style="display: none;">
         <!-- Header -->
         <div class="patient-header">
             <div class="patient-info">
-                <div class="patient-avatar" id="patientAvatar">
-                    <span id="avatarText">{{ user.first_name|first|default:"A" }}</span>
-                </div>
+                <div class="patient-avatar" id="patientAvatar">A</div>
                 <div class="patient-details">
-                    <h2 id="patientName">{{ user.get_full_name|default:"Ali Ahmed" }}</h2>
+                    <h2 id="patientName">Ali Ahmed</h2>
                     <p>
-                        <span>ID: <span id="patientId">{{ patient.id }}</span></span>
-                        <span class="level-badge" id="patientCondition">{{ patient.medical_history|default:"Motor Disability"|truncatechars:20 }}</span>
+                        <span>ID: <span id="patientId">PT001</span></span>
+                        <span class="level-badge" id="patientCondition">Motor Disability</span>
                     </p>
                 </div>
             </div>
@@ -556,7 +405,7 @@
                 <div class="stat-icon">📊</div>
                 <div class="stat-content">
                     <h3>Sessions</h3>
-                    <div class="stat-value" id="totalSessions">{{ patient.game_sessions.count }}</div>
+                    <div class="stat-value" id="totalSessions">45</div>
                 </div>
             </div>
         </div>
@@ -566,36 +415,39 @@
             <span>🎮</span> Therapeutic Games
         </h2>
         
-        <div class="games-grid" id="gamesGrid">
-            {% for game in games %}
-            <div class="game-card" data-game="{{ game.game_type }}" onclick="checkGameAccess('{{ game.game_type }}')">
-                <div class="game-icon">
-                    {% if game.game_type == 'catching_stars' %}⭐
-                    {% elif game.game_type == 'matching' %}🎨
-                    {% elif game.game_type == 'catching_objects' %}🧺
-                    {% endif %}
-                </div>
-                <h3>{{ game.name }}</h3>
-                <p class="game-description">{{ game.description|truncatechars:60 }}</p>
+        <div class="games-grid">
+            <!-- Game 1: Catching Stars -->
+            <div class="game-card" onclick="window.location.href='{% url 'game_catching_stars' %}'">
+                <div class="game-icon">⭐</div>
+                <h3>Catching Stars</h3>
+                <p class="game-description">Reach up to catch stars. Targets shoulder elevation and elbow movement.</p>
                 <div class="game-footer">
-                    <span class="game-level">Level {{ game.difficulty_level }}</span>
-                    <span class="game-progress" id="game{{ forloop.counter }}Progress">
-                        {% with session=patient.game_sessions.last %}
-                            {% if session and session.game == game %}
-                                {{ session.score }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        {% endwith %}
-                    </span>
+                    <span class="game-level" id="game1Level">Level 4</span>
+                    <span class="game-progress" id="game1Progress">82%</span>
                 </div>
             </div>
-            {% empty %}
-            <div class="game-card">
-                <h3>No games available</h3>
-                <p>Please check back later</p>
+
+            <!-- Game 2: Matching Game -->
+            <div class="game-card" onclick="window.location.href='{% url 'game_matching' %}'">
+                <div class="game-icon">🎨</div>
+                <h3>Matching Game</h3>
+                <p class="game-description">Match objects to colors. Full upper extremity workout.</p>
+                <div class="game-footer">
+                    <span class="game-level" id="game2Level">Level 3</span>
+                    <span class="game-progress" id="game2Progress">79%</span>
+                </div>
             </div>
-            {% endfor %}
+
+            <!-- Game 3: Catching Falling Objects -->
+            <div class="game-card" onclick="window.location.href='{% url 'game_catching_objects' %}'">
+                <div class="game-icon">🧺</div>
+                <h3>Catching Falling Objects</h3>
+                <p class="game-description">External rotation training. Prevents contractures.</p>
+                <div class="game-footer">
+                    <span class="game-level" id="game3Level">Level 5</span>
+                    <span class="game-progress" id="game3Progress">92%</span>
+                </div>
+            </div>
         </div>
 
         <!-- Contact Section -->
@@ -605,7 +457,7 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="contact-text">
-                    <h3>{% if patient.assigned_doctor %}Dr. {{ patient.assigned_doctor.get_full_name }}{% else %}Dr. Ahmad{% endif %}</h3>
+                    <h3>Dr. Ahmad</h3>
                     <p>
                         <span class="online-indicator"></span>
                         Online
@@ -617,6 +469,7 @@
             </button>
         </div>
 
+        <!-- Logout -->
         <button class="logout-btn" onclick="logoutPatient()">
             <span>🚪</span> Log Out
         </button>
@@ -626,81 +479,55 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // التحقق من المصادقة
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        const userType = "{{ user.user_type }}";
-        
-        if (!isAuthenticated || userType !== 'patient') {
-            window.location.href = "{% url 'gamer_login' %}";
-        }
-
-        // عناصر DOM
-        const loadingEl = document.getElementById('loading');
-        const dashboardEl = document.getElementById('dashboard');
-        const csrfToken = document.getElementById('csrfToken').value;
-
-        // أبسط كود لإخفاء التحميل وإظهار المحتوى
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded - hiding loading spinner');
-            
-            // أخفي التحميل فوراً
-            if (loadingEl) {
-                loadingEl.style.display = 'none';
-            }
-            
-            // أظهر لوحة التحكم
-            if (dashboardEl) {
-                dashboardEl.style.display = 'block';
-            }
-            
-            // املأ البيانات
-            fillPatientData();
-        });
-
-        // دالة بسيطة لملء البيانات
-        function fillPatientData() {
-            // بيانات المريض
-            const patientName = "{{ user.get_full_name|default:'Patient' }}";
-            const patientId = "{{ user.id }}";
+            const patientId = localStorage.getItem('patientId') || 'PT001';
+            const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
             
             document.getElementById('patientName').textContent = patientName;
             document.getElementById('patientId').textContent = patientId;
-            document.getElementById('avatarText').textContent = patientName.charAt(0);
+            document.getElementById('patientAvatar').textContent = patientName.charAt(0);
             
-            // بيانات افتراضية للإحصائيات
-            document.getElementById('patientAccuracy').textContent = '85%';
-            document.getElementById('shoulderStrength').textContent = '82%';
-            document.getElementById('externalRotation').textContent = '78%';
-        }
-
-        // دوال المساعدة (مبسطة)
-        function checkGameAccess(gameType) {
-            const gameUrls = {
-                'catching_stars': "{% url 'game_catching_stars' %}",
-                'matching': "{% url 'game_matching' %}",
-                'catching_objects': "{% url 'game_catching_objects' %}"
-            };
-            window.location.href = gameUrls[gameType] || "{% url 'patient_game' %}";
-        }
-
-        function showNotification(message, type) {
-            alert(message);
-        }
-
-        function logoutPatient() {
-            if (confirm('Are you sure you want to log out?')) {
-                fetch('/api/logout/', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': csrfToken }
-                }).finally(() => {
-                    window.location.href = "{% url 'index' %}";
-                });
+            if (patientId === 'PT001') {
+                document.getElementById('patientCondition').textContent = 'Motor Disability';
+                document.getElementById('patientAccuracy').textContent = '82%';
+                document.getElementById('shoulderStrength').textContent = '85%';
+                document.getElementById('externalRotation').textContent = '78%';
+                document.getElementById('totalSessions').textContent = '45';
+                document.getElementById('game1Level').textContent = 'Level 4';
+                document.getElementById('game1Progress').textContent = '82%';
+                document.getElementById('game2Level').textContent = 'Level 3';
+                document.getElementById('game2Progress').textContent = '79%';
+                document.getElementById('game3Level').textContent = 'Level 5';
+                document.getElementById('game3Progress').textContent = '92%';
+            } else if (patientId === 'PT002') {
+                document.getElementById('patientCondition').textContent = 'Arm Weakness';
+                document.getElementById('patientAccuracy').textContent = '89%';
+                document.getElementById('shoulderStrength').textContent = '92%';
+                document.getElementById('externalRotation').textContent = '86%';
+                document.getElementById('totalSessions').textContent = '52';
+                document.getElementById('game1Level').textContent = 'Level 5';
+                document.getElementById('game1Progress').textContent = '90%';
+                document.getElementById('game2Level').textContent = 'Level 4';
+                document.getElementById('game2Progress').textContent = '89%';
+                document.getElementById('game3Level').textContent = 'Level 4';
+                document.getElementById('game3Progress').textContent = '88%';
+            } else if (patientId === 'PT003') {
+                document.getElementById('patientCondition').textContent = 'Movement Disorder';
+                document.getElementById('patientAccuracy').textContent = '94%';
+                document.getElementById('shoulderStrength').textContent = '88%';
+                document.getElementById('externalRotation').textContent = '96%';
+                document.getElementById('totalSessions').textContent = '68';
+                document.getElementById('game1Level').textContent = 'Level 5';
+                document.getElementById('game1Progress').textContent = '88%';
+                document.getElementById('game2Level').textContent = 'Level 4';
+                document.getElementById('game2Progress').textContent = '85%';
+                document.getElementById('game3Level').textContent = 'Level 5';
+                document.getElementById('game3Progress').textContent = '96%';
             }
-        }
-
-        // دوال إضافية (معلقة مؤقتاً)
-        function checkInitialAssessment() {}
-        function showAssessmentDialog() {}
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        });
     </script>
 </body>
 </html>

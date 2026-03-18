@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -44,7 +44,7 @@
             background: transparent;
             border-radius: 50%;
             margin: 0 auto 15px;
-            border: 4px solid #60a5fa;
+            border: 4px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -126,8 +126,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
         }
         
         .page-header h2 {
@@ -144,9 +142,6 @@
             padding: 8px 16px;
             border-radius: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         
         .stats-cards {
@@ -163,12 +158,6 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
-            transition: all 0.3s;
-        }
-        
-        .stat-card-small:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
         }
         
         .stat-number-large {
@@ -187,7 +176,6 @@
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
-            flex-wrap: wrap;
         }
         
         .filter-tab {
@@ -212,18 +200,6 @@
         
         .filter-tab:hover:not(.active) {
             background: #e2e8f0;
-            transform: translateY(-2px);
-        }
-        
-        .tab-count {
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-        
-        .filter-tab.active .tab-count {
-            background: rgba(255,255,255,0.3);
         }
         
         .patients-table-container {
@@ -240,8 +216,6 @@
             padding: 15px;
             border-bottom: 1px solid #f1f5f9;
             transition: all 0.3s;
-            flex-wrap: wrap;
-            gap: 15px;
         }
         
         .patient-row:hover {
@@ -254,7 +228,6 @@
         
         .patient-info-col {
             flex: 2;
-            min-width: 200px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -269,14 +242,11 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 18px;
-            flex-shrink: 0;
         }
         
         .patient-details-small h4 {
             margin: 0 0 5px 0;
             color: #1e293b;
-            font-size: 16px;
         }
         
         .patient-details-small p {
@@ -289,7 +259,6 @@
             flex: 3;
             display: flex;
             gap: 30px;
-            flex-wrap: wrap;
         }
         
         .stat-item-small {
@@ -300,12 +269,6 @@
         .stat-value-small {
             font-weight: 700;
             color: #1e293b;
-            font-size: 16px;
-        }
-        
-        .stat-label-small {
-            font-size: 12px;
-            color: #94a3b8;
         }
         
         .status-badge {
@@ -313,7 +276,6 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
-            white-space: nowrap;
         }
         
         .status-badge.in-progress {
@@ -326,12 +288,6 @@
             color: #166534;
         }
         
-        .action-btns {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
         .action-btn {
             padding: 8px 15px;
             background: #f1f5f9;
@@ -340,49 +296,12 @@
             color: #475569;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
             transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
         }
         
         .action-btn:hover {
             background: #3b82f6;
             color: white;
-            transform: translateY(-2px);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 18px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: #94a3b8;
-            font-size: 16px;
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #cbd5e1;
-        }
-        
-        @media (max-width: 1024px) {
-            .patient-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .patient-stats-col {
-                width: 100%;
-                justify-content: space-between;
-            }
         }
         
         @media (max-width: 768px) {
@@ -393,31 +312,10 @@
             .sidebar {
                 width: 100%;
             }
-            
-            .stats-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-tabs {
-                justify-content: center;
-            }
-            
-            .page-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .action-btns {
-                width: 100%;
-                justify-content: center;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -425,26 +323,19 @@
                 <div class="avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
-                <p id="doctorInfo">
-                    {% if user.doctor_profile.specialization %}
-                        {{ user.doctor_profile.specialization }}
-                    {% else %}
-                        Physiotherapy
-                    {% endif %} 
-                    • #{{ user.id }}
-                </p>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Therapist • #TH001</p>
             </div>
             <ul>
-                <li class="active" onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
-                <li onclick="window.location.href='{% url 'doctor_patients' %}'"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
-                <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
+                <li class="active" onclick="window.location.href='{% url 'doctor_dashboard' %}'">🏠 Home</li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'">👥 Patients List</li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'">📊 Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'">💬 Messages</li>
+                <li onclick="window.location.href='{% url 'profile' %}'">👤 User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
-                <li onclick="logoutDoctor()"><span>🚪</span> Log Out</li>
+                <p onclick="window.location.href='{% url 'settings' %}'">⚙ Settings</p>
+                <p onclick="logoutDoctor()">🚪 Log Out</p>
             </div>
         </div>
 
@@ -452,21 +343,21 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Dashboard Overview</h2>
-                <p><i class="fas fa-users"></i> {{ patients.count }} Active Patients</p>
+                <p>👥 3 Active Patients</p>
             </div>
 
             <!-- Stats Cards -->
             <div class="stats-cards">
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="totalPatients">{{ patients.count }}</div>
+                    <div class="stat-number-large" id="totalPatients">3</div>
                     <div class="stat-label-small">Total Patients</div>
                 </div>
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="inProgressCount">{{ in_progress_count }}</div>
+                    <div class="stat-number-large" id="inProgressCount">2</div>
                     <div class="stat-label-small">In Progress</div>
                 </div>
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="completedCount">{{ completed_count }}</div>
+                    <div class="stat-number-large" id="completedCount">1</div>
                     <div class="stat-label-small">Completed</div>
                 </div>
             </div>
@@ -474,205 +365,175 @@
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <button class="filter-tab active" onclick="filterPatients('all', this)">
-                    All Patients <span class="tab-count" id="allCount">{{ patients.count }}</span>
+                    All patients <span class="tab-count" id="allCount">3</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('progress', this)">
-                    In Progress <span class="tab-count" id="progressCount">{{ in_progress_count }}</span>
+                    In Progress <span class="tab-count" id="progressCount">2</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('completed', this)">
-                    Completed <span class="tab-count" id="completedFilterCount">{{ completed_count }}</span>
+                    Completed <span class="tab-count" id="completedFilterCount">1</span>
                 </button>
             </div>
 
             <!-- Patients Table -->
             <div class="patients-table-container">
-                <div id="patientsList">
-                    {% if patients %}
-                        {% for patient in patients %}
-                            <div class="patient-row" data-status="{% if patient.game_sessions.exists %}in-progress{% else %}completed{% endif %}">
-                                <div class="patient-info-col">
-                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">
-                                        {{ patient.user.first_name|first|default:"P" }}
-                                    </div>
-                                    <div class="patient-details-small">
-                                        <h4>{{ patient.user.get_full_name }}</h4>
-                                        <p>
-                                            {% if patient.medical_history %}
-                                                {{ patient.medical_history|truncatechars:20 }}
-                                            {% else %}
-                                                No condition specified
-                                            {% endif %} 
-                                            • 
-                                            {% if patient.date_of_birth %}
-                                                {{ patient.date_of_birth|timesince|split:","|first }}
-                                            {% else %}
-                                                Age N/A
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="patient-stats-col">
-                                    <div class="stat-item-small">
-                                        <div class="stat-value-small">Level {% if patient.current_level %}{{ patient.current_level }}{% else %}1{% endif %}</div>
-                                        <div class="stat-label-small">Current</div>
-                                    </div>
-                                    <div class="stat-item-small">
-                                        <div class="stat-value-small">
-                                            {% with sessions=patient.game_sessions.all %}
-                                                {% if sessions %}
-                                                    {{ sessions.last.score|default:"0" }}%
-                                                {% else %}
-                                                    0%
-                                                {% endif %}
-                                            {% endwith %}
-                                        </div>
-                                        <div class="stat-label-small">Latest Score</div>
-                                    </div>
-                                    <div class="stat-item-small">
-                                        <div class="stat-value-small">{{ patient.game_sessions.count }}</div>
-                                        <div class="stat-label-small">Sessions</div>
-                                    </div>
-                                </div>
-                                <div style="flex: 1; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                                    <span class="status-badge {% if patient.game_sessions.exists %}in-progress{% else %}completed{% endif %}">
-                                        {% if patient.game_sessions.exists %}In Progress{% else %}Completed{% endif %}
-                                    </span>
-                                    <div class="action-btns">
-                                        <button class="action-btn" onclick="viewPatientDetails('{{ patient.id }}')">
-                                            <i class="fas fa-eye"></i> View
-                                        </button>
-                                        <button class="action-btn" onclick="goToChat('{{ patient.id }}')">
-                                            <i class="fas fa-comment"></i> Message
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="empty-state">
-                            <i class="fas fa-user-plus"></i>
-                            <p>No patients assigned yet</p>
-                            <small style="color: #94a3b8; margin-top: 10px; display: block;">
-                                Check back later or contact your administrator
-                            </small>
-                        </div>
-                    {% endif %}
-                </div>
+                <div id="patientsList"></div>
             </div>
         </div>
     </div>
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Check if user is authenticated and is doctor
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        const userType = "{{ user.user_type }}";
-        
-        if (!isAuthenticated || userType !== 'doctor') {
-            window.location.href = "{% url 'doctor_login' %}";
-        }
-
-        // Django variables
-        const csrfToken = document.getElementById('csrfToken').value;
-        const doctorId = {{ user.id }};
+        const patients = [
+            {
+                id: 'PT001',
+                name: 'Ali Ahmed',
+                age: 8,
+                condition: 'Motor Disability',
+                status: 'in-progress',
+                level: 4,
+                accuracy: 82,
+                speed: 70,
+                sessions: 15,
+                avatar: 'A',
+                avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)'
+            },
+            {
+                id: 'PT002',
+                name: 'Sara Khaled',
+                age: 7,
+                condition: 'Arm Weakness',
+                status: 'in-progress',
+                level: 3,
+                accuracy: 74,
+                speed: 65,
+                sessions: 12,
+                avatar: 'S',
+                avatarColor: 'linear-gradient(135deg, #48bb78, #68d391)'
+            },
+            {
+                id: 'PT003',
+                name: 'Omar Hassan',
+                age: 9,
+                condition: 'Movement Disorder',
+                status: 'completed',
+                level: 5,
+                accuracy: 90,
+                speed: 85,
+                sessions: 28,
+                avatar: 'O',
+                avatarColor: 'linear-gradient(135deg, #ed8936, #f6ad55)'
+            }
+        ];
         
         let currentFilter = 'all';
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Load doctor data from Django template
-            const doctorName = "{{ user.get_full_name|default:'Dr. Ahmad' }}";
-            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
+            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+            const doctorId = localStorage.getItem('doctorId') || 'TH001';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
             
-            // Update sidebar with doctor info
             document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').innerHTML = `${doctorSpecialty} • #${doctorId}`;
+            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
             
-            // Set user type in localStorage as backup
             localStorage.setItem('userType', 'doctor');
-            localStorage.setItem('doctorId', doctorId);
-            localStorage.setItem('doctorName', doctorName);
-            localStorage.setItem('doctorSpecialty', doctorSpecialty);
             
-            // Initialize patient filtering
-            initializePatientFiltering();
+            renderPatients();
+            updateCounts();
         });
         
-        function initializePatientFiltering() {
-            // Get all patient rows
-            const patientRows = document.querySelectorAll('.patient-row');
+        function renderPatients() {
+            const filteredPatients = filterPatientsData();
+            const list = document.getElementById('patientsList');
+            if (!list) return;
             
-            // Store filter function
-            window.filterPatients = function(filter, element) {
-                currentFilter = filter;
+            list.innerHTML = '';
+            
+            filteredPatients.forEach(patient => {
+                const statusText = patient.status === 'in-progress' ? 'In Progress' : 'Completed';
+                const statusClass = patient.status === 'in-progress' ? 'in-progress' : 'completed';
                 
-                // Update tab buttons
-                document.querySelectorAll('.filter-tab').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                element.classList.add('active');
-                
-                // Filter patients
-                patientRows.forEach(row => {
-                    const status = row.getAttribute('data-status');
-                    if (filter === 'all' || status === filter) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-            };
+                const row = document.createElement('div');
+                row.className = 'patient-row';
+                row.innerHTML = `
+                    <div class="patient-info-col">
+                        <div class="patient-avatar-small" style="background: ${patient.avatarColor}">${patient.avatar}</div>
+                        <div class="patient-details-small">
+                            <h4>${patient.name}</h4>
+                            <p>${patient.condition} • ${patient.age} years</p>
+                        </div>
+                    </div>
+                    <div class="patient-stats-col">
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">Level ${patient.level}</div>
+                            <div class="stat-label-small">Current</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">${patient.accuracy}%</div>
+                            <div class="stat-label-small">Accuracy</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">${patient.sessions}</div>
+                            <div class="stat-label-small">Sessions</div>
+                        </div>
+                    </div>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 15px;">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <button class="action-btn" onclick="viewPatientDetails('${patient.id}')">View</button>
+                        <button class="action-btn" onclick="goToChat('${patient.id}')">Message</button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+        
+        function filterPatientsData() {
+            if (currentFilter === 'all') return patients;
+            if (currentFilter === 'progress') return patients.filter(p => p.status === 'in-progress');
+            if (currentFilter === 'completed') return patients.filter(p => p.status === 'completed');
+            return patients;
+        }
+        
+        function filterPatients(filter, element) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            renderPatients();
+        }
+        
+        function updateCounts() {
+            document.getElementById('totalPatients').textContent = patients.length;
+            document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
+            document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;
+            document.getElementById('allCount').textContent = patients.length;
+            document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
+            document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
         }
         
         function viewPatientDetails(patientId) {
-            window.location.href = "{% url 'doctor_patient_details' 0 %}".replace('0', patientId);
+            window.location.href = `{% url 'doctor_patient_details' %}?patient=${patientId}`;
         }
         
         function goToChat(patientId) {
-            window.location.href = "{% url 'doctor_messages' %}?patient=" + patientId;
+            window.location.href = `{% url 'doctor_messages' %}?patient=${patientId}`;
         }
         
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                fetch('/api/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                }).finally(() => {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = "{% url 'index' %}";
-                });
+                localStorage.removeItem('userType');
+                localStorage.removeItem('doctorId');
+                localStorage.removeItem('doctorName');
+                localStorage.removeItem('doctorEmail');
+                localStorage.removeItem('doctorSpecialty');
+                localStorage.removeItem('doctorPhone');
+                
+                window.location.href = "{% url 'index' %}";
             }
         }
-
-        // Show welcome notification
-        function showWelcomeNotification() {
-            const notification = document.createElement('div');
-            notification.className = 'notification success';
-            notification.innerHTML = `<i class="fas fa-check-circle"></i> Welcome back, Dr. {{ user.last_name|default:'' }}!`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // Call welcome notification
-        setTimeout(showWelcomeNotification, 500);
     </script>
 </body>
 </html>

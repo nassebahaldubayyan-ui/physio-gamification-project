@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Patient Profile - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -100,12 +99,6 @@
         .form-input:disabled {
             background: #f1f5f9;
             color: #64748b;
-            cursor: not-allowed;
-        }
-        
-        .form-input[readonly] {
-            background: #f1f5f9;
-            color: #64748b;
         }
         
         .form-select {
@@ -115,11 +108,6 @@
             border-radius: 10px;
             font-size: 15px;
             background: white;
-        }
-        
-        .form-select:focus {
-            border-color: #667eea;
-            outline: none;
         }
         
         .form-row {
@@ -166,152 +154,70 @@
             background: #e2e8f0;
             transform: translateY(-3px);
         }
-        
-        .message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .error-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .helper-text {
-            color: #64748b;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .edit-container {
-                padding: 20px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-
     <div class="edit-container">
         <div class="edit-header">
             <button class="back-btn" onclick="goBack()">←</button>
             <h2>✏️ Edit Patient Profile</h2>
         </div>
 
-        <form id="editForm" onsubmit="event.preventDefault(); savePatientProfile();">
+        <form id="editForm">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">First Name</label>
-                    <input type="text" class="form-input" id="firstName" value="{{ user.first_name|default:'' }}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" class="form-input" id="lastName" value="{{ user.last_name|default:'' }}">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-input" id="username" value="{{ user.username }}" disabled>
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" id="fullName">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Patient ID</label>
-                    <input type="text" class="form-input" id="patientId" value="{{ patient.id|default:'' }}" disabled>
+                    <input type="text" class="form-input" id="patientId" disabled>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="email" value="{{ user.email|default:'' }}">
+                    <input type="email" class="form-input" id="email">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Phone</label>
-                    <input type="tel" class="form-input" id="phone" value="{{ user.phone|default:'' }}">
+                    <input type="tel" class="form-input" id="phone">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Date of Birth</label>
-                    <input type="date" class="form-input" id="dob" value="{{ patient.date_of_birth|date:'Y-m-d'|default:'' }}">
+                    <input type="date" class="form-input" id="dob">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Gender</label>
                     <select class="form-select" id="gender">
-                        <option value="male" {% if patient.gender == 'male' %}selected{% endif %}>Male</option>
-                        <option value="female" {% if patient.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
                     </select>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Age</label>
-                    <input type="text" class="form-input" id="age" readonly>
-                    <div class="helper-text">Auto-calculated from date of birth</div>
+                    <label class="form-label">Medical Condition</label>
+                    <input type="text" class="form-input" id="condition">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Affected Hand</label>
-                    <select class="form-select" id="affectedHand">
-                        <option value="right" {% if patient.affected_hand == 'right' %}selected{% endif %}>Right Hand</option>
-                        <option value="left" {% if patient.affected_hand == 'left' %}selected{% endif %}>Left Hand</option>
-                        <option value="both" {% if patient.affected_hand == 'both' %}selected{% endif %}>Both Hands</option>
-                    </select>
+                    <label class="form-label">Therapy Type</label>
+                    <input type="text" class="form-input" id="therapy">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Medical History</label>
-                <textarea class="form-input" id="medicalHistory" rows="3">{{ patient.medical_history|default:'' }}</textarea>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Assigned Doctor</label>
-                <input type="text" class="form-input" id="assignedDoctor" value="{% if patient.assigned_doctor %}Dr. {{ patient.assigned_doctor.get_full_name }}{% else %}Not assigned{% endif %}" disabled>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Address</label>
-                <input type="text" class="form-input" id="address" value="{{ patient.address|default:'' }}">
+                <input type="text" class="form-input" id="address">
             </div>
 
             <div class="action-buttons">
-                <button type="submit" class="btn-save">💾 Save Changes</button>
+                <button type="button" class="btn-save" onclick="savePatientProfile()">💾 Save Changes</button>
                 <button type="button" class="btn-cancel" onclick="goBack()">↩️ Cancel</button>
             </div>
         </form>
@@ -319,144 +225,64 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Check if user is authenticated and is patient
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        const userType = "{{ user.user_type }}";
-        
-        if (!isAuthenticated || userType !== 'patient') {
-            window.location.href = "{% url 'gamer_login' %}";
-        }
-
-        // Django variables
-        const csrfToken = document.getElementById('csrfToken').value;
-        const userId = {{ user.id }};
+        const patientId = localStorage.getItem('patientId') || 'PT001';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
-            
-            // Calculate age when date of birth changes
-            document.getElementById('dob').addEventListener('change', calculateAge);
-            
-            // Format phone number
-            document.getElementById('phone').addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9+]/g, '');
-            });
         });
 
         function loadPatientData() {
-            // Load from Django template
-            const dob = "{{ patient.date_of_birth|date:'Y-m-d'|default:'' }}";
-            
-            if (dob) {
-                document.getElementById('dob').value = dob;
-                calculateAge();
-            }
-            
-            // Load from localStorage as fallback
-            const storedPhone = localStorage.getItem('patientPhone');
-            if (storedPhone && !document.getElementById('phone').value) {
-                document.getElementById('phone').value = storedPhone;
-            }
-            
-            const storedAddress = localStorage.getItem('patientAddress');
-            if (storedAddress && !document.getElementById('address').value) {
-                document.getElementById('address').value = storedAddress;
+            document.getElementById('patientId').value = patientId;
+
+            if (patientId === 'PT001') {
+                document.getElementById('fullName').value = 'Ali Ahmed';
+                document.getElementById('email').value = 'ali.ahmed@email.com';
+                document.getElementById('phone').value = '+966 50 111 1111';
+                document.getElementById('dob').value = '2018-01-15';
+                document.getElementById('gender').value = 'male';
+                document.getElementById('condition').value = 'Motor Disability';
+                document.getElementById('therapy').value = 'Physical Therapy';
+                document.getElementById('address').value = 'Al Olaya Street, Riyadh';
+            } else if (patientId === 'PT002') {
+                document.getElementById('fullName').value = 'Sara Khaled';
+                document.getElementById('email').value = 'sara.khaled@email.com';
+                document.getElementById('phone').value = '+966 50 222 2222';
+                document.getElementById('dob').value = '2019-03-20';
+                document.getElementById('gender').value = 'female';
+                document.getElementById('condition').value = 'Arm Weakness';
+                document.getElementById('therapy').value = 'Occupational Therapy';
+                document.getElementById('address').value = 'Al Malaz District, Riyadh';
+            } else if (patientId === 'PT003') {
+                document.getElementById('fullName').value = 'Omar Hassan';
+                document.getElementById('email').value = 'omar.hassan@email.com';
+                document.getElementById('phone').value = '+966 50 333 3333';
+                document.getElementById('dob').value = '2017-11-05';
+                document.getElementById('gender').value = 'male';
+                document.getElementById('condition').value = 'Movement Disorder';
+                document.getElementById('therapy').value = 'Developmental Therapy';
+                document.getElementById('address').value = 'Al Narjis, Riyadh';
             }
         }
 
-        function calculateAge() {
-            const dobInput = document.getElementById('dob').value;
-            if (!dobInput) {
-                document.getElementById('age').value = '';
+        function savePatientProfile() {
+            const updatedName = document.getElementById('fullName').value.trim();
+            const updatedEmail = document.getElementById('email').value.trim();
+            const updatedPhone = document.getElementById('phone').value.trim();
+            const updatedCondition = document.getElementById('condition').value.trim();
+
+            if (!updatedName || !updatedEmail || !updatedPhone) {
+                alert('Please fill in all required fields');
                 return;
             }
+
+            localStorage.setItem('patientName', updatedName);
+            localStorage.setItem('patientCondition', updatedCondition);
+
+            showNotification('Profile updated successfully!');
             
-            const dob = new Date(dobInput);
-            const today = new Date();
-            
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            
-            document.getElementById('age').value = age + ' years';
-        }
-
-        async function savePatientProfile() {
-            // Get updated values
-            const formData = {
-                first_name: document.getElementById('firstName').value.trim(),
-                last_name: document.getElementById('lastName').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                date_of_birth: document.getElementById('dob').value,
-                gender: document.getElementById('gender').value,
-                affected_hand: document.getElementById('affectedHand').value,
-                medical_history: document.getElementById('medicalHistory').value.trim(),
-                address: document.getElementById('address').value.trim()
-            };
-
-            // Validation
-            if (!formData.first_name || !formData.last_name) {
-                showError('First name and last name are required');
-                return;
-            }
-
-            if (!formData.email) {
-                showError('Email is required');
-                return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
-                showError('Please enter a valid email address');
-                return;
-            }
-
-            if (!formData.phone) {
-                showError('Phone number is required');
-                return;
-            }
-
-            try {
-                document.querySelector('.btn-save').disabled = true;
-                document.querySelector('.btn-save').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-                const response = await fetch('/api/update-patient-profile/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update localStorage
-                    localStorage.setItem('patientFirstName', formData.first_name);
-                    localStorage.setItem('patientLastName', formData.last_name);
-                    localStorage.setItem('patientName', `${formData.first_name} ${formData.last_name}`);
-                    localStorage.setItem('patientEmail', formData.email);
-                    localStorage.setItem('patientPhone', formData.phone);
-                    localStorage.setItem('patientAddress', formData.address);
-                    localStorage.setItem('patientCondition', formData.medical_history);
-
-                    showNotification('Profile updated successfully!');
-                    setTimeout(() => window.location.href = "{% url 'profile' %}", 1500);
-                } else {
-                    showError(data.error || 'Error updating profile');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Connection error. Please try again.');
-            } finally {
-                document.querySelector('.btn-save').disabled = false;
-                document.querySelector('.btn-save').innerHTML = '💾 Save Changes';
-            }
+            setTimeout(() => {
+                window.location.href = "{% url 'profile' %}";
+            }, 1500);
         }
 
         function goBack() {
@@ -465,18 +291,21 @@
 
         function showNotification(message) {
             const notification = document.createElement('div');
-            notification.className = 'message';
-            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
-        }
-
-        function showError(message) {
-            const error = document.createElement('div');
-            error.className = 'error-message';
-            error.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            document.body.appendChild(error);
-            setTimeout(() => error.remove(), 3000);
         }
     </script>
 </body>

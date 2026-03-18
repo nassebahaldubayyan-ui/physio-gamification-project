@@ -42,12 +42,6 @@ def patient_result(request):
 def edit_patient_profile(request):
     return render(request, 'patient/edit-patient-profile.html')
 
-def capture_video(request):
-    return render(request, 'patient/capture-video.html')
-
-def physio_assessment(request):
-    return render(request, 'patient/physio-assessment.html')
-
 # Doctor Pages
 def doctor_dashboard(request):
     return render(request, 'doctor/doctor.html')
@@ -80,8 +74,6 @@ def game_matching(request):
 
 # ========== APIs ==========
 
-from django.contrib.auth import login as auth_login
-
 @csrf_exempt
 def api_login(request):
     if request.method == "POST":
@@ -90,72 +82,30 @@ def api_login(request):
             email = data.get("email")
             password = data.get("password")
             
-            print(f"🔍 Login attempt: {email}")
-            
-            from .models import Users
-            from django.contrib.auth.hashers import check_password
-            
             try:
                 user = Users.objects.get(email=email, is_active=True)
-                print(f"✅ User found: {user.name}, Role: {user.role}")
-                
                 if check_password(password, user.password):
-                    print("✅ Password correct")
-                    
-                    # ❗ مهم: نخزن المستخدم في الجلسة
-                    # Django expects a User object with specific methods
-                    # We need to create a compatible user object
-                    
-                    from django.contrib.auth.models import User as AuthUser
-                    
-                    # Create a Django auth user object
-                    auth_user, created = AuthUser.objects.get_or_create(
-                        username=user.email,
-                        defaults={
-                            'email': user.email,
-                            'first_name': user.name.split()[0] if user.name else '',
-                            'last_name': user.name.split()[-1] if user.name and len(user.name.split()) > 1 else '',
-                            'is_active': True
-                        }
-                    )
-                    
-                    # Set password
-                    auth_user.set_password(password)
-                    auth_user.save()
-                    
-                    # Log the user in
-                    auth_login(request, auth_user)
-                    
-                    print(f"✅ User logged in successfully")
-                    
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
-                        "user_type": 'patient' if user.role == 'patient' else 'doctor',
-                        "user_id": user.id,
-                        "username": user.name,
-                        "first_name": user.name.split()[0] if user.name else '',
-                        "last_name": user.name.split()[-1] if user.name and len(user.name.split()) > 1 else '',
                         "user": {
                             "id": user.id,
                             "name": user.name,
                             "email": user.email,
-                            "role": user.role
+                            "role": user.role,
+                            "phone": user.phone,
+                            "avatar": user.avatar
                         }
                     })
                 else:
-                    print("❌ Wrong password")
                     return JsonResponse({"success": False, "error": "Wrong password"}, status=401)
-                    
             except Users.DoesNotExist:
-                print("❌ User not found")
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
-                
         except Exception as e:
-            print(f"🔥 Error: {str(e)}")
             return JsonResponse({"success": False, "error": str(e)}, status=500)
-    
     return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
 @csrf_exempt
 def api_register(request):
     if request.method == "POST":
@@ -229,3 +179,22 @@ def api_get_messages(request):
 
 def api_test(request):
     return JsonResponse({"message": "Django backend working"})
+
+
+
+# Add this function to your existing views.py
+
+def capture_video(request):
+    """
+    Page for capturing initial assessment video with AI analysis
+    """
+    return render(request, 'patient/capture-video.html')
+
+
+# Add this function to your existing views.py
+
+def physio_assessment(request):
+    """
+    Page for real-time physio assessment using TensorFlow.js pose detection
+    """
+    return render(request, 'patient/physio-assessment.html')

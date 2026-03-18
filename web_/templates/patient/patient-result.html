@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Session Results - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         body {
@@ -15,12 +14,11 @@
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
         }
         
         .result-container {
             max-width: 600px;
-            width: 100%;
+            width: 90%;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 40px;
@@ -100,7 +98,6 @@
             gap: 15px;
             justify-content: center;
             margin-bottom: 25px;
-            flex-wrap: wrap;
         }
         
         .btn-action {
@@ -130,7 +127,6 @@
             background: rgba(255, 255, 255, 0.1);
             color: white;
             border: 2px solid white;
-            margin-top: 15px;
         }
         
         .btn-action:hover {
@@ -155,85 +151,13 @@
             font-size: 18px;
             color: #c6f6d5;
         }
-        
-        .game-details {
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .game-details h3 {
-            color: #48bb78;
-            margin-bottom: 15px;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            color: #a0aec0;
-        }
-        
-        .detail-value {
-            color: white;
-            font-weight: 600;
-        }
-        
-        @media (max-width: 768px) {
-            .result-container {
-                padding: 30px;
-            }
-            
-            .result-title {
-                font-size: 32px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn-action {
-                width: 100%;
-                justify-content: center;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-
     <div class="result-container">
         <div class="result-icon">🏆</div>
         <h1 class="result-title">Great Job!</h1>
         <p class="result-subtitle">You've completed your therapy session</p>
-
-        <!-- Game Details -->
-        <div class="game-details" id="gameDetails">
-            <h3 id="gameName">Catching Stars</h3>
-            <div class="detail-row">
-                <span class="detail-label">Duration</span>
-                <span class="detail-value" id="duration">3:45 minutes</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Level</span>
-                <span class="detail-value" id="level">Level 4</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Date</span>
-                <span class="detail-value" id="date">March 17, 2026</span>
-            </div>
-        </div>
 
         <div class="result-cards">
             <div class="result-card">
@@ -267,7 +191,7 @@
             </button>
         </div>
 
-        <button class="btn-action btn-home" onclick="goHome()">
+        <button class="btn-action btn-home" onclick="window.location.href='{% url 'patient_dashboard' %}'">
             <span>🏠</span> Home
         </button>
 
@@ -278,139 +202,39 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Check if user is authenticated
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        if (!isAuthenticated) {
-            window.location.href = "{% url 'gamer_login' %}";
-        }
-
-        // Django variables
-        const csrfToken = document.getElementById('csrfToken').value;
-        const userId = {{ user.id }};
-        const userType = "{{ user.user_type }}";
-
         document.addEventListener('DOMContentLoaded', function() {
-            loadSessionResults();
-        });
-
-        function loadSessionResults() {
-            // Get session data from URL or localStorage
-            const urlParams = new URLSearchParams(window.location.search);
-            const sessionId = urlParams.get('session') || localStorage.getItem('lastSessionId');
-            const gameType = urlParams.get('game') || localStorage.getItem('lastGameType') || 'catching_stars';
-            
-            // Set game name based on type
-            const gameNames = {
-                'catching_stars': 'Catching Stars',
-                'matching': 'Matching Game',
-                'catching_objects': 'Catching Objects'
-            };
-            document.getElementById('gameName').textContent = gameNames[gameType] || 'Therapy Game';
-            
-            // Load from localStorage or API
-            const score = localStorage.getItem('lastSessionScore') || '85';
-            const accuracy = localStorage.getItem('lastSessionAccuracy') || '92';
-            const painLevel = localStorage.getItem('lastSessionPain') || 'Low';
-            const funLevel = localStorage.getItem('lastSessionFun') || 'High';
-            const duration = localStorage.getItem('lastSessionDuration') || '3:45';
-            const level = localStorage.getItem('lastSessionLevel') || '4';
+            const score = localStorage.getItem('lastSessionScore') || '80';
+            const accuracy = localStorage.getItem('lastSessionAccuracy') || '85';
             
             document.getElementById('score').textContent = score + '%';
             document.getElementById('accuracy').textContent = accuracy + '%';
-            document.getElementById('painLevel').textContent = painLevel;
-            document.getElementById('funLevel').textContent = funLevel;
-            document.getElementById('duration').textContent = duration;
-            document.getElementById('level').textContent = 'Level ' + level;
             
-            // Set current date
-            const today = new Date();
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('date').textContent = today.toLocaleDateString('en-US', options);
-            
-            // Load motivation message
-            loadMotivationMessage(score);
-            
-            // If we have a session ID, try to load from API
-            if (sessionId) {
-                loadSessionFromAPI(sessionId);
-            }
-        }
-
-        async function loadSessionFromAPI(sessionId) {
-            try {
-                const response = await fetch(`/api/game-session/${sessionId}/`, {
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('score').textContent = data.session.score + '%';
-                    document.getElementById('duration').textContent = formatDuration(data.session.duration_seconds);
-                    
-                    // Calculate accuracy from game data
-                    const accuracy = calculateAccuracy(data.session);
-                    document.getElementById('accuracy').textContent = accuracy + '%';
-                }
-            } catch (error) {
-                console.error('Error loading session:', error);
-            }
-        }
-
-        function formatDuration(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function calculateAccuracy(session) {
-            // This would depend on your game data structure
-            return 85; // Placeholder
-        }
-
-        function loadMotivationMessage(score) {
             const messages = [
-                { min: 90, max: 100, text: "🌟 EXCELLENT! You're a superstar! Keep up the amazing work!" },
-                { min: 80, max: 89, text: "⭐ Great job! You're making fantastic progress!" },
-                { min: 70, max: 79, text: "💪 Good work! You're getting stronger every session!" },
-                { min: 60, max: 69, text: "🎯 Nice effort! Every game makes you better!" },
-                { min: 0, max: 59, text: "👍 Keep practicing! You'll improve with each session!" }
+                "⭐ You're making excellent progress! Keep it up!",
+                "🎯 Great accuracy today! Your hard work is paying off!",
+                "💪 Strong session! You're getting better every time!",
+                "🌟 Fantastic effort! Your dedication is inspiring!",
+                "🎉 Amazing work! You're on the path to recovery!"
             ];
             
-            const scoreNum = parseInt(score) || 80;
-            const message = messages.find(m => scoreNum >= m.min && scoreNum <= m.max) || messages[1];
+            document.getElementById('motivation').textContent = messages[Math.floor(Math.random() * messages.length)];
+        });
+        
+        function repeatLevel() {
+            const gameNumber = new URLSearchParams(window.location.search).get('game') || '1';
+            if (gameNumber === '1') window.location.href = "{% url 'game_catching_stars' %}";
+            else if (gameNumber === '2') window.location.href = "{% url 'game_matching' %}";
+            else window.location.href = "{% url 'game_catching_objects' %}";
+        }
+        
+        function nextLevel() {
+            const gameNumber = new URLSearchParams(window.location.search).get('game') || '1';
+            let nextLevel = parseInt(gameNumber) + 1;
+            if (nextLevel > 3) nextLevel = 1;
             
-            document.getElementById('motivation').textContent = message.text;
-        }
-
-        async function repeatLevel() {
-            const gameType = localStorage.getItem('lastGameType') || 'catching_stars';
-            window.location.href = "{% url 'patient_game' %}?game=" + gameType;
-        }
-
-        async function nextLevel() {
-            const currentLevel = parseInt(localStorage.getItem('lastSessionLevel') || '1');
-            const nextLevel = currentLevel + 1;
-            
-            // Check if next level is available
-            if (nextLevel <= 5) { // Max level 5
-                localStorage.setItem('lastSessionLevel', nextLevel);
-                const gameType = localStorage.getItem('lastGameType') || 'catching_stars';
-                window.location.href = "{% url 'patient_game' %}?game=" + gameType + "&level=" + nextLevel;
-            } else {
-                alert('Congratulations! You completed all levels! 🎉');
-                goHome();
-            }
-        }
-
-        function goHome() {
-            if (userType === 'patient') {
-                window.location.href = "{% url 'patient_dashboard' %}";
-            } else {
-                window.location.href = "{% url 'index' %}";
-            }
+            if (nextLevel === 1) window.location.href = "{% url 'game_catching_stars' %}";
+            else if (nextLevel === 2) window.location.href = "{% url 'game_matching' %}";
+            else window.location.href = "{% url 'game_catching_objects' %}";
         }
     </script>
 </body>

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Details - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -41,15 +40,16 @@
         .avatar {
             width: 100px;
             height: 100px;
-            background: transparent;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
             border-radius: 50%;
             margin: 0 auto 15px;
-            border: 4px solid #60a5fa;
+            border: 4px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
-            color: #60a5fa;
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
         }
         
         .doctor-info h4 {
@@ -106,7 +106,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 15px;
         }
         
         .sidebar-bottom p:hover {
@@ -138,8 +137,10 @@
             gap: 15px;
         }
         
-        .btn-contact, .btn-progress {
+        .btn-contact {
             padding: 12px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
             border: none;
             border-radius: 10px;
             font-size: 16px;
@@ -151,19 +152,9 @@
             gap: 10px;
         }
         
-        .btn-contact {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        .btn-progress {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
-        }
-        
-        .btn-contact:hover, .btn-progress:hover {
+        .btn-contact:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
         
         .patient-header-card {
@@ -176,34 +167,6 @@
             align-items: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border: 1px solid #e2e8f0;
-        }
-        
-        .patient-info-main {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-        
-        .patient-photo {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #60a5fa;
-        }
-        
-        .patient-photo-placeholder {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: white;
-            font-weight: bold;
-            border: 4px solid #e0f2fe;
         }
         
         .patient-info-main h1 {
@@ -242,7 +205,7 @@
         
         .details-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
             margin-bottom: 25px;
         }
@@ -296,116 +259,6 @@
             display: inline-block;
         }
         
-        .strength-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .strength-item {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .strength-label {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 5px;
-        }
-        
-        .strength-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #3b82f6;
-            margin-bottom: 5px;
-        }
-        
-        .strength-bar {
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        
-        .strength-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-        
-        .assessment-section {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 25px;
-        }
-        
-        .assessment-section h3 {
-            margin: 0 0 20px 0;
-            color: #2d3748;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .video-container {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .video-placeholder {
-            width: 300px;
-            height: 200px;
-            background: #1e293b;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            border: 2px dashed #60a5fa;
-        }
-        
-        .video-info {
-            flex: 1;
-        }
-        
-        .video-date {
-            color: #64748b;
-            margin: 10px 0;
-        }
-        
-        .btn-play-video {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .btn-play-video:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
         .ai-recommendation {
             background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
             border: 2px solid #7dd3fc;
@@ -432,40 +285,6 @@
             border-left: 4px solid #3b82f6;
         }
         
-        .quick-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .quick-stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-        }
-        
-        .quick-stat-label {
-            color: #64748b;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        
-        .quick-stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        
-        .quick-stat-trend {
-            font-size: 11px;
-            color: #10b981;
-            margin-top: 3px;
-        }
-        
         .btn-back {
             padding: 12px 30px;
             background: #f1f5f9;
@@ -486,64 +305,34 @@
             transform: translateY(-2px);
         }
         
-        .no-video {
-            color: #94a3b8;
-            font-style: italic;
-        }
-        
         @media (max-width: 768px) {
             .patient-header-card {
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
             }
-            
-            .patient-info-main {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .quick-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .strength-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-    
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
-                <p id="doctorInfo">
-                    {% if user.doctor_profile.specialization %}
-                        {{ user.doctor_profile.specialization }}
-                    {% else %}
-                        Physiotherapy
-                    {% endif %} 
-                    • #{{ user.id }}
-                </p>
+                <div class="avatar">👨‍⚕️</div>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Therapist • #TH001</p>
             </div>
             <ul>
-                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
-                <li onclick="window.location.href='{% url 'doctor_patients' %}'" class="active"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
-                <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">🏠 Home</li>
+                <li class="active">👥 Patients List</li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'">📊 Patients Performance</li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'">💬 Messages</li>
+                <li onclick="window.location.href='{% url 'profile' %}'">👤 User Profile</li>
             </ul>
             <div class="sidebar-bottom">
-                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
-                <li onclick="logoutDoctor()"><span>🚪</span> Log Out</li>
+                <p onclick="window.location.href='{% url 'settings' %}'">⚙ Settings</p>
+                <p onclick="logoutDoctor()">🚪 Log Out</p>
             </div>
         </div>
 
@@ -555,34 +344,16 @@
                     <button class="btn-contact" id="contactPatientBtn" onclick="contactPatient()">
                         💬 Contact Patient
                     </button>
-                    <button class="btn-progress" id="progressBtn" onclick="viewProgress()">
-                        📊 View Progress Chart
-                    </button>
                 </div>
             </div>
 
             <!-- Patient Header -->
             <div class="patient-header-card">
                 <div class="patient-info-main">
-                    <div id="patientPhotoContainer">
-                        {% if patient.user.profile_picture %}
-                            <img id="patientPhoto" class="patient-photo" src="{{ patient.user.profile_picture.url }}" alt="Patient photo">
-                            <div id="patientPhotoPlaceholder" class="patient-photo-placeholder" style="display: none;">
-                                <span id="avatarInitial">{{ patient.user.first_name|first|default:"A" }}</span>
-                            </div>
-                        {% else %}
-                            <img id="patientPhoto" class="patient-photo" style="display: none;" alt="Patient photo">
-                            <div id="patientPhotoPlaceholder" class="patient-photo-placeholder">
-                                <span id="avatarInitial">{{ patient.user.first_name|first|default:"A" }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
+                    <h1 id="patientName">Ali Ahmed</h1>
                     <div>
-                        <h1 id="patientName">{{ patient.user.get_full_name }}</h1>
-                        <div>
-                            <span class="status-badge good" id="patientStatus">In Progress</span>
-                            <span class="patient-id" id="patientId">ID: {{ patient.id }}</span>
-                        </div>
+                        <span class="status-badge good" id="patientStatus">In Progress</span>
+                        <span class="patient-id" id="patientId">ID: PT001</span>
                     </div>
                 </div>
                 <div class="progress-score">
@@ -591,169 +362,80 @@
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="quick-stats">
-                <div class="quick-stat-card">
-                    <div class="quick-stat-label">Age</div>
-                    <div class="quick-stat-value" id="quickAge">
-                        {% if patient.date_of_birth %}
-                            {{ patient.date_of_birth|timesince }} old
-                        {% else %}
-                            Not specified
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="quick-stat-card">
-                    <div class="quick-stat-label">Affected Hand</div>
-                    <div class="quick-stat-value" id="quickAffectedHand">-</div>
-                </div>
-                <div class="quick-stat-card">
-                    <div class="quick-stat-label">Current Level</div>
-                    <div class="quick-stat-value" id="quickLevel">-</div>
-                </div>
-                <div class="quick-stat-card">
-                    <div class="quick-stat-label">Sessions</div>
-                    <div class="quick-stat-value" id="quickSessions">{{ patient.game_sessions.count }}</div>
-                </div>
-            </div>
-
             <!-- Details Grid -->
             <div class="details-grid">
                 <!-- Personal Information -->
                 <div class="info-card">
-                    <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+                    <h3>👤 Personal Information</h3>
                     <div class="info-row">
                         <span class="info-label">Full Name</span>
-                        <span class="info-value" id="fullName">{{ patient.user.get_full_name }}</span>
+                        <span class="info-value" id="fullName">Ali Ahmed</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Age</span>
-                        <span class="info-value" id="age">
-                            {% if patient.date_of_birth %}
-                                {{ patient.date_of_birth|timesince }} old
-                            {% else %}
-                                Not specified
-                            {% endif %}
-                        </span>
+                        <span class="info-value" id="age">8 years</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Username</span>
-                        <span class="info-value" id="username">{{ patient.user.username }}</span>
+                        <span class="info-label">Gender</span>
+                        <span class="info-value" id="gender">Male</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Contact</span>
+                        <span class="info-value" id="contact">+966 50 111 1111</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Email</span>
-                        <span class="info-value" id="email">{{ patient.user.email }}</span>
+                        <span class="info-value" id="email">ali.ahmed@email.com</span>
+                    </div>
+                </div>
+
+                <!-- Therapy Progress -->
+                <div class="info-card">
+                    <h3>📊 Therapy Progress</h3>
+                    <div class="info-row">
+                        <span class="info-label">Current Level</span>
+                        <span class="info-value highlight" id="currentLevel">Level 4</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Phone</span>
-                        <span class="info-value" id="contact">{{ patient.user.phone|default:"Not provided" }}</span>
+                        <span class="info-label">Accuracy</span>
+                        <span class="info-value" id="accuracy">82%</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Bio</span>
-                        <span class="info-value" id="bio">{{ patient.user.bio|default:"No bio" }}</span>
+                        <span class="info-label">Speed</span>
+                        <span class="info-value" id="speed">70%</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Sessions Completed</span>
+                        <span class="info-value" id="sessions">15 sessions</span>
                     </div>
                 </div>
 
                 <!-- Medical Information -->
                 <div class="info-card">
-                    <h3><i class="fas fa-notes-medical"></i> Medical Information</h3>
+                    <h3>🏥 Medical Information</h3>
                     <div class="info-row">
-                        <span class="info-label">Medical History</span>
-                        <span class="info-value" id="medicalHistory">{{ patient.medical_history|default:"No medical history recorded" }}</span>
+                        <span class="info-label">Condition</span>
+                        <span class="info-value highlight" id="condition">Motor Disability</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Assigned Doctor</span>
-                        <span class="info-value" id="assignedDoctor">
-                            {% if patient.assigned_doctor %}
-                                Dr. {{ patient.assigned_doctor.get_full_name }}
-                            {% else %}
-                                Not assigned
-                            {% endif %}
-                        </span>
+                        <span class="info-label">Therapy Type</span>
+                        <span class="info-value" id="therapyType">Physical Therapy</span>
                     </div>
-                </div>
-
-                <!-- Strength Measurements -->
-                <div class="info-card">
-                    <h3><i class="fas fa-dumbbell"></i> Recent Game Performance</h3>
-                    
-                    <div class="strength-grid" id="gamePerformance">
-                        {% for session in patient.game_sessions.all|slice:":5" %}
-                            <div class="strength-item">
-                                <div class="strength-label">{{ session.game.name }}</div>
-                                <div class="strength-value">{{ session.score }}%</div>
-                                <div class="strength-bar">
-                                    <div class="strength-fill" style="width: {{ session.score }}%"></div>
-                                </div>
-                                <small>{{ session.started_at|date:"M d, Y" }}</small>
-                            </div>
-                        {% empty %}
-                            <div class="strength-item">
-                                <div class="strength-label">No games played yet</div>
-                            </div>
-                        {% endfor %}
+                    <div class="info-row">
+                        <span class="info-label">Start Date</span>
+                        <span class="info-value" id="startDate">10 Jan 2026</span>
                     </div>
-                    
-                    <div style="margin-top: 15px; text-align: right;">
-                        <span class="info-label">Total Sessions:</span>
-                        <span class="info-value" id="totalSessions">{{ patient.game_sessions.count }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Assessment Video Section -->
-            <div class="assessment-section">
-                <h3><i class="fas fa-video"></i> Initial Assessment Video</h3>
-                <div id="videoContainer">
-                    <div class="video-container">
-                        <div class="video-placeholder" id="videoPlaceholder">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <div class="video-info">
-                            <h4 id="videoTitle">Initial Assessment</h4>
-                            <p class="video-date" id="videoDate">
-                                {% if patient.assessments.exists %}
-                                    Date: {{ patient.assessments.last.date|date:"d M Y" }}
-                                {% else %}
-                                    Date: Not recorded yet
-                                {% endif %}
-                            </p>
-                            {% if patient.assessments.exists and patient.assessments.last.video %}
-                                <button class="btn-play-video" id="playVideoBtn" onclick="playVideo('{{ patient.assessments.last.video.url }}')">
-                                    <i class="fas fa-play"></i> Play Video
-                                </button>
-                                <p class="no-video" id="noVideoMsg" style="display: none;">No assessment video available</p>
-                            {% else %}
-                                <button class="btn-play-video" id="playVideoBtn" style="display: none;">
-                                    <i class="fas fa-play"></i> Play Video
-                                </button>
-                                <p class="no-video" id="noVideoMsg">No assessment video available</p>
-                            {% endif %}
-                        </div>
+                    <div class="info-row">
+                        <span class="info-label">Next Session</span>
+                        <span class="info-value" id="nextSession">01 Aug 2026</span>
                     </div>
                 </div>
             </div>
 
             <!-- AI Recommendation -->
             <div class="ai-recommendation">
-                <h3><i class="fas fa-robot"></i> AI Recommendation</h3>
-                <p id="aiRecommendation">
-                    Based on recent game sessions, 
-                    {% if patient.game_sessions.exists %}
-                        patient shows 
-                        {% with avg=patient.game_sessions.all|dictsort:"score" %}
-                            {% if avg.last.score > 80 %}
-                                excellent progress. Consider increasing difficulty.
-                            {% elif avg.last.score > 60 %}
-                                good improvement. Keep current difficulty level.
-                            {% else %}
-                                needs more practice. Focus on basic exercises.
-                            {% endif %}
-                        {% endwith %}
-                    {% else %}
-                        No game data available yet. Encourage patient to start playing.
-                    {% endif %}
-                </p>
+                <h3>🤖 AI Recommendation</h3>
+                <p id="aiRecommendation">Increase difficulty level for next session. Patient shows good improvement in accuracy. Recommend moving to Level 5 next week.</p>
             </div>
 
             <!-- Back Button -->
@@ -765,91 +447,113 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Check if user is authenticated and is doctor
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        const userType = "{{ user.user_type }}";
+        let currentPatientId = 'PT001';
         
-        if (!isAuthenticated || userType !== 'doctor') {
-            window.location.href = "{% url 'doctor_login' %}";
-        }
-
-        // Django variables
-        const csrfToken = document.getElementById('csrfToken').value;
-        const patientId = {{ patient.id }};
-        const doctorId = {{ user.id }};
-
-        // Load doctor info
         document.addEventListener('DOMContentLoaded', function() {
-            loadDoctorInfo();
-            loadPatientStats();
+            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+            const doctorId = localStorage.getItem('doctorId') || 'TH001';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Therapist';
+            
+            document.getElementById('doctorName').textContent = doctorName;
+            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientId = urlParams.get('patient') || 'PT001';
+            currentPatientId = patientId;
+            
+            loadPatientData(patientId);
         });
-
-        function loadDoctorInfo() {
-            const doctorName = "{{ user.get_full_name }}";
-            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
-            
-            document.getElementById('doctorName').textContent = doctorName || 'Dr. Ahmad';
-        }
-
-        async function loadPatientStats() {
-            try {
-                const response = await fetch(`/api/patient-stats/{{ patient.id }}/`, {
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    updateStats(data);
+        
+        function loadPatientData(patientId) {
+            const patientData = {
+                'PT001': {
+                    name: 'Ali Ahmed',
+                    id: 'PT001',
+                    age: '8 years',
+                    gender: 'Male',
+                    contact: '+966 50 111 1111',
+                    email: 'ali.ahmed@email.com',
+                    level: 'Level 4',
+                    accuracy: '82%',
+                    speed: '70%',
+                    sessions: '15 sessions',
+                    condition: 'Motor Disability',
+                    therapyType: 'Physical Therapy',
+                    startDate: '10 Jan 2026',
+                    nextSession: '01 Aug 2026',
+                    score: '82%',
+                    status: 'In Progress',
+                    recommendation: 'Increase difficulty level for next session. Patient shows good improvement in accuracy. Recommend moving to Level 5 next week.'
+                },
+                'PT002': {
+                    name: 'Sara Khaled',
+                    id: 'PT002',
+                    age: '7 years',
+                    gender: 'Female',
+                    contact: '+966 50 222 2222',
+                    email: 'sara.khaled@email.com',
+                    level: 'Level 3',
+                    accuracy: '74%',
+                    speed: '65%',
+                    sessions: '12 sessions',
+                    condition: 'Arm Weakness',
+                    therapyType: 'Occupational Therapy',
+                    startDate: '05 Feb 2026',
+                    nextSession: '03 Aug 2026',
+                    score: '74%',
+                    status: 'In Progress',
+                    recommendation: 'Focus on strength building exercises. Patient shows good progress but needs more repetitions.'
+                },
+                'PT003': {
+                    name: 'Omar Hassan',
+                    id: 'PT003',
+                    age: '9 years',
+                    gender: 'Male',
+                    contact: '+966 50 333 3333',
+                    email: 'omar.hassan@email.com',
+                    level: 'Level 5',
+                    accuracy: '90%',
+                    speed: '85%',
+                    sessions: '28 sessions',
+                    condition: 'Movement Disorder',
+                    therapyType: 'Developmental Therapy',
+                    startDate: '20 Mar 2026',
+                    nextSession: '05 Aug 2026',
+                    score: '90%',
+                    status: 'Completed',
+                    recommendation: 'Excellent progress! Patient ready for advanced challenges. Consider introducing new game mechanics.'
                 }
-            } catch (error) {
-                console.error('Error loading patient stats:', error);
-            }
-        }
-
-        function updateStats(data) {
-            // Update overall score
-            if (data.avg_score) {
-                document.getElementById('overallScore').textContent = data.avg_score + '%';
-            }
+            };
             
-            // Update quick stats
-            document.getElementById('quickAffectedHand').textContent = data.affected_hand || '-';
-            document.getElementById('quickLevel').textContent = data.current_level || '-';
+            const patient = patientData[patientId] || patientData['PT001'];
+            
+            document.getElementById('patientName').textContent = patient.name;
+            document.getElementById('patientId').textContent = `ID: ${patient.id}`;
+            document.getElementById('patientStatus').textContent = patient.status;
+            document.getElementById('overallScore').textContent = patient.score;
+            document.getElementById('fullName').textContent = patient.name;
+            document.getElementById('age').textContent = patient.age;
+            document.getElementById('gender').textContent = patient.gender;
+            document.getElementById('contact').textContent = patient.contact;
+            document.getElementById('email').textContent = patient.email;
+            document.getElementById('currentLevel').textContent = patient.level;
+            document.getElementById('accuracy').textContent = patient.accuracy;
+            document.getElementById('speed').textContent = patient.speed;
+            document.getElementById('sessions').textContent = patient.sessions;
+            document.getElementById('condition').textContent = patient.condition;
+            document.getElementById('therapyType').textContent = patient.therapyType;
+            document.getElementById('startDate').textContent = patient.startDate;
+            document.getElementById('nextSession').textContent = patient.nextSession;
+            document.getElementById('aiRecommendation').textContent = patient.recommendation;
         }
-
+        
         function contactPatient() {
-            // Go to messages page with this patient selected
-            window.location.href = "{% url 'doctor_messages' %}?patient={{ patient.id }}";
+            window.location.href = `{% url 'doctor_messages' %}?patient=${currentPatientId}`;
         }
-
-        function viewProgress() {
-            // Go to progress page
-            window.location.href = "{% url 'patient_progress' %}?patient={{ patient.id }}";
-        }
-
-        function playVideo(videoUrl) {
-            if (videoUrl) {
-                // Open video in new tab
-                window.open(videoUrl, '_blank');
-            } else {
-                alert('No video available');
-            }
-        }
-
+        
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                fetch('/api/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                }).finally(() => {
-                    localStorage.clear();
-                    window.location.href = "{% url 'index' %}";
-                });
+                window.location.href = "{% url 'index' %}";
             }
         }
     </script>

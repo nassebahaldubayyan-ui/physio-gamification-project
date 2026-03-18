@@ -140,6 +140,7 @@
             text-align: right;
         }
         
+        /* Main content with camera and analysis */
         .main-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -419,9 +420,6 @@
         <h2>📹 Initial Assessment Video</h2>
         <p class="subtitle">Please perform each movement for 15 seconds</p>
         
-        <!-- Hidden CSRF Token for Django -->
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-        
         <!-- Camera Permission Request -->
         <div class="instructions" id="permissionBox">
             <h3><i class="fas fa-camera"></i> Camera Access Required</h3>
@@ -656,25 +654,19 @@
         
         const totalDuration = movements.length * movements[0].duration;
 
-        // Check if user is authenticated in Django
-        function checkAuth() {
-            fetch('/api/user/', {
-                headers: {
-                    'X-CSRFToken': document.getElementById('csrfToken').value
-                }
-            })
-            .then(response => {
-                if (response.status === 403) {
-                    window.location.href = "{% url 'gamer_login' %}";
-                }
-            })
-            .catch(() => {
-                window.location.href = "{% url 'gamer_login' %}";
-            });
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const userType = localStorage.getItem('userType');
+        
+        if (!token && userType !== 'patient') {
+            window.location.href = "{% url 'gamer_login' %}";
         }
 
-        // Run auth check on page load
-        document.addEventListener('DOMContentLoaded', checkAuth);
+        // Set injured hand from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const injuredHand = localStorage.getItem('injuredHand') || 'Right';
+            document.getElementById('handBadge').textContent = injuredHand + ' Hand';
+        });
 
         // ============================================
         // Camera Permission Function
@@ -709,15 +701,15 @@
                 
             } catch (error) {
                 alert('Camera access is required for assessment. Please allow camera access and try again.');
-                console.error('Camera error:', error);
+                console.error(error);
             }
         }
 
         // ============================================
-        // AI Processing with Django API
+        // AI Processing with Python API
         // ============================================
         
-        const AI_API_URL = 'http://localhost:8000';  // Django server URL
+        const AI_API_URL = 'http://localhost:5001';
         
         async function processVideoFrame() {
             const video = document.getElementById('originalVideo');
@@ -730,34 +722,40 @@
             canvas.getContext('2d').drawImage(video, 0, 0);
             
             const frameData = canvas.toDataURL('image/jpeg', 0.8);
+            const injuredHand = localStorage.getItem('injuredHand') || 'right';
             
             try {
-                const response = await fetch('/api/process-video-frame/', {
+                const response = await fetch(`${AI_API_URL}/api/process-video`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.getElementById('csrfToken').value
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        frame: frameData
+                        frame: frameData,
+                        injured_hand: injuredHand.toLowerCase()
                     })
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Update UI with analysis results
+                    // Update UI with analysis data
                     if (result.shoulder_angle !== undefined) {
-                        document.getElementById('shoulderAngle').textContent = result.shoulder_angle;
+                        document.getElementById('shoulderAngle').textContent = Math.round(result.shoulder_angle);
                     }
                     if (result.elbow_angle !== undefined) {
-                        document.getElementById('elbowAngle').textContent = result.elbow_angle;
+                        document.getElementById('elbowAngle').textContent = Math.round(result.elbow_angle);
                     }
                     if (result.grip_strength !== undefined) {
-                        document.getElementById('gripStrength').textContent = result.grip_strength;
+                        document.getElementById('gripStrength').textContent = Math.round(result.grip_strength);
                     }
                     if (result.feedback) {
                         document.getElementById('feedbackText').innerHTML = `<i class="fas fa-info-circle"></i> ${result.feedback}`;
+                    }
+                    
+                    // Show processed frame if available
+                    if (result.processed_frame) {
+                        const processedImg = document.getElementById('processedFrame');
+                        processedImg.style.display = 'block';
+                        processedImg.src = result.processed_frame;
                     }
                 }
             } catch (error) {
@@ -767,7 +765,7 @@
         
         function startAIAnalysis() {
             if (processingInterval) clearInterval(processingInterval);
-            processingInterval = setInterval(processVideoFrame, 500); // Process every 500ms
+            processingInterval = setInterval(processVideoFrame, 100); // Process every 100ms
         }
         
         function stopAIAnalysis() {
@@ -805,6 +803,8 @@
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('currentMovement').textContent = 'Starting with: Grip Strength';
+            
+            showNotification('Recording started - Follow the movements!', 'info');
         }
 
         function stopRecording() {
@@ -817,6 +817,8 @@
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('currentMovement').textContent = 'Recording stopped';
+                
+                showNotification('Recording stopped', 'info');
             }
         }
 
@@ -830,6 +832,8 @@
                 // Update progress bar
                 const progress = (seconds / totalDuration) * 100;
                 document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('movementProgressBar').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('movementProgressText').textContent = Math.round(Math.min(progress, 100)) + '%';
                 
                 // Update current movement based on time
                 const movementIndex = Math.floor(seconds / 15);
@@ -844,6 +848,7 @@
                 // Auto stop after all movements
                 if (seconds >= totalDuration) {
                     stopRecording();
+                    showNotification('Assessment complete! You can now save the video.', 'success');
                 }
             }, 1000);
         }
@@ -859,6 +864,7 @@
             if (currentMovementIndex < movements.length) {
                 const movement = movements[currentMovementIndex];
                 document.getElementById('currentMovement').textContent = `Now: ${movement.name}`;
+                showNotification(`Now performing: ${movement.name}`, 'info');
             }
         }
 
@@ -885,6 +891,11 @@
         }
 
         function playRecording() {
+            if (recordedChunks.length === 0) {
+                showNotification('No recording to play', 'error');
+                return;
+            }
+            
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const video = document.getElementById('originalVideo');
@@ -897,6 +908,8 @@
             video.src = url;
             video.controls = true;
             video.play();
+            
+            showNotification('Playing recording', 'info');
         }
 
         function retakeVideo() {
@@ -920,6 +933,7 @@
                 video.srcObject = videoStream;
                 video.src = '';
                 video.controls = false;
+                document.getElementById('processedFrame').style.display = 'none';
                 
                 document.getElementById('playBtn').disabled = true;
                 document.getElementById('saveBtn').disabled = true;
@@ -937,18 +951,27 @@
                 updateTimerDisplay();
                 currentMovementIndex = 0;
                 document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('movementProgressBar').style.width = '0%';
+                document.getElementById('movementProgressText').textContent = '0%';
                 document.getElementById('currentMovement').textContent = 'Ready to start';
+                document.getElementById('shoulderAngle').textContent = '0';
+                document.getElementById('elbowAngle').textContent = '0';
+                document.getElementById('gripStrength').textContent = '0';
+                document.getElementById('feedbackText').innerHTML = '<i class="fas fa-info-circle"></i> Position yourself in front of the camera';
                 
                 // Restart AI analysis
                 startAIAnalysis();
+                
+                showNotification('Camera reset - Ready to record again', 'info');
             }).catch(error => {
                 console.error('Error reinitializing camera:', error);
+                showNotification('Error accessing camera', 'error');
             });
         }
 
         async function saveVideo() {
             if (recordedChunks.length === 0) {
-                alert('No recording to save');
+                showNotification('No recording to save', 'error');
                 return;
             }
             
@@ -958,34 +981,49 @@
             reader.readAsDataURL(blob);
             reader.onloadend = async function() {
                 const base64data = reader.result;
+                const patientId = localStorage.getItem('patientId');
                 
                 try {
                     document.getElementById('saveBtn').disabled = true;
                     document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
                     
-                    const response = await fetch('/api/upload-assessment-video/', {
+                    // Simulate API call - in production, replace with actual endpoint
+                    setTimeout(() => {
+                        showNotification('✅ Assessment video saved successfully!', 'success');
+                        localStorage.setItem('hasAssessmentVideo', 'true');
+                        localStorage.removeItem('assessmentSkipped');
+                        setTimeout(() => {
+                            window.location.href = "{% url 'patient_dashboard' %}";
+                        }, 1500);
+                    }, 2000);
+                    
+                    /* Actual API call - uncomment when backend is ready
+                    const response = await fetch('{% url 'api_upload_assessment' %}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRFToken': document.getElementById('csrfToken').value
+                            'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
-                            video: base64data,
-                            duration: seconds,
-                            movements_completed: currentMovementIndex + 1
+                            patientId: patientId,
+                            video: base64data
                         })
                     });
                     
                     if (response.ok) {
-                        const data = await response.json();
-                        alert('✅ Assessment video saved successfully!');
-                        window.location.href = "{% url 'patient_dashboard' %}";
+                        showNotification('✅ Assessment video saved successfully!', 'success');
+                        localStorage.setItem('hasAssessmentVideo', 'true');
+                        localStorage.removeItem('assessmentSkipped');
+                        setTimeout(() => {
+                            window.location.href = "{% url 'patient_dashboard' %}";
+                        }, 1500);
                     } else {
-                        alert('Error saving video. Please try again.');
+                        showNotification('Error saving video. Please try again.', 'error');
                     }
+                    */
                 } catch (error) {
                     console.error('Error saving video:', error);
-                    alert('Connection error. Please try again.');
+                    showNotification('Connection error. Please try again.', 'error');
                 } finally {
                     document.getElementById('saveBtn').disabled = false;
                     document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save Assessment';
@@ -1001,6 +1039,38 @@
                 stopAIAnalysis();
                 window.location.href = "{% url 'patient_dashboard' %}";
             }
+        }
+
+        // Helper function for notifications
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+            };
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
 
         // Stop AI analysis when leaving page

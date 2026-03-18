@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patients List - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -97,7 +97,7 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .sidebar-bottom li {
+        .sidebar-bottom p {
             padding: 12px 20px;
             margin: 5px 0;
             border-radius: 8px;
@@ -109,7 +109,7 @@
             font-size: 15px;
         }
         
-        .sidebar-bottom li:hover {
+        .sidebar-bottom p:hover {
             background: rgba(255, 255, 255, 0.1);
         }
         
@@ -251,49 +251,9 @@
             background: #e2e8f0;
             transform: translateY(-2px);
         }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-            font-size: 18px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: #94a3b8;
-            font-size: 16px;
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #cbd5e1;
-        }
-        
-        @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-            
-            .search-bar {
-                width: 100%;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Hidden CSRF Token -->
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrfToken">
-
     <div class="dashboard-layout">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -301,28 +261,35 @@
                 <div class="avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h4 id="doctorName">{{ user.get_full_name|default:"Dr. Ahmad" }}</h4>
-                <p id="doctorInfo">
-                    {% if user.doctor_profile.specialization %}
-                        {{ user.doctor_profile.specialization }}
-                    {% else %}
-                        Physiotherapy
-                    {% endif %} 
-                    • #{{ user.id }}
-                </p>
+                <h4 id="doctorName">Dr. Ahmad</h4>
+                <p id="doctorInfo">Physiotherapy • #DR003</p>
             </div>
 
             <ul>
-                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'"><span>🏠</span> Home</li>
-                <li class="active"><span>👥</span> Patients List</li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'"><span>📊</span> Patients Performance</li>
-                <li onclick="window.location.href='{% url 'doctor_messages' %}'"><span>💬</span> Messages</li>
-                <li onclick="window.location.href='{% url 'profile' %}'"><span>👤</span> User Profile</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">
+                    Home
+                </li>
+                <li class="active">
+                    Patients List
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'">
+                    Patients Performance
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'">
+                    Messages
+                </li>
+                <li onclick="window.location.href='{% url 'profile' %}'">
+                    User Profile
+                </li>
             </ul>
 
             <div class="sidebar-bottom">
-                <li onclick="window.location.href='{% url 'settings' %}'"><span>⚙</span> Settings</li>
-                <li onclick="logoutDoctor()"><span>🚪</span> Log Out</li>
+                <p onclick="window.location.href='{% url 'settings' %}'">
+                    Settings
+                </p>
+                <p onclick="logoutDoctor()">
+                    Log Out
+                </p>
             </div>
         </div>
 
@@ -345,67 +312,70 @@
                             <th>Condition</th>
                             <th>Status</th>
                             <th>Last Session</th>
-                            <th>Total Sessions</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="patientsTableBody">
-                        {% for patient in user.patients.all %}
-                            <tr>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">
-                                            {{ patient.user.first_name|first|default:"P" }}
-                                        </div>
-                                        <div>
-                                            <div style="font-weight: 600;">{{ patient.user.get_full_name }}</div>
-                                            <div style="font-size: 13px; color: #64748b;">ID: {{ patient.id }}</div>
-                                        </div>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">A</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Ali Ahmed</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT001</div>
                                     </div>
-                                </td>
-                                <td>
-                                    {% if patient.date_of_birth %}
-                                        {{ patient.date_of_birth|timesince }} old
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>{{ patient.medical_history|truncatechars:30|default:"Not specified" }}</td>
-                                <td>
-                                    <span class="status-badge status-active">
-                                        {% if patient.game_sessions.exists %}
-                                            Active
-                                        {% else %}
-                                            New
-                                        {% endif %}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% with last_session=patient.game_sessions.last %}
-                                        {% if last_session %}
-                                            {{ last_session.started_at|timesince }} ago
-                                        {% else %}
-                                            No sessions
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>{{ patient.game_sessions.count }}</td>
-                                <td>
-                                    <button class="btn-details" onclick="viewPatientDetails('{{ patient.id }}')">
-                                        View Details
-                                    </button>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <i class="fas fa-users"></i>
-                                        <p>No patients assigned yet</p>
+                                </div>
+                            </td>
+                            <td>8 years</td>
+                            <td>Motor Disability</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>2 hours ago</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT001')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #48bb78, #68d391);">S</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Sara Khaled</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT002</div>
                                     </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                                </div>
+                            </td>
+                            <td>7 years</td>
+                            <td>Arm Weakness</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>5 hours ago</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT002')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #ed8936, #f6ad55);">O</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Omar Hassan</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT003</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>9 years</td>
+                            <td>Movement Disorder</td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>Yesterday</td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT003')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -418,30 +388,15 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Check if user is authenticated and is doctor
-        const isAuthenticated = {{ user.is_authenticated|lower }};
-        const userType = "{{ user.user_type }}";
-        
-        if (!isAuthenticated || userType !== 'doctor') {
-            window.location.href = "{% url 'doctor_login' %}";
-        }
-
-        // Django variables
-        const csrfToken = document.getElementById('csrfToken').value;
-
-        // Load doctor info
         document.addEventListener('DOMContentLoaded', function() {
-            loadDoctorInfo();
+            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
+            
+            document.getElementById('doctorName').textContent = doctorName;
+            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
         });
 
-        function loadDoctorInfo() {
-            const doctorName = "{{ user.get_full_name }}";
-            const doctorSpecialty = "{{ user.doctor_profile.specialization|default:'Physiotherapy' }}";
-            
-            document.getElementById('doctorName').textContent = doctorName || 'Dr. Ahmad';
-        }
-
-        // Search functionality
         function searchPatients() {
             const input = document.getElementById('searchPatient');
             const filter = input.value.toLowerCase();
@@ -449,41 +404,25 @@
             
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                if (row.cells.length > 1) {  // Skip empty state row
-                    const patientName = row.cells[0]?.textContent.toLowerCase() || '';
-                    if (patientName.includes(filter)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+                const patientName = row.cells[0]?.textContent.toLowerCase() || '';
+                if (patientName.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
             }
         }
         
         function viewPatientDetails(patientId) {
-            window.location.href = "{% url 'doctor_patient_details' 0 %}".replace('0', patientId);
+            window.location.href = `{% url 'doctor_patient_details' %}?patient=${patientId}`;
         }
         
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
-                fetch('/api/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken
-                    }
-                }).finally(() => {
-                    localStorage.clear();
-                    window.location.href = "{% url 'index' %}";
-                });
+                localStorage.clear();
+                window.location.href = "{% url 'index' %}";
             }
         }
-
-        // Add enter key for search
-        document.getElementById('searchPatient').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchPatients();
-            }
-        });
     </script>
 </body>
 </html>

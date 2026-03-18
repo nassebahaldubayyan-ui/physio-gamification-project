@@ -31,7 +31,7 @@ function goPatients() {
 }
 
 function goPatientDetails(patientId) {
-    window.location.href = `/doctor/patients/${patientId}/`;
+    window.location.href = `/doctor/patient-details/?patient=${patientId}`;
 }
 
 function goDoctorMessages() {
@@ -54,8 +54,10 @@ function goDoctorSettings() {
 // PATIENT NAVIGATION FUNCTIONS
 // ============================================
 
-function goGame(gameType) {
-    window.location.href = `/games/${gameType}/`;
+function goGame(gameNumber) {
+    if (gameNumber === 1) window.location.href = "/games/catching-stars/";
+    else if (gameNumber === 2) window.location.href = "/games/matching/";
+    else if (gameNumber === 3) window.location.href = "/games/catching-objects/";
 }
 
 function goResult() {
@@ -75,219 +77,103 @@ function goPatientSettings() {
 }
 
 // ============================================
-// PATIENT LOGIN FUNCTION (using Django API)
+// PATIENT LOGIN FUNCTION
 // ============================================
 
-async function loginGamer() {
-    const username = document.getElementById('playerName')?.value.trim();
-    const password = document.getElementById('password')?.value.trim();
+function loginGamer() {
+    const name = document.getElementById('playerName')?.value.trim();
+    const id = document.getElementById('playerId')?.value.trim();
     
-    if (!username || !password) {
-        showNotification('Please enter both username and password', 'error');
+    if (!name || !id) {
+        alert('Please enter both name and player ID');
         return;
     }
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (data.success && data.user_type === 'patient') {
-            // Store user data
-            localStorage.setItem('userId', data.user_id);
-            localStorage.setItem('userType', data.user_type);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('firstName', data.first_name);
-            localStorage.setItem('lastName', data.last_name);
-            
-            showNotification('Login successful!', 'success');
-            setTimeout(() => window.location.href = '/patient/', 1000);
-        } else {
-            showNotification(data.error || 'Invalid credentials', 'error');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('Connection error. Please try again.', 'error');
+    
+    // Valid patients database (simulated)
+    const validPlayers = {
+        'PT001': { name: 'Ali', level: 4, condition: 'Motor Disability' },
+        'PT002': { name: 'Sara', level: 3, condition: 'Arm Weakness' },
+        'PT003': { name: 'Omar', level: 5, condition: 'Movement Disorder' }
+    };
+    
+    if (validPlayers[id]) {
+        localStorage.setItem('patientName', validPlayers[id].name);
+        localStorage.setItem('patientId', id);
+        localStorage.setItem('patientLevel', validPlayers[id].level);
+        localStorage.setItem('patientCondition', validPlayers[id].condition);
+        localStorage.setItem('userType', 'patient');
+        window.location.href = '/patient/';
+    } else {
+        alert('Invalid Player ID. Please check and try again.');
     }
 }
 
 // ============================================
-// DOCTOR LOGIN FUNCTION (using Django API)
+// DOCTOR LOGIN FUNCTION
 // ============================================
 
-async function loginDoctor() {
-    const username = document.getElementById('doctorEmail')?.value.trim();
-    const password = document.getElementById('password')?.value.trim();
+function loginDoctor() {
+    const email = document.getElementById('doctorEmail')?.value.trim();
+    const id = document.getElementById('doctorId')?.value.trim();
     
-    if (!username || !password) {
-        showNotification('Please enter both email and password', 'error');
+    if (!email || !id) {
+        alert('Please enter both email and doctor ID');
         return;
     }
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (data.success && data.user_type === 'doctor') {
-            // Store user data
-            localStorage.setItem('userId', data.user_id);
-            localStorage.setItem('userType', data.user_type);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('firstName', data.first_name);
-            localStorage.setItem('lastName', data.last_name);
-            
-            showNotification('Login successful!', 'success');
-            setTimeout(() => window.location.href = '/doctor/', 1000);
-        } else {
-            showNotification(data.error || 'Invalid credentials', 'error');
+    
+    // Valid doctors database (simulated)
+    const validDoctors = {
+        'TH001': { 
+            name: 'Dr. Ahmad', 
+            email: 'dr.ahmad@clinic.com',
+            specialty: 'Physiotherapy',
+            phone: '+966 50 000 0000'
+        },
+        'TH002': { 
+            name: 'Dr. Sarah', 
+            email: 'dr.sarah@clinic.com',
+            specialty: 'Occupational Therapy',
+            phone: '+966 50 111 1111'
         }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification('Connection error. Please try again.', 'error');
+    };
+    
+    if (validDoctors[id] && validDoctors[id].email === email) {
+        localStorage.setItem('userType', 'doctor');
+        localStorage.setItem('doctorId', id);
+        localStorage.setItem('doctorName', validDoctors[id].name);
+        localStorage.setItem('doctorEmail', email);
+        localStorage.setItem('doctorSpecialty', validDoctors[id].specialty);
+        localStorage.setItem('doctorPhone', validDoctors[id].phone);
+        window.location.href = '/doctor/';
+    } else {
+        alert('Invalid credentials. Please check your email and doctor ID.');
     }
 }
 
 // ============================================
-// LOGOUT FUNCTION (using Django API)
+// LOGOUT FUNCTIONS
 // ============================================
 
-async function logout() {
-    if (!confirm('Are you sure you want to log out?')) return;
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        await fetch('/api/logout/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken
-            }
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        // Clear localStorage
-        localStorage.clear();
-        sessionStorage.clear();
+function logoutDoctor() {
+    if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('userType');
+        localStorage.removeItem('doctorId');
+        localStorage.removeItem('doctorName');
+        localStorage.removeItem('doctorEmail');
+        localStorage.removeItem('doctorSpecialty');
+        localStorage.removeItem('doctorPhone');
         window.location.href = '/';
     }
 }
 
-// ============================================
-// MESSAGING SYSTEM (using Django API)
-// ============================================
-
-async function sendPatientMessage(patientId, message) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/send-message/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                patient_id: patientId,
-                message: message,
-                sender_type: 'patient'
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Message sent!', 'success');
-            return true;
-        } else {
-            showNotification('Failed to send message', 'error');
-            return false;
-        }
-    } catch (error) {
-        console.error('Error sending message:', error);
-        showNotification('Connection error', 'error');
-        return false;
-    }
-}
-
-async function sendDoctorReply(patientId, message) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/send-message/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                patient_id: patientId,
-                message: message,
-                sender_type: 'doctor'
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Reply sent!', 'success');
-            return true;
-        } else {
-            showNotification('Failed to send reply', 'error');
-            return false;
-        }
-    } catch (error) {
-        console.error('Error sending reply:', error);
-        showNotification('Connection error', 'error');
-        return false;
-    }
-}
-
-async function loadMessages(patientId = null) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-    let url = '/api/get-messages/';
-    if (patientId) {
-        url += `?patient_id=${patientId}`;
-    }
-
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            return data.messages;
-        } else {
-            showNotification('Failed to load messages', 'error');
-            return [];
-        }
-    } catch (error) {
-        console.error('Error loading messages:', error);
-        showNotification('Connection error', 'error');
-        return [];
+function logoutPatient() {
+    if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('userType');
+        localStorage.removeItem('patientName');
+        localStorage.removeItem('patientId');
+        localStorage.removeItem('patientLevel');
+        localStorage.removeItem('patientCondition');
+        window.location.href = '/';
     }
 }
 
@@ -296,25 +182,14 @@ async function loadMessages(patientId = null) {
 // ============================================
 
 function showNotification(message, type = 'info') {
-    // Remove existing notification
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-
     const notification = document.createElement('div');
-    notification.className = 'notification';
+    notification.textContent = message;
     
     const colors = {
         info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
         success: 'linear-gradient(135deg, #10b981, #059669)',
         warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
         error: 'linear-gradient(135deg, #ef4444, #dc2626)'
-    };
-    
-    const icons = {
-        info: 'fa-info-circle',
-        success: 'fa-check-circle',
-        warning: 'fa-exclamation-triangle',
-        error: 'fa-exclamation-circle'
     };
     
     notification.style.cssText = `
@@ -326,169 +201,54 @@ function showNotification(message, type = 'info') {
         background: ${colors[type] || colors.info};
         color: white;
         font-weight: 500;
-        z-index: 10000;
+        z-index: 1000;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         animation: slideIn 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
     `;
-    
-    notification.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
     
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
+        notification.remove();
     }, 3000);
 }
 
 // ============================================
-// SETTINGS MANAGEMENT (with Django API)
+// SETTINGS MANAGEMENT
 // ============================================
 
-async function loadSettings() {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/get-settings/', {
-            headers: {
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            return data.settings;
-        }
-    } catch (error) {
-        console.error('Error loading settings:', error);
-    }
-
-    // Fallback to localStorage
-    return JSON.parse(localStorage.getItem('userSettings')) || {
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('userSettings')) || {
         emailNotifications: true,
         smsNotifications: false,
         language: 'en',
         darkMode: false,
         largeText: false,
-        animations: true,
-        twoFactor: false,
-        sessionTimeout: true
+        animations: true
     };
+    return settings;
 }
 
-async function saveSettings(settings) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/save-settings/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(settings)
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            localStorage.setItem('userSettings', JSON.stringify(settings));
-            showNotification('Settings saved successfully!', 'success');
-            return true;
-        } else {
-            showNotification('Failed to save settings', 'error');
-            return false;
-        }
-    } catch (error) {
-        console.error('Error saving settings:', error);
-        showNotification('Connection error', 'error');
-        return false;
-    }
+function saveSettings(settings) {
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+    showNotification('Settings saved successfully!', 'success');
 }
 
 // ============================================
 // DATE FORMATTING
 // ============================================
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
+function formatDate(date) {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
+    return new Date(date).toLocaleDateString('en-US', options);
 }
 
-function formatTime(dateString) {
-    const date = new Date(dateString);
+function formatTime(date) {
     const options = { hour: '2-digit', minute: '2-digit' };
-    return date.toLocaleTimeString('en-US', options);
+    return new Date(date).toLocaleTimeString('en-US', options);
 }
 
-function formatDateTime(dateString) {
-    return `${formatDate(dateString)} at ${formatTime(dateString)}`;
-}
-
-function timeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-    
-    const intervals = {
-        year: 31536000,
-        month: 2592000,
-        week: 604800,
-        day: 86400,
-        hour: 3600,
-        minute: 60
-    };
-    
-    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-        const interval = Math.floor(seconds / secondsInUnit);
-        if (interval >= 1) {
-            return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
-        }
-    }
-    
-    return 'just now';
-}
-
-// ============================================
-// CHECK AUTH STATUS
-// ============================================
-
-async function checkAuth() {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-    try {
-        const response = await fetch('/api/user/', {
-            headers: {
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return {
-                authenticated: true,
-                user: data
-            };
-        }
-    } catch (error) {
-        console.error('Auth check error:', error);
-    }
-
-    return {
-        authenticated: false,
-        user: null
-    };
-}
-
-// ============================================
-// ANIMATION STYLES
-// ============================================
-
+// Add animation styles
 (function addAnimationStyles() {
     if (!document.querySelector('#animation-styles')) {
         const style = document.createElement('style');
@@ -499,63 +259,16 @@ async function checkAuth() {
                 to { transform: translateX(0); opacity: 1; }
             }
             
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-            
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
-            }
-            
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
             }
             
             @keyframes pulse {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.05); }
             }
-            
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            
-            .notification {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .fa-spin {
-                animation: spin 1s linear infinite;
-            }
         `;
         document.head.appendChild(style);
     }
 })();
-
-// ============================================
-// INITIALIZATION
-// ============================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-redirect if logged in
-    const currentPath = window.location.pathname;
-    const loginPages = ['/gamer-login/', '/doctor-login/'];
-    
-    if (loginPages.includes(currentPath)) {
-        checkAuth().then(auth => {
-            if (auth.authenticated) {
-                if (auth.user.user_type === 'patient') {
-                    window.location.href = '/patient/';
-                } else if (auth.user.user_type === 'doctor') {
-                    window.location.href = '/doctor/';
-                }
-            }
-        });
-    }
-});
