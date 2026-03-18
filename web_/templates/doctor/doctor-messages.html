@@ -14,13 +14,13 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
             background: #f8fafc;
         }
-        
+
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
@@ -30,14 +30,14 @@
             flex-direction: column;
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .doctor-info {
             text-align: center;
             padding-bottom: 30px;
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .avatar {
             width: 100px;
             height: 100px;
@@ -51,23 +51,25 @@
             font-size: 60px;
             color: #60a5fa;
         }
-        
+
         .doctor-info h4 {
             font-size: 22px;
             margin-bottom: 5px;
             font-weight: 600;
+            color: white;
         }
-        
+
         .doctor-info p {
             color: #cbd5e1;
             font-size: 14px;
         }
-        
+
         .sidebar ul {
             list-style: none;
             flex: 1;
         }
-        
+
+        /* تنسيق عناصر القائمة */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -78,25 +80,39 @@
             align-items: center;
             gap: 12px;
             font-size: 16px;
+            font-weight: 500;
+            color: white;
         }
-        
+
+        /* تنسيق الأيقونات */
+        .sidebar li i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar li.active {
             background: rgba(255, 255, 255, 0.15);
             border-left: 4px solid #60a5fa;
             font-weight: 600;
         }
-        
+
+        .sidebar li.active i {
+            color: white;
+        }
+
         .sidebar li:hover:not(.active) {
             background: rgba(255, 255, 255, 0.08);
             transform: translateX(5px);
         }
-        
+
         .sidebar-bottom {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sidebar-bottom p {
             padding: 12px 20px;
             margin: 5px 0;
@@ -107,33 +123,41 @@
             align-items: center;
             gap: 12px;
             font-size: 15px;
+            color: white;
         }
-        
+
+        .sidebar-bottom p i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar-bottom p:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        
+
         .main-content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
             background: #f8fafc;
         }
-        
+
         .page-header {
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .page-header h2 {
             color: #1e293b;
             font-size: 32px;
             font-weight: 700;
             margin: 0;
         }
-        
+
         .new-message-btn {
             padding: 12px 24px;
             background: linear-gradient(135deg, #10b981, #059669);
@@ -148,19 +172,19 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .new-message-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
-        
+
         .conversations-container {
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 25px;
             min-height: 600px;
         }
-        
+
         .conversations-list {
             background: white;
             border-radius: 20px;
@@ -173,7 +197,7 @@
             max-height: 700px;
             overflow-y: auto;
         }
-        
+
         .list-header {
             padding: 20px;
             border-bottom: 2px solid #f1f5f9;
@@ -185,19 +209,19 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .list-header h3 {
             margin: 0;
             color: #1e293b;
             font-size: 18px;
         }
-        
+
         .patient-selector {
             padding: 15px 20px;
             border-bottom: 1px solid #f1f5f9;
             background: #f8fafc;
         }
-        
+
         .patient-selector select {
             width: 100%;
             padding: 12px 15px;
@@ -208,11 +232,11 @@
             background: white;
             cursor: pointer;
         }
-        
+
         .patient-selector select:focus {
             border-color: #3b82f6;
         }
-        
+
         .start-chat-btn {
             width: 100%;
             margin-top: 10px;
@@ -230,12 +254,12 @@
             justify-content: center;
             gap: 8px;
         }
-        
+
         .start-chat-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        
+
         .conversation-item {
             padding: 20px;
             border-bottom: 1px solid #f1f5f9;
@@ -245,16 +269,16 @@
             gap: 15px;
             align-items: center;
         }
-        
+
         .conversation-item:hover {
             background: #f8fafc;
         }
-        
+
         .conversation-item.active {
             background: #e0f2fe;
             border-left: 4px solid #3b82f6;
         }
-        
+
         .conv-avatar {
             width: 50px;
             height: 50px;
@@ -267,18 +291,18 @@
             color: #60a5fa;
             border: 2px solid #60a5fa;
         }
-        
+
         .conv-info {
             flex: 1;
             min-width: 0;
         }
-        
+
         .conv-name {
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 5px;
         }
-        
+
         .conv-last {
             color: #64748b;
             font-size: 13px;
@@ -286,13 +310,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .conv-time {
             font-size: 12px;
             color: #94a3b8;
             white-space: nowrap;
         }
-        
+
         .chat-window {
             background: white;
             border-radius: 20px;
@@ -302,7 +326,7 @@
             flex-direction: column;
             height: 700px;
         }
-        
+
         .chat-header {
             padding: 20px 25px;
             border-bottom: 2px solid #f1f5f9;
@@ -312,7 +336,7 @@
             background: white;
             border-radius: 20px 20px 0 0;
         }
-        
+
         .chat-header-avatar {
             width: 50px;
             height: 50px;
@@ -325,12 +349,12 @@
             color: #60a5fa;
             border: 2px solid #60a5fa;
         }
-        
+
         .chat-header-info h3 {
             margin: 0 0 5px 0;
             color: #1e293b;
         }
-        
+
         .chat-header-info p {
             margin: 0;
             color: #10b981;
@@ -339,7 +363,7 @@
             align-items: center;
             gap: 5px;
         }
-        
+
         .online-indicator {
             width: 8px;
             height: 8px;
@@ -347,7 +371,7 @@
             border-radius: 50%;
             display: inline-block;
         }
-        
+
         .chat-messages {
             flex: 1;
             padding: 25px;
@@ -357,20 +381,20 @@
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .message {
             display: flex;
             margin-bottom: 10px;
         }
-        
+
         .message.doctor {
             justify-content: flex-end;
         }
-        
+
         .message.patient {
             justify-content: flex-start;
         }
-        
+
         .message-content {
             max-width: 70%;
             padding: 12px 18px;
@@ -378,27 +402,27 @@
             position: relative;
             word-wrap: break-word;
         }
-        
+
         .message.patient .message-content {
             background: white;
             color: #1e293b;
             border: 1px solid #e2e8f0;
             border-bottom-left-radius: 5px;
         }
-        
+
         .message.doctor .message-content {
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
             border-bottom-right-radius: 5px;
         }
-        
+
         .message-time {
             font-size: 11px;
             margin-top: 5px;
             opacity: 0.7;
             text-align: right;
         }
-        
+
         .chat-input {
             padding: 20px 25px;
             border-top: 2px solid #f1f5f9;
@@ -407,7 +431,7 @@
             background: white;
             border-radius: 0 0 20px 20px;
         }
-        
+
         .chat-input input {
             flex: 1;
             padding: 15px 20px;
@@ -417,12 +441,12 @@
             outline: none;
             transition: all 0.3s;
         }
-        
+
         .chat-input input:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
         .chat-input button {
             padding: 15px 30px;
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -433,13 +457,16 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
         .chat-input button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
         }
-        
+
         .btn-back {
             margin-top: 25px;
             padding: 12px 30px;
@@ -455,12 +482,12 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .btn-back:hover {
             background: #e2e8f0;
             transform: translateY(-2px);
         }
-        
+
         .no-chat-selected {
             display: flex;
             align-items: center;
@@ -471,12 +498,11 @@
             flex-direction: column;
             gap: 20px;
         }
-        
+
         @media (max-width: 768px) {
             .conversations-container {
                 grid-template-columns: 1fr;
             }
-            
             .chat-window {
                 height: 500px;
             }
@@ -492,18 +518,34 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #DR003</p>
+                <p id="doctorInfo">Physiotherapy • #3</p>
             </div>
+            
             <ul>
-                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">Home</li>
-                <li onclick="window.location.href='{% url 'doctor_patients' %}'">Patients List</li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'">Patients Performance</li>
-                <li class="active">Messages</li>
-                <li onclick="window.location.href='{% url 'profile' %}'">User Profile</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">
+                    <i class="fas fa-home"></i> Home
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'">
+                    <i class="fas fa-users"></i> Patients List
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_performance' %}'">
+                    <i class="fas fa-chart-line"></i> Patients Performance
+                </li>
+                <li class="active" onclick="window.location.href='{% url 'doctor_messages' %}'">
+                    <i class="fas fa-envelope"></i> Messages
+                </li>
+                <li onclick="window.location.href='{% url 'profile' %}'">
+                    <i class="fas fa-user"></i> User Profile
+                </li>
             </ul>
+            
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='{% url 'settings' %}'">Settings</p>
-                <p onclick="logoutDoctor()">Log Out</p>
+                <p onclick="window.location.href='{% url 'settings' %}'">
+                    <i class="fas fa-cog"></i> Settings
+                </p>
+                <p onclick="logoutDoctor()">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </p>
             </div>
         </div>
 
@@ -512,7 +554,7 @@
             <div class="page-header">
                 <h2>Messages from Patients</h2>
                 <button class="new-message-btn" onclick="showNewMessageModal()">
-                    <span>✏️</span> New Message
+                    <i class="fas fa-pen"></i> New Message
                 </button>
             </div>
 
@@ -520,22 +562,23 @@
                 <!-- Conversations List -->
                 <div class="conversations-list">
                     <div class="list-header">
-                        <h3>Active Conversations</h3>
+                        <h3><i class="fas fa-comments"></i> Active Conversations</h3>
                     </div>
-                    
+
                     <!-- Patient Selector for New Chat -->
                     <div class="patient-selector">
                         <select id="patientSelect">
                             <option value="">-- Select a patient --</option>
-                            <option value="PT001">Ali Ahmed (PT001)</option>
-                            <option value="PT002">Sara Khaled (PT002)</option>
-                            <option value="PT003">Omar Hassan (PT003)</option>
+                            <option value="PT002">Ali Ahmed (PT002)</option>
+                            <option value="PT004">Omar Hassan (PT004)</option>
+                            <option value="PT005">Sara Khaled (PT005)</option>
+                            <option value="PT006">Ali Ahmed (PT006)</option>
                         </select>
                         <button class="start-chat-btn" onclick="startNewChat()">
-                            <span>💬</span> Start New Conversation
+                            <i class="fas fa-comment"></i> Start New Conversation
                         </button>
                     </div>
-                    
+
                     <div id="conversationsList">
                         <div class="loading">Loading conversations...</div>
                     </div>
@@ -544,23 +587,23 @@
                 <!-- Chat Window -->
                 <div class="chat-window" id="chatWindow">
                     <div class="no-chat-selected" id="noChatSelected">
-                        <div style="font-size: 60px;">💬</div>
+                        <div style="font-size: 60px;"><i class="fas fa-comment-dots"></i></div>
                         <div>Select a conversation or start a new one</div>
                     </div>
-                    
+
                     <div id="activeChat" style="display: none; height: 100%; flex-direction: column;">
                         <div class="chat-header" id="chatHeader"></div>
                         <div class="chat-messages" id="chatMessages"></div>
                         <div class="chat-input">
                             <input type="text" id="replyMessage" placeholder="Type your reply...">
-                            <button onclick="sendReply()">Send</button>
+                            <button onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_dashboard' %}'">
-                <span>←</span> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
             </button>
         </div>
     </div>
@@ -568,17 +611,22 @@
     <!-- New Message Modal -->
     <div id="newMessageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
         <div style="background: white; padding: 30px; border-radius: 20px; width: 400px;">
-            <h3 style="margin-bottom: 20px;">New Message</h3>
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-pen"></i> New Message</h3>
             <select id="modalPatientSelect" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
                 <option value="">Select Patient</option>
-                <option value="PT001">Ali Ahmed (PT001)</option>
-                <option value="PT002">Sara Khaled (PT002)</option>
-                <option value="PT003">Omar Hassan (PT003)</option>
+                <option value="PT002">Ali Ahmed (PT002)</option>
+                <option value="PT004">Omar Hassan (PT004)</option>
+                <option value="PT005">Sara Khaled (PT005)</option>
+                <option value="PT006">Ali Ahmed (PT006)</option>
             </select>
             <textarea id="modalMessage" placeholder="Type your message..." rows="4" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e2e8f0; border-radius: 10px;"></textarea>
             <div style="display: flex; gap: 10px;">
-                <button onclick="sendNewMessage()" style="flex: 2; padding: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px;">Send</button>
-                <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px;">Cancel</button>
+                <button onclick="sendNewMessage()" style="flex: 2; padding: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px;">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+                <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
             </div>
         </div>
     </div>
@@ -586,31 +634,33 @@
     <script src="{% static 'js/script.js' %}"></script>
     <script>
         const patients = {
-            'PT001': { id: 2, name: 'Ali Ahmed', avatar: 'A', color: '#4299e1' },
-            'PT002': { id: 3, name: 'Sara Khaled', avatar: 'S', color: '#48bb78' },
-            'PT003': { id: 4, name: 'Omar Hassan', avatar: 'O', color: '#ed8936' }
+            'PT002': { id: 2, name: 'Ali Ahmed', avatar: 'A', color: '#4299e1' },
+            'PT004': { id: 4, name: 'Omar Hassan', avatar: 'O', color: '#48bb78' },
+            'PT005': { id: 5, name: 'Sara Khaled', avatar: 'S', color: '#ed8936' },
+            'PT006': { id: 6, name: 'Ali Ahmed', avatar: 'A', color: '#9b59b6' }
         };
 
         let currentPatientId = null;
         let conversations = {
-            'PT001': {
+            'PT002': {
                 patientName: 'Ali Ahmed',
                 avatar: 'A',
                 avatarColor: '#4299e1',
                 messages: [
-                    { sender: 'patient', text: 'I feel better today. The exercises are helping a lot!', time: '2:30 PM' },
+                    { sender: 'patient', text: 'Hello doctor, I feel better today.', time: '2:30 PM' },
                     { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
                 ]
             },
-            'PT002': {
-                patientName: 'Sara Khaled',
-                avatar: 'S',
+            'PT004': {
+                patientName: 'Omar Hassan',
+                avatar: 'O',
                 avatarColor: '#48bb78',
                 messages: [
                     { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
                 ]
             }
         };
+
         let currentMessages = [];
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -620,9 +670,9 @@
 
         function loadDoctorInfo() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorId = localStorage.getItem('doctorId') || '3';
             const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            
+
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
         }
@@ -639,7 +689,7 @@
                 item.className = `conversation-item ${currentPatientId === patientId ? 'active' : ''}`;
                 item.setAttribute('data-patient-id', patientId);
                 item.onclick = () => selectConversation(patientId);
-                
+
                 item.innerHTML = `
                     <div class="conv-avatar">
                         <i class="fas fa-user-circle"></i>
@@ -656,7 +706,7 @@
 
         function selectConversation(patientId) {
             currentPatientId = patientId;
-            
+
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.getAttribute('data-patient-id') === patientId) {
@@ -665,7 +715,7 @@
             });
 
             const conv = conversations[patientId];
-            
+
             document.getElementById('noChatSelected').style.display = 'none';
             document.getElementById('activeChat').style.display = 'flex';
 
@@ -698,7 +748,7 @@
                 `;
                 container.appendChild(div);
             });
-            
+
             container.scrollTop = container.scrollHeight;
         }
 
@@ -710,13 +760,16 @@
             }
 
             if (!conversations[patientId]) {
-                const patientName = patientId === 'PT001' ? 'Ali Ahmed' : 
-                                   patientId === 'PT002' ? 'Sara Khaled' : 'Omar Hassan';
-                
+                const patientName = patientId === 'PT002' ? 'Ali Ahmed' :
+                                   patientId === 'PT004' ? 'Omar Hassan' :
+                                   patientId === 'PT005' ? 'Sara Khaled' : 'Ali Ahmed';
+
                 conversations[patientId] = {
                     patientName: patientName,
-                    avatar: patientId.charAt(0),
-                    avatarColor: patientId === 'PT001' ? '#4299e1' : patientId === 'PT002' ? '#48bb78' : '#ed8936',
+                    avatar: patientName.charAt(0),
+                    avatarColor: patientId === 'PT002' ? '#4299e1' :
+                                patientId === 'PT004' ? '#48bb78' :
+                                patientId === 'PT005' ? '#ed8936' : '#9b59b6',
                     messages: []
                 };
             }
@@ -727,11 +780,11 @@
         function sendReply() {
             const input = document.getElementById('replyMessage');
             const message = input.value.trim();
-            
+
             if (!message || !currentPatientId) return;
 
             const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            
+
             conversations[currentPatientId].messages.push({
                 sender: 'doctor',
                 text: message,
@@ -762,7 +815,7 @@
             }
 
             startNewChat();
-            
+
             setTimeout(() => {
                 document.getElementById('replyMessage').value = message;
                 sendReply();

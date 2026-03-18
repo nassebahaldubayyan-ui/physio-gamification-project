@@ -14,13 +14,13 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
             background: #f8fafc;
         }
-        
+
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
@@ -30,14 +30,14 @@
             flex-direction: column;
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .doctor-info {
             text-align: center;
             padding-bottom: 30px;
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .avatar {
             width: 100px;
             height: 100px;
@@ -51,23 +51,25 @@
             font-size: 60px;
             color: #60a5fa;
         }
-        
+
         .doctor-info h4 {
             font-size: 22px;
             margin-bottom: 5px;
             font-weight: 600;
+            color: white;
         }
-        
+
         .doctor-info p {
             color: #cbd5e1;
             font-size: 14px;
         }
-        
+
         .sidebar ul {
             list-style: none;
             flex: 1;
         }
-        
+
+        /* ===== مهم: تنسيق عناصر القائمة ===== */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -78,25 +80,39 @@
             align-items: center;
             gap: 12px;
             font-size: 16px;
+            font-weight: 500;
+            color: white;
         }
-        
+
+        /* ===== مهم: تنسيق الأيقونات ===== */
+        .sidebar li i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar li.active {
             background: rgba(255, 255, 255, 0.15);
             border-left: 4px solid #60a5fa;
             font-weight: 600;
         }
-        
+
+        .sidebar li.active i {
+            color: white;
+        }
+
         .sidebar li:hover:not(.active) {
             background: rgba(255, 255, 255, 0.08);
             transform: translateX(5px);
         }
-        
+
         .sidebar-bottom {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sidebar-bottom p {
             padding: 12px 20px;
             margin: 5px 0;
@@ -107,32 +123,40 @@
             align-items: center;
             gap: 12px;
             font-size: 15px;
+            color: white;
         }
-        
+
+        .sidebar-bottom p i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar-bottom p:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        
+
         .main-content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
         }
-        
+
         .page-header {
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .page-header h2 {
             color: #1e293b;
             font-size: 32px;
             font-weight: 700;
             margin: 0;
         }
-        
+
         .search-bar {
             background: white;
             padding: 12px 20px;
@@ -143,18 +167,18 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             width: 300px;
         }
-        
+
         .search-bar input {
             border: none;
             outline: none;
             flex: 1;
             font-size: 16px;
         }
-        
-        .search-bar span {
+
+        .search-bar i {
             color: #94a3b8;
         }
-        
+
         .patients-table {
             background: white;
             border-radius: 20px;
@@ -162,12 +186,12 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border: 1px solid #e2e8f0;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         th {
             text-align: left;
             padding: 15px 10px;
@@ -176,21 +200,21 @@
             font-size: 14px;
             border-bottom: 2px solid #e2e8f0;
         }
-        
+
         td {
             padding: 15px 10px;
             border-bottom: 1px solid #f1f5f9;
             color: #1e293b;
         }
-        
+
         tr:last-child td {
             border-bottom: none;
         }
-        
+
         tr:hover td {
             background: #f8fafc;
         }
-        
+
         .patient-avatar-small {
             width: 40px;
             height: 40px;
@@ -201,19 +225,19 @@
             font-weight: bold;
             color: white;
         }
-        
+
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
         }
-        
+
         .status-active {
             background: #dbeafe;
             color: #1d4ed8;
         }
-        
+
         .btn-details {
             padding: 8px 16px;
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -224,13 +248,16 @@
             font-size: 13px;
             font-weight: 600;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+
         .btn-details:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        
+
         .btn-back {
             margin-top: 25px;
             padding: 12px 30px;
@@ -246,7 +273,7 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .btn-back:hover {
             background: #e2e8f0;
             transform: translateY(-2px);
@@ -262,33 +289,33 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Physiotherapy • #DR003</p>
+                <p id="doctorInfo">Physiotherapy • #3</p>
             </div>
-
+            
             <ul>
                 <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">
-                    Home
+                    <i class="fas fa-home"></i> Home
                 </li>
-                <li class="active">
-                    Patients List
+                <li class="active" onclick="window.location.href='{% url 'doctor_patients' %}'">
+                    <i class="fas fa-users"></i> Patients List
                 </li>
                 <li onclick="window.location.href='{% url 'doctor_performance' %}'">
-                    Patients Performance
+                    <i class="fas fa-chart-line"></i> Patients Performance
                 </li>
                 <li onclick="window.location.href='{% url 'doctor_messages' %}'">
-                    Messages
+                    <i class="fas fa-envelope"></i> Messages
                 </li>
                 <li onclick="window.location.href='{% url 'profile' %}'">
-                    User Profile
+                    <i class="fas fa-user"></i> User Profile
                 </li>
             </ul>
-
+            
             <div class="sidebar-bottom">
                 <p onclick="window.location.href='{% url 'settings' %}'">
-                    Settings
+                    <i class="fas fa-cog"></i> Settings
                 </p>
                 <p onclick="logoutDoctor()">
-                    Log Out
+                    <i class="fas fa-sign-out-alt"></i> Log Out
                 </p>
             </div>
         </div>
@@ -298,7 +325,7 @@
             <div class="page-header">
                 <h2>Patients List</h2>
                 <div class="search-bar">
-                    <span>🔍</span>
+                    <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search patients..." id="searchPatient" onkeyup="searchPatients()">
                 </div>
             </div>
@@ -310,8 +337,8 @@
                             <th>Patient</th>
                             <th>Age</th>
                             <th>Condition</th>
+                            <th>Affected Hand</th>
                             <th>Status</th>
-                            <th>Last Session</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -322,57 +349,77 @@
                                     <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">A</div>
                                     <div>
                                         <div style="font-weight: 600;">Ali Ahmed</div>
-                                        <div style="font-size: 13px; color: #64748b;">ID: PT001</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>8 years</td>
-                            <td>Motor Disability</td>
-                            <td><span class="status-badge status-active">In Progress</span></td>
-                            <td>2 hours ago</td>
-                            <td>
-                                <button class="btn-details" onclick="viewPatientDetails('PT001')">
-                                    View Details
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #48bb78, #68d391);">S</div>
-                                    <div>
-                                        <div style="font-weight: 600;">Sara Khaled</div>
                                         <div style="font-size: 13px; color: #64748b;">ID: PT002</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>7 years</td>
-                            <td>Arm Weakness</td>
+                            <td>25 years</td>
+                            <td>Not specified</td>
+                            <td><span style="font-weight: 600; color: #3b82f6;">Right</span></td>
                             <td><span class="status-badge status-active">In Progress</span></td>
-                            <td>5 hours ago</td>
                             <td>
                                 <button class="btn-details" onclick="viewPatientDetails('PT002')">
-                                    View Details
+                                    <i class="fas fa-eye"></i> View
                                 </button>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #ed8936, #f6ad55);">O</div>
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #48bb78, #68d391);">O</div>
                                     <div>
                                         <div style="font-weight: 600;">Omar Hassan</div>
-                                        <div style="font-size: 13px; color: #64748b;">ID: PT003</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT004</div>
                                     </div>
                                 </div>
                             </td>
                             <td>9 years</td>
                             <td>Movement Disorder</td>
+                            <td><span style="font-weight: 600; color: #3b82f6;">Left</span></td>
                             <td><span class="status-badge status-active">In Progress</span></td>
-                            <td>Yesterday</td>
                             <td>
-                                <button class="btn-details" onclick="viewPatientDetails('PT003')">
-                                    View Details
+                                <button class="btn-details" onclick="viewPatientDetails('PT004')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #ed8936, #f6ad55);">S</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Sara Khaled</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT005</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>7 years</td>
+                            <td>Arm Weakness</td>
+                            <td><span style="font-weight: 600; color: #3b82f6;">Right</span></td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT005')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">A</div>
+                                    <div>
+                                        <div style="font-weight: 600;">Ali Ahmed</div>
+                                        <div style="font-size: 13px; color: #64748b;">ID: PT006</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>8 years</td>
+                            <td>Motor Disability</td>
+                            <td><span style="font-weight: 600; color: #3b82f6;">Left</span></td>
+                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td>
+                                <button class="btn-details" onclick="viewPatientDetails('PT006')">
+                                    <i class="fas fa-eye"></i> View
                                 </button>
                             </td>
                         </tr>
@@ -381,7 +428,7 @@
             </div>
 
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_dashboard' %}'">
-                <span>←</span> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
             </button>
         </div>
     </div>
@@ -390,9 +437,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorId = localStorage.getItem('doctorId') || '3';
             const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            
+
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
         });
@@ -401,7 +448,7 @@
             const input = document.getElementById('searchPatient');
             const filter = input.value.toLowerCase();
             const rows = document.getElementById('patientsTableBody').getElementsByTagName('tr');
-            
+
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 const patientName = row.cells[0]?.textContent.toLowerCase() || '';
@@ -412,11 +459,11 @@
                 }
             }
         }
-        
+
         function viewPatientDetails(patientId) {
             window.location.href = `{% url 'doctor_patient_details' %}?patient=${patientId}`;
         }
-        
+
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
                 localStorage.clear();

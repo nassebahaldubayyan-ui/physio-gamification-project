@@ -24,7 +24,7 @@ urlpatterns = [
     path('patient/result/', views.patient_result, name='patient_result'),
     path('patient/edit/', views.edit_patient_profile, name='edit_patient_profile'),
     path('patient/capture-video/', views.capture_video, name='capture_video'),
-    path('patient/physio-assessment/', views.physio_assessment, name='physio_assessment'),  # ✅ NEW PAGE
+    path('patient/physio-assessment/', views.physio_assessment, name='physio_assessment'),  
     
     # Doctor Pages
     path('doctor/', views.doctor_dashboard, name='doctor_dashboard'),

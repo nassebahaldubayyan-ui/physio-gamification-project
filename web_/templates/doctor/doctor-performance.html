@@ -14,13 +14,13 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
             background: #f8fafc;
         }
-        
+
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
@@ -30,14 +30,14 @@
             flex-direction: column;
             box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .doctor-info {
             text-align: center;
             padding-bottom: 30px;
             margin-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .avatar {
             width: 100px;
             height: 100px;
@@ -51,23 +51,25 @@
             font-size: 60px;
             color: #60a5fa;
         }
-        
+
         .doctor-info h4 {
             font-size: 22px;
             margin-bottom: 5px;
             font-weight: 600;
+            color: white;
         }
-        
+
         .doctor-info p {
             color: #cbd5e1;
             font-size: 14px;
         }
-        
+
         .sidebar ul {
             list-style: none;
             flex: 1;
         }
-        
+
+        /* تنسيق عناصر القائمة */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -78,25 +80,39 @@
             align-items: center;
             gap: 12px;
             font-size: 16px;
+            font-weight: 500;
+            color: white;
         }
-        
+
+        /* تنسيق الأيقونات */
+        .sidebar li i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar li.active {
             background: rgba(255, 255, 255, 0.15);
             border-left: 4px solid #60a5fa;
             font-weight: 600;
         }
-        
+
+        .sidebar li.active i {
+            color: white;
+        }
+
         .sidebar li:hover:not(.active) {
             background: rgba(255, 255, 255, 0.08);
             transform: translateX(5px);
         }
-        
+
         .sidebar-bottom {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .sidebar-bottom p {
             padding: 12px 20px;
             margin: 5px 0;
@@ -107,45 +123,53 @@
             align-items: center;
             gap: 12px;
             font-size: 15px;
+            color: white;
         }
-        
+
+        .sidebar-bottom p i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            color: white;
+        }
+
         .sidebar-bottom p:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        
+
         .main-content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
             background: #f8fafc;
         }
-        
+
         .page-header {
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .page-header h2 {
             color: #1e293b;
             font-size: 32px;
             font-weight: 700;
         }
-        
+
         .date-filter {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-        
+
         .date-filter input {
             padding: 10px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 14px;
         }
-        
+
         .filter-btn {
             padding: 10px 20px;
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -154,15 +178,18 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .stat-card {
             background: white;
             border-radius: 16px;
@@ -173,7 +200,7 @@
             align-items: center;
             gap: 15px;
         }
-        
+
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -185,19 +212,19 @@
             font-size: 24px;
             color: white;
         }
-        
+
         .stat-content h3 {
             color: #64748b;
             font-size: 14px;
             margin-bottom: 5px;
         }
-        
+
         .stat-number {
             color: #1e293b;
             font-size: 28px;
             font-weight: 700;
         }
-        
+
         .patient-selector {
             background: white;
             border-radius: 16px;
@@ -208,12 +235,12 @@
             gap: 20px;
             align-items: center;
         }
-        
+
         .patient-selector label {
             color: #1e293b;
             font-weight: 600;
         }
-        
+
         .patient-selector select {
             flex: 1;
             padding: 12px 15px;
@@ -222,11 +249,11 @@
             font-size: 15px;
             outline: none;
         }
-        
+
         .games-section {
             margin-bottom: 40px;
         }
-        
+
         .section-title {
             color: #1e293b;
             font-size: 24px;
@@ -236,13 +263,13 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .games-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 25px;
         }
-        
+
         .game-card {
             background: white;
             border-radius: 20px;
@@ -251,59 +278,59 @@
             border: 1px solid #e2e8f0;
             transition: all 0.3s;
         }
-        
+
         .game-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
-        
+
         .game-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-        
+
         .game-icon {
             font-size: 40px;
         }
-        
+
         .game-badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
         }
-        
+
         .badge-active {
             background: #dbeafe;
             color: #1d4ed8;
         }
-        
+
         .game-card h3 {
             color: #1e293b;
             font-size: 20px;
             margin-bottom: 10px;
         }
-        
+
         .game-description {
             color: #64748b;
             font-size: 14px;
             margin-bottom: 20px;
             line-height: 1.5;
         }
-        
+
         .muscle-groups {
             margin: 20px 0;
             padding: 15px;
             background: #f8fafc;
             border-radius: 12px;
         }
-        
+
         .muscle-group {
             margin-bottom: 15px;
         }
-        
+
         .muscle-group h4 {
             color: #2d3748;
             font-size: 15px;
@@ -312,13 +339,13 @@
             align-items: center;
             gap: 5px;
         }
-        
+
         .muscle-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
+
         .muscle-tag {
             background: #e2e8f0;
             color: #475569;
@@ -327,20 +354,20 @@
             font-size: 12px;
             font-weight: 500;
         }
-        
+
         .muscle-tag.primary {
             background: #dbeafe;
             color: #1d4ed8;
         }
-        
+
         .progress-section {
             margin: 20px 0;
         }
-        
+
         .progress-item {
             margin-bottom: 12px;
         }
-        
+
         .progress-label {
             display: flex;
             justify-content: space-between;
@@ -348,7 +375,7 @@
             font-size: 13px;
             margin-bottom: 4px;
         }
-        
+
         .progress-bar-bg {
             width: 100%;
             height: 8px;
@@ -356,27 +383,17 @@
             border-radius: 4px;
             overflow: hidden;
         }
-        
+
         .progress-bar-fill {
             height: 100%;
             border-radius: 4px;
             transition: width 0.3s;
         }
-        
+
         .fill-green { background: linear-gradient(90deg, #48bb78, #38a169); }
         .fill-blue { background: linear-gradient(90deg, #4299e1, #3182ce); }
         .fill-orange { background: linear-gradient(90deg, #ed8936, #dd6b20); }
-        
-        .warning-box {
-            margin-top: 20px;
-            padding: 12px;
-            background: #fef3c7;
-            border-left: 4px solid #d97706;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #92400e;
-        }
-        
+
         .game-stats {
             display: flex;
             justify-content: space-between;
@@ -385,22 +402,22 @@
             background: #f8fafc;
             border-radius: 12px;
         }
-        
+
         .game-stat {
             text-align: center;
         }
-        
+
         .game-stat-value {
             font-size: 20px;
             font-weight: 700;
             color: #2d3748;
         }
-        
+
         .game-stat-label {
             color: #718096;
             font-size: 12px;
         }
-        
+
         .performance-table {
             background: white;
             border-radius: 20px;
@@ -409,18 +426,18 @@
             border: 1px solid #e2e8f0;
             margin-top: 30px;
         }
-        
+
         .performance-table h3 {
             color: #2d3748;
             font-size: 20px;
             margin-bottom: 20px;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         th {
             text-align: left;
             padding: 15px 10px;
@@ -429,45 +446,17 @@
             font-size: 14px;
             border-bottom: 2px solid #e2e8f0;
         }
-        
+
         td {
             padding: 12px 10px;
             border-bottom: 1px solid #f1f5f9;
             color: #1e293b;
         }
-        
+
         tr:hover td {
             background: #f8fafc;
         }
-        
-        .muscle-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .indicator-high { background: #48bb78; }
-        .indicator-medium { background: #ecc94b; }
-        .indicator-low { background: #f56565; }
-        
-        .btn-view {
-            padding: 6px 12px;
-            background: #f1f5f9;
-            border: none;
-            border-radius: 6px;
-            color: #4a5568;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-        
-        .btn-view:hover {
-            background: #3b82f6;
-            color: white;
-        }
-        
+
         .btn-back {
             margin-top: 30px;
             padding: 12px 30px;
@@ -483,39 +472,34 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .btn-back:hover {
             background: #e2e8f0;
             transform: translateY(-2px);
         }
-        
+
         @media (max-width: 1200px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
             .games-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        
+
         @media (max-width: 768px) {
             .dashboard-layout {
                 flex-direction: column;
             }
-            
             .sidebar {
                 width: 100%;
             }
-            
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            
             .games-grid {
                 grid-template-columns: 1fr;
             }
-            
             .patient-selector {
                 flex-direction: column;
                 align-items: stretch;
@@ -532,18 +516,34 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Therapist • #DR003</p>
+                <p id="doctorInfo">Physiotherapy • #3</p>
             </div>
+            
             <ul>
-                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">Home</li>
-                <li onclick="window.location.href='{% url 'doctor_patients' %}'">Patients List</li>
-                <li class="active">Patients Performance</li>
-                <li onclick="window.location.href='{% url 'doctor_messages' %}'">Messages</li>
-                <li onclick="window.location.href='{% url 'profile' %}'">User Profile</li>
+                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">
+                    <i class="fas fa-home"></i> Home
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_patients' %}'">
+                    <i class="fas fa-users"></i> Patients List
+                </li>
+                <li class="active" onclick="window.location.href='{% url 'doctor_performance' %}'">
+                    <i class="fas fa-chart-line"></i> Patients Performance
+                </li>
+                <li onclick="window.location.href='{% url 'doctor_messages' %}'">
+                    <i class="fas fa-envelope"></i> Messages
+                </li>
+                <li onclick="window.location.href='{% url 'profile' %}'">
+                    <i class="fas fa-user"></i> User Profile
+                </li>
             </ul>
+            
             <div class="sidebar-bottom">
-                <p onclick="window.location.href='{% url 'settings' %}'">Settings</p>
-                <p onclick="logoutDoctor()">Log Out</p>
+                <p onclick="window.location.href='{% url 'settings' %}'">
+                    <i class="fas fa-cog"></i> Settings
+                </p>
+                <p onclick="logoutDoctor()">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </p>
             </div>
         </div>
 
@@ -552,117 +552,101 @@
             <div class="page-header">
                 <h2>Patients Performance</h2>
                 <div class="date-filter">
-                    <input type="date" id="dateFilter" value="2026-03-08">
-                    <button class="filter-btn" onclick="filterByDate()">Apply Filter</button>
+                    <input type="date" id="dateFilter" value="2026-03-18">
+                    <button class="filter-btn" onclick="filterByDate()">
+                        <i class="fas fa-filter"></i> Apply Filter
+                    </button>
                 </div>
             </div>
 
             <!-- Stats Overview -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">👥</div>
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-content">
                         <h3>Total Patients</h3>
-                        <div class="stat-number" id="totalPatients">3</div>
+                        <div class="stat-number" id="totalPatients">4</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">🎮</div>
+                    <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
                     <div class="stat-content">
                         <h3>Active Sessions</h3>
                         <div class="stat-number" id="activeSessions">45</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">💪</div>
+                    <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
                     <div class="stat-content">
                         <h3>Avg Muscle Activation</h3>
-                        <div class="stat-number" id="avgActivation">84%</div>
+                        <div class="stat-number" id="avgActivation">79%</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
                     <div class="stat-content">
                         <h3>Completion Rate</h3>
-                        <div class="stat-number" id="completionRate">85%</div>
+                        <div class="stat-number" id="completionRate">82%</div>
                     </div>
                 </div>
             </div>
 
             <!-- Patient Selector -->
             <div class="patient-selector">
-                <label>Select Patient:</label>
+                <label><i class="fas fa-user"></i> Select Patient:</label>
                 <select id="patientSelect" onchange="loadPatientPerformance()">
-                    <option value="PT001">Ali Ahmed (PT001) - Motor Disability</option>
-                    <option value="PT002">Sara Khaled (PT002) - Arm Weakness</option>
-                    <option value="PT003">Omar Hassan (PT003) - Movement Disorder</option>
+                    <option value="PT002">Ali Ahmed (PT002) - Not specified</option>
+                    <option value="PT004">Omar Hassan (PT004) - Movement Disorder</option>
+                    <option value="PT005">Sara Khaled (PT005) - Arm Weakness</option>
+                    <option value="PT006">Ali Ahmed (PT006) - Motor Disability</option>
                 </select>
             </div>
 
             <!-- Games Performance Section -->
             <div class="games-section">
-                <h3 class="section-title">Game-Specific Performance</h3>
-
+                <h3 class="section-title"><i class="fas fa-gamepad"></i> Game-Specific Performance</h3>
                 <div class="games-grid" id="gamesGrid">
                     <!-- Game 1: Catching Stars -->
                     <div class="game-card">
                         <div class="game-header">
-                            <span class="game-icon">⭐</span>
-                            <span class="game-badge badge-active">Active</span>
+                            <span class="game-icon"><i class="fas fa-star"></i></span>
+                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
                         </div>
                         <h3>Catching Stars</h3>
                         <p class="game-description">Reach up to catch stars - targets shoulder elevation and elbow movement</p>
-                        
-                        <div class="muscle-groups">
-                            <div class="muscle-group">
-                                <h4>Shoulder Muscles</h4>
-                                <div class="muscle-tags">
-                                    <span class="muscle-tag primary">Deltoid</span>
-                                    <span class="muscle-tag primary">Rotator Cuff</span>
-                                    <span class="muscle-tag">Trapezius</span>
-                                </div>
-                            </div>
-                            <div class="muscle-group">
-                                <h4>Elbow Muscles</h4>
-                                <div class="muscle-tags">
-                                    <span class="muscle-tag">Biceps</span>
-                                    <span class="muscle-tag">Triceps</span>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="progress-section">
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Shoulder Activation</span>
-                                    <span id="starShoulderScore">85%</span>
+                                    <span id="starShoulderScore">79%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-blue" id="starShoulderBar" style="width: 85%"></div>
+                                    <div class="progress-bar-fill fill-blue" id="starShoulderBar" style="width: 79%"></div>
                                 </div>
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Elbow Movement</span>
-                                    <span id="starElbowScore">78%</span>
+                                    <span id="starElbowScore">75%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-green" id="starElbowBar" style="width: 78%"></div>
+                                    <div class="progress-bar-fill fill-green" id="starElbowBar" style="width: 75%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starSessions">15</div>
+                                <div class="game-stat-value" id="starSessions">11</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starStars">142</div>
+                                <div class="game-stat-value" id="starStars">98</div>
                                 <div class="game-stat-label">Stars Caught</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starAccuracy">82%</div>
+                                <div class="game-stat-value" id="starAccuracy">77%</div>
                                 <div class="game-stat-label">Accuracy</div>
                             </div>
                         </div>
@@ -671,59 +655,44 @@
                     <!-- Game 2: Matching Game -->
                     <div class="game-card">
                         <div class="game-header">
-                            <span class="game-icon">🎨</span>
-                            <span class="game-badge badge-active">Active</span>
+                            <span class="game-icon"><i class="fas fa-paint-brush"></i></span>
+                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
                         </div>
                         <h3>Matching Game</h3>
                         <p class="game-description">Match objects to colors - full upper extremity workout</p>
-                        
-                        <div class="muscle-groups">
-                            <div class="muscle-group">
-                                <h4>Full Upper Extremity</h4>
-                                <div class="muscle-tags">
-                                    <span class="muscle-tag primary">Shoulder Muscles</span>
-                                    <span class="muscle-tag primary">Elbow Muscles</span>
-                                    <span class="muscle-tag primary">Wrist & Fingers</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="warning-box">
-                            <strong>⚠️ Critical:</strong> Monitor for shoulder shrugging - avoid upper trapezius overuse
-                        </div>
 
                         <div class="progress-section">
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Active Range</span>
-                                    <span id="matchRangeScore">88%</span>
+                                    <span id="matchRangeScore">82%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-blue" id="matchRangeBar" style="width: 88%"></div>
+                                    <div class="progress-bar-fill fill-blue" id="matchRangeBar" style="width: 82%"></div>
                                 </div>
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Grip Strength</span>
-                                    <span id="matchGripScore">76%</span>
+                                    <span id="matchGripScore">74%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-green" id="matchGripBar" style="width: 76%"></div>
+                                    <div class="progress-bar-fill fill-green" id="matchGripBar" style="width: 74%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchSessions">12</div>
+                                <div class="game-stat-value" id="matchSessions">10</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchMatches">98</div>
+                                <div class="game-stat-value" id="matchMatches">85</div>
                                 <div class="game-stat-label">Matches</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchAccuracy">79%</div>
+                                <div class="game-stat-value" id="matchAccuracy">78%</div>
                                 <div class="game-stat-label">Accuracy</div>
                             </div>
                         </div>
@@ -732,55 +701,44 @@
                     <!-- Game 3: Catching Falling Objects -->
                     <div class="game-card">
                         <div class="game-header">
-                            <span class="game-icon">🧺</span>
-                            <span class="game-badge badge-active">Active</span>
+                            <span class="game-icon"><i class="fas fa-basketball-ball"></i></span>
+                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
                         </div>
                         <h3>Catching Falling Objects</h3>
                         <p class="game-description">External rotation training with basket catching</p>
-                        
-                        <div class="muscle-groups">
-                            <div class="muscle-group">
-                                <h4>External Rotators</h4>
-                                <div class="muscle-tags">
-                                    <span class="muscle-tag primary">Infraspinatus</span>
-                                    <span class="muscle-tag primary">Teres Minor</span>
-                                    <span class="muscle-tag primary">Posterior Deltoid</span>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="progress-section">
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>External Rotation</span>
-                                    <span id="rotationScore">92%</span>
+                                    <span id="rotationScore">88%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-green" id="rotationBar" style="width: 92%"></div>
+                                    <div class="progress-bar-fill fill-green" id="rotationBar" style="width: 88%"></div>
                                 </div>
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Joint Alignment</span>
-                                    <span id="alignmentScore">85%</span>
+                                    <span id="alignmentScore">81%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-blue" id="alignmentBar" style="width: 85%"></div>
+                                    <div class="progress-bar-fill fill-blue" id="alignmentBar" style="width: 81%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationSessions">18</div>
+                                <div class="game-stat-value" id="rotationSessions">12</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationCaught">156</div>
+                                <div class="game-stat-value" id="rotationCaught">112</div>
                                 <div class="game-stat-label">Objects</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationPrevention">94%</div>
+                                <div class="game-stat-value" id="rotationPrevention">90%</div>
                                 <div class="game-stat-label">Contracture Prev</div>
                             </div>
                         </div>
@@ -788,114 +746,75 @@
                 </div>
             </div>
 
-            <!-- Therapeutic Benefits Summary -->
-            <div class="performance-table">
-                <h3>Therapeutic Benefits Summary</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Game</th>
-                            <th>Primary Muscles</th>
-                            <th>Therapeutic Goal</th>
-                            <th>Progress</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Catching Stars</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Deltoid<br>
-                                <span class="muscle-indicator indicator-high"></span> Rotator Cuff
-                            </td>
-                            <td>Shoulder elevation & stability</td>
-                            <td>82%</td>
-                            <td><span style="color: #48bb78;">Improving</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Matching Game</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity
-                            </td>
-                            <td>Active range & strength</td>
-                            <td>79%</td>
-                            <td><span style="color: #ecc94b;">Monitor shrug</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Catching Objects</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Infraspinatus<br>
-                                <span class="muscle-indicator indicator-high"></span> Teres Minor
-                            </td>
-                            <td>Prevent contracture, improve alignment</td>
-                            <td>92%</td>
-                            <td><span style="color: #48bb78;">Excellent</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <!-- Back Button -->
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_dashboard' %}'">
-                <span>←</span> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
             </button>
         </div>
     </div>
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentPatient = 'PT001';
-        
+        let currentPatient = 'PT002';
+
         const patientsData = {
-            'PT001': {
+            'PT002': {
                 name: 'Ali Ahmed',
                 games: {
-                    stars: { shoulder: 85, elbow: 78, grasp: 82, sessions: 15, caught: 142, accuracy: 82 },
-                    match: { range: 88, grip: 76, trap: 12, sessions: 12, matches: 98, accuracy: 79 },
-                    rotation: { external: 92, alignment: 85, sessions: 18, caught: 156, prevention: 94 }
+                    stars: { shoulder: 75, elbow: 70, grasp: 72, sessions: 8, caught: 65, accuracy: 72 },
+                    match: { range: 78, grip: 70, trap: 10, sessions: 7, matches: 52, accuracy: 74 },
+                    rotation: { external: 82, alignment: 76, sessions: 9, caught: 68, prevention: 80 }
                 }
             },
-            'PT002': {
-                name: 'Sara Khaled',
-                games: {
-                    stars: { shoulder: 92, elbow: 88, grasp: 90, sessions: 18, caught: 178, accuracy: 90 },
-                    match: { range: 94, grip: 86, trap: 8, sessions: 15, matches: 134, accuracy: 89 },
-                    rotation: { external: 88, alignment: 82, sessions: 14, caught: 132, prevention: 86 }
-                }
-            },
-            'PT003': {
+            'PT004': {
                 name: 'Omar Hassan',
                 games: {
-                    stars: { shoulder: 78, elbow: 72, grasp: 75, sessions: 12, caught: 108, accuracy: 75 },
-                    match: { range: 82, grip: 70, trap: 15, sessions: 10, matches: 76, accuracy: 76 },
-                    rotation: { external: 96, alignment: 90, sessions: 20, caught: 184, prevention: 96 }
+                    stars: { shoulder: 82, elbow: 78, grasp: 80, sessions: 12, caught: 98, accuracy: 80 },
+                    match: { range: 85, grip: 78, trap: 8, sessions: 10, matches: 82, accuracy: 82 },
+                    rotation: { external: 88, alignment: 82, sessions: 14, caught: 112, prevention: 88 }
+                }
+            },
+            'PT005': {
+                name: 'Sara Khaled',
+                games: {
+                    stars: { shoulder: 79, elbow: 75, grasp: 77, sessions: 10, caught: 82, accuracy: 77 },
+                    match: { range: 82, grip: 74, trap: 12, sessions: 9, matches: 68, accuracy: 76 },
+                    rotation: { external: 85, alignment: 80, sessions: 11, caught: 92, prevention: 84 }
+                }
+            },
+            'PT006': {
+                name: 'Ali Ahmed',
+                games: {
+                    stars: { shoulder: 81, elbow: 76, grasp: 78, sessions: 15, caught: 118, accuracy: 78 },
+                    match: { range: 84, grip: 75, trap: 9, sessions: 13, matches: 102, accuracy: 80 },
+                    rotation: { external: 86, alignment: 83, sessions: 16, caught: 132, prevention: 86 }
                 }
             }
         };
 
         document.addEventListener('DOMContentLoaded', function() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || 'DR003';
+            const doctorId = localStorage.getItem('doctorId') || '3';
             const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            
+
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
             localStorage.setItem('userType', 'doctor');
-            
+
             loadPatientPerformance();
         });
 
         function loadPatientPerformance() {
             const select = document.getElementById('patientSelect');
             currentPatient = select.value;
-            
+
             const data = patientsData[currentPatient];
             if (!data) return;
-            
+
             const stars = data.games.stars;
             const match = data.games.match;
             const rotation = data.games.rotation;
-            
+
             document.getElementById('starShoulderScore').textContent = stars.shoulder + '%';
             document.getElementById('starShoulderBar').style.width = stars.shoulder + '%';
             document.getElementById('starElbowScore').textContent = stars.elbow + '%';
@@ -903,7 +822,7 @@
             document.getElementById('starSessions').textContent = stars.sessions;
             document.getElementById('starStars').textContent = stars.caught;
             document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
-            
+
             document.getElementById('matchRangeScore').textContent = match.range + '%';
             document.getElementById('matchRangeBar').style.width = match.range + '%';
             document.getElementById('matchGripScore').textContent = match.grip + '%';
@@ -911,7 +830,7 @@
             document.getElementById('matchSessions').textContent = match.sessions;
             document.getElementById('matchMatches').textContent = match.matches;
             document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
-            
+
             document.getElementById('rotationScore').textContent = rotation.external + '%';
             document.getElementById('rotationBar').style.width = rotation.external + '%';
             document.getElementById('alignmentScore').textContent = rotation.alignment + '%';
@@ -919,25 +838,6 @@
             document.getElementById('rotationSessions').textContent = rotation.sessions;
             document.getElementById('rotationCaught').textContent = rotation.caught;
             document.getElementById('rotationPrevention').textContent = rotation.prevention + '%';
-            
-            updateOverallStats(data);
-        }
-
-        function updateOverallStats(data) {
-            const stars = data.games.stars;
-            const match = data.games.match;
-            const rotation = data.games.rotation;
-            
-            const totalSessions = stars.sessions + match.sessions + rotation.sessions;
-            const avgActivation = Math.round((stars.shoulder + stars.elbow + 
-                                            match.range + match.grip + 
-                                            rotation.external + rotation.alignment) / 6);
-            
-            document.getElementById('activeSessions').textContent = totalSessions;
-            document.getElementById('avgActivation').textContent = avgActivation + '%';
-            
-            const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.prevention) / 3);
-            document.getElementById('completionRate').textContent = completionRate + '%';
         }
 
         function filterByDate() {

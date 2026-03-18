@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Patient Profile - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
@@ -13,7 +14,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -22,7 +23,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .edit-container {
             max-width: 800px;
             width: 100%;
@@ -33,7 +34,7 @@
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .edit-header {
             display: flex;
             align-items: center;
@@ -42,7 +43,7 @@
             padding-bottom: 20px;
             border-bottom: 2px solid #f1f5f9;
         }
-        
+
         .back-btn {
             width: 50px;
             height: 50px;
@@ -56,22 +57,22 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .back-btn:hover {
             background: #e2e8f0;
             transform: translateX(-5px);
         }
-        
+
         .edit-header h2 {
             color: #1e293b;
             font-size: 32px;
             font-weight: 700;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-label {
             display: block;
             color: #1e293b;
@@ -79,7 +80,7 @@
             margin-bottom: 8px;
             font-size: 14px;
         }
-        
+
         .form-input {
             width: 100%;
             padding: 12px 16px;
@@ -89,18 +90,18 @@
             transition: all 0.3s;
             background: white;
         }
-        
+
         .form-input:focus {
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .form-input:disabled {
             background: #f1f5f9;
             color: #64748b;
         }
-        
+
         .form-select {
             width: 100%;
             padding: 12px 16px;
@@ -109,13 +110,18 @@
             font-size: 15px;
             background: white;
         }
-        
+
+        .form-select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-        
+
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -123,7 +129,7 @@
             padding-top: 20px;
             border-top: 2px solid #f1f5f9;
         }
-        
+
         .btn-save, .btn-cancel {
             flex: 1;
             padding: 15px;
@@ -134,22 +140,22 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .btn-save {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
         }
-        
+
         .btn-cancel {
             background: #f1f5f9;
             color: #475569;
         }
-        
+
         .btn-save:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
         }
-        
+
         .btn-cancel:hover {
             background: #e2e8f0;
             transform: translateY(-3px);
@@ -206,8 +212,22 @@
                     <input type="text" class="form-input" id="condition">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Affected Hand</label>
+                    <select class="form-select" id="affectedHand">
+                        <option value="right">Right Hand</option>
+                        <option value="left">Left Hand</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label">Therapy Type</label>
                     <input type="text" class="form-input" id="therapy">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Level</label>
+                    <input type="text" class="form-input" id="currentLevel">
                 </div>
             </div>
 
@@ -225,7 +245,7 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        const patientId = localStorage.getItem('patientId') || 'PT001';
+        const patientId = localStorage.getItem('patientId') || 'PT002';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
@@ -234,33 +254,51 @@
         function loadPatientData() {
             document.getElementById('patientId').value = patientId;
 
-            if (patientId === 'PT001') {
+            // Match exactly with your database records
+            if (patientId === 'PT002') {  // User ID 2
                 document.getElementById('fullName').value = 'Ali Ahmed';
-                document.getElementById('email').value = 'ali.ahmed@email.com';
-                document.getElementById('phone').value = '+966 50 111 1111';
-                document.getElementById('dob').value = '2018-01-15';
+                document.getElementById('email').value = 'ali@test.com';
+                document.getElementById('phone').value = '+966 50 000 0000';
+                document.getElementById('dob').value = '2000-01-01';
                 document.getElementById('gender').value = 'male';
-                document.getElementById('condition').value = 'Motor Disability';
+                document.getElementById('condition').value = 'Not specified';
+                document.getElementById('affectedHand').value = 'right';
                 document.getElementById('therapy').value = 'Physical Therapy';
-                document.getElementById('address').value = 'Al Olaya Street, Riyadh';
-            } else if (patientId === 'PT002') {
-                document.getElementById('fullName').value = 'Sara Khaled';
-                document.getElementById('email').value = 'sara.khaled@email.com';
-                document.getElementById('phone').value = '+966 50 222 2222';
-                document.getElementById('dob').value = '2019-03-20';
-                document.getElementById('gender').value = 'female';
-                document.getElementById('condition').value = 'Arm Weakness';
-                document.getElementById('therapy').value = 'Occupational Therapy';
-                document.getElementById('address').value = 'Al Malaz District, Riyadh';
-            } else if (patientId === 'PT003') {
+                document.getElementById('currentLevel').value = '1';
+                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
+            } else if (patientId === 'PT004') {  // User ID 4
                 document.getElementById('fullName').value = 'Omar Hassan';
-                document.getElementById('email').value = 'omar.hassan@email.com';
+                document.getElementById('email').value = 'omar@rehab.com';
                 document.getElementById('phone').value = '+966 50 333 3333';
                 document.getElementById('dob').value = '2017-11-05';
                 document.getElementById('gender').value = 'male';
                 document.getElementById('condition').value = 'Movement Disorder';
+                document.getElementById('affectedHand').value = 'left';
                 document.getElementById('therapy').value = 'Developmental Therapy';
-                document.getElementById('address').value = 'Al Narjis, Riyadh';
+                document.getElementById('currentLevel').value = '1';
+                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
+            } else if (patientId === 'PT005') {  // User ID 5
+                document.getElementById('fullName').value = 'Sara Khaled';
+                document.getElementById('email').value = 'sara@rehab.com';
+                document.getElementById('phone').value = '+966 50 222 2222';
+                document.getElementById('dob').value = '2019-03-20';
+                document.getElementById('gender').value = 'female';
+                document.getElementById('condition').value = 'Arm Weakness';
+                document.getElementById('affectedHand').value = 'right';
+                document.getElementById('therapy').value = 'Occupational Therapy';
+                document.getElementById('currentLevel').value = '1';
+                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
+            } else if (patientId === 'PT006') {  // User ID 6
+                document.getElementById('fullName').value = 'Ali Ahmed';
+                document.getElementById('email').value = 'ali@rehab.com';
+                document.getElementById('phone').value = '+966 50 111 1111';
+                document.getElementById('dob').value = '2018-01-15';
+                document.getElementById('gender').value = 'male';
+                document.getElementById('condition').value = 'Motor Disability';
+                document.getElementById('affectedHand').value = 'left';
+                document.getElementById('therapy').value = 'Physical Therapy';
+                document.getElementById('currentLevel').value = '1';
+                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
             }
         }
 
@@ -269,6 +307,9 @@
             const updatedEmail = document.getElementById('email').value.trim();
             const updatedPhone = document.getElementById('phone').value.trim();
             const updatedCondition = document.getElementById('condition').value.trim();
+            const updatedAffectedHand = document.getElementById('affectedHand').value;
+            const updatedTherapy = document.getElementById('therapy').value.trim();
+            const updatedLevel = document.getElementById('currentLevel').value.trim();
 
             if (!updatedName || !updatedEmail || !updatedPhone) {
                 alert('Please fill in all required fields');
@@ -277,9 +318,11 @@
 
             localStorage.setItem('patientName', updatedName);
             localStorage.setItem('patientCondition', updatedCondition);
+            localStorage.setItem('affectedHand', updatedAffectedHand);
+            localStorage.setItem('patientLevel', updatedLevel);
 
             showNotification('Profile updated successfully!');
-            
+
             setTimeout(() => {
                 window.location.href = "{% url 'profile' %}";
             }, 1500);

@@ -1,3 +1,4 @@
+<!-- في gamer-login.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -5,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gamer Login - Rehabilitation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         .login-page {
@@ -16,38 +18,72 @@
         .input-field:focus {
             border-color: #10b981;
         }
+        /* أيقونة يد تحكم واضحة */
+        .gamer-avatar {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 3px solid #10b981;
+        }
+        .gamer-avatar i {
+            font-size: 50px;
+            color: #10b981;
+        }
+        .login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
     <div class="login-page">
         <div class="login-container">
-            <div class="login-icon">🎮</div>
+            <!-- أيقونة يد تحكم من Font Awesome -->
+            <div class="gamer-avatar">
+                <i class="fas fa-gamepad"></i>
+            </div>
+
             <h2 class="login-title">Gamer Login</h2>
             <p class="login-subtitle">Enter your credentials to start playing</p>
-            
+
             <div class="input-group">
-                <label class="input-label">Player Name</label>
-                <input type="text" class="input-field" id="playerName" placeholder="Enter your name">
+                <label class="input-label">Email</label>
+                <input type="email" class="input-field" id="patientEmail" placeholder="Enter your email">
             </div>
 
             <div class="input-group">
-                <label class="input-label">Player ID</label>
-                <input type="text" class="input-field" id="playerId" placeholder="Enter your player ID">
+                <label class="input-label">Password</label>
+                <input type="password" class="input-field" id="patientPassword" placeholder="Enter your password">
             </div>
-            
+
             <div class="error-message" id="errorMessage" style="color: #ef4444; display: none;"></div>
             <div class="loading" id="loading" style="display: none;">Logging in...</div>
-            
+
             <button class="login-btn" onclick="loginGamer()">
-                <span>🎮</span> Start Playing
+                Start Playing
             </button>
-            
-            <button class="back-btn" onclick="window.location.href='{% url 'index' %}'" style="margin-top: 20px; padding: 12px 20px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; cursor: pointer;">
-                <span>←</span> Back to Main Menu
+
+            <button class="back-btn" onclick="window.location.href='{% url 'index' %}'" 
+                    style="margin-top: 20px; padding: 12px 20px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px; cursor: pointer;">
+                ← Back to Main Menu
             </button>
         </div>
     </div>
 
     <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        document.getElementById('patientPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginGamer();
+            }
+        });
+    </script>
 </body>
 </html>
