@@ -69,7 +69,7 @@
             flex: 1;
         }
 
-        /* تنسيق عناصر القائمة */
+        /* Sidebar styling */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -84,7 +84,6 @@
             color: white;
         }
 
-        /* تنسيق الأيقونات */
         .sidebar li i {
             font-size: 20px;
             width: 24px;
@@ -394,6 +393,16 @@
         .fill-blue { background: linear-gradient(90deg, #4299e1, #3182ce); }
         .fill-orange { background: linear-gradient(90deg, #ed8936, #dd6b20); }
 
+        .warning-box {
+            margin-top: 20px;
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 4px solid #d97706;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #92400e;
+        }
+
         .game-stats {
             display: flex;
             justify-content: space-between;
@@ -456,6 +465,18 @@
         tr:hover td {
             background: #f8fafc;
         }
+
+        .muscle-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .indicator-high { background: #48bb78; }
+        .indicator-medium { background: #ecc94b; }
+        .indicator-low { background: #f56565; }
 
         .btn-back {
             margin-top: 30px;
@@ -552,7 +573,7 @@
             <div class="page-header">
                 <h2>Patients Performance</h2>
                 <div class="date-filter">
-                    <input type="date" id="dateFilter" value="2026-03-18">
+                    <input type="date" id="dateFilter" value="2026-03-25">
                     <button class="filter-btn" onclick="filterByDate()">
                         <i class="fas fa-filter"></i> Apply Filter
                     </button>
@@ -565,28 +586,28 @@
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-content">
                         <h3>Total Patients</h3>
-                        <div class="stat-number" id="totalPatients">4</div>
+                        <div class="stat-number" id="totalPatients">3</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
                     <div class="stat-content">
                         <h3>Active Sessions</h3>
-                        <div class="stat-number" id="activeSessions">45</div>
+                        <div class="stat-number" id="activeSessions">37</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
                     <div class="stat-content">
                         <h3>Avg Muscle Activation</h3>
-                        <div class="stat-number" id="avgActivation">79%</div>
+                        <div class="stat-number" id="avgActivation">81%</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-star"></i></div>
                     <div class="stat-content">
                         <h3>Completion Rate</h3>
-                        <div class="stat-number" id="completionRate">82%</div>
+                        <div class="stat-number" id="completionRate">81%</div>
                     </div>
                 </div>
             </div>
@@ -595,9 +616,8 @@
             <div class="patient-selector">
                 <label><i class="fas fa-user"></i> Select Patient:</label>
                 <select id="patientSelect" onchange="loadPatientPerformance()">
-                    <option value="PT002">Ali Ahmed (PT002) - Not specified</option>
                     <option value="PT004">Omar Hassan (PT004) - Movement Disorder</option>
-                    <option value="PT005">Sara Khaled (PT005) - Arm Weakness</option>
+                    <option value="PT005" selected>Sara Khaled (PT005) - Arm Weakness</option>
                     <option value="PT006">Ali Ahmed (PT006) - Motor Disability</option>
                 </select>
             </div>
@@ -614,6 +634,24 @@
                         </div>
                         <h3>Catching Stars</h3>
                         <p class="game-description">Reach up to catch stars - targets shoulder elevation and elbow movement</p>
+
+                        <div class="muscle-groups">
+                            <div class="muscle-group">
+                                <h4><i class="fas fa-shoulder"></i> Shoulder Muscles</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag primary">Deltoid</span>
+                                    <span class="muscle-tag primary">Rotator Cuff</span>
+                                    <span class="muscle-tag">Trapezius</span>
+                                </div>
+                            </div>
+                            <div class="muscle-group">
+                                <h4><i class="fas fa-hand"></i> Elbow Muscles</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag">Biceps</span>
+                                    <span class="muscle-tag">Triceps</span>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="progress-section">
                             <div class="progress-item">
@@ -638,11 +676,11 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starSessions">11</div>
+                                <div class="game-stat-value" id="starSessions">10</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starStars">98</div>
+                                <div class="game-stat-value" id="starStars">82</div>
                                 <div class="game-stat-label">Stars Caught</div>
                             </div>
                             <div class="game-stat">
@@ -660,6 +698,17 @@
                         </div>
                         <h3>Matching Game</h3>
                         <p class="game-description">Match objects to colors - full upper extremity workout</p>
+
+                        <div class="muscle-groups">
+                            <div class="muscle-group">
+                                <h4><i class="fas fa-arms"></i> Full Upper Extremity</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag primary">Shoulder Muscles</span>
+                                    <span class="muscle-tag primary">Elbow Muscles</span>
+                                    <span class="muscle-tag primary">Wrist & Fingers</span>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="progress-section">
                             <div class="progress-item">
@@ -684,15 +733,15 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchSessions">10</div>
+                                <div class="game-stat-value" id="matchSessions">9</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchMatches">85</div>
+                                <div class="game-stat-value" id="matchMatches">68</div>
                                 <div class="game-stat-label">Matches</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchAccuracy">78%</div>
+                                <div class="game-stat-value" id="matchAccuracy">76%</div>
                                 <div class="game-stat-label">Accuracy</div>
                             </div>
                         </div>
@@ -707,43 +756,101 @@
                         <h3>Catching Falling Objects</h3>
                         <p class="game-description">External rotation training with basket catching</p>
 
+                        <div class="muscle-groups">
+                            <div class="muscle-group">
+                                <h4><i class="fas fa-redo-alt"></i> External Rotators</h4>
+                                <div class="muscle-tags">
+                                    <span class="muscle-tag primary">Infraspinatus</span>
+                                    <span class="muscle-tag primary">Teres Minor</span>
+                                    <span class="muscle-tag primary">Posterior Deltoid</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="progress-section">
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>External Rotation</span>
-                                    <span id="rotationScore">88%</span>
+                                    <span id="rotationScore">85%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-green" id="rotationBar" style="width: 88%"></div>
+                                    <div class="progress-bar-fill fill-green" id="rotationBar" style="width: 85%"></div>
                                 </div>
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
                                     <span>Joint Alignment</span>
-                                    <span id="alignmentScore">81%</span>
+                                    <span id="alignmentScore">80%</span>
                                 </div>
                                 <div class="progress-bar-bg">
-                                    <div class="progress-bar-fill fill-blue" id="alignmentBar" style="width: 81%"></div>
+                                    <div class="progress-bar-fill fill-blue" id="alignmentBar" style="width: 80%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationSessions">12</div>
+                                <div class="game-stat-value" id="rotationSessions">11</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationCaught">112</div>
+                                <div class="game-stat-value" id="rotationCaught">92</div>
                                 <div class="game-stat-label">Objects</div>
                             </div>
                             <div class="game-stat">
-                                <div class="game-stat-value" id="rotationPrevention">90%</div>
+                                <div class="game-stat-value" id="rotationPrevention">84%</div>
                                 <div class="game-stat-label">Contracture Prev</div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Therapeutic Benefits Summary -->
+            <div class="performance-table">
+                <h3><i class="fas fa-clipboard-list"></i> Therapeutic Benefits Summary</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Game</th>
+                            <th>Primary Muscles</th>
+                            <th>Therapeutic Goal</th>
+                            <th>Progress</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Catching Stars</strong></td>
+                            <td>
+                                <span class="muscle-indicator indicator-high"></span> Deltoid<br>
+                                <span class="muscle-indicator indicator-high"></span> Rotator Cuff
+                            </td>
+                            <td>Shoulder elevation & stability</td>
+                            <td>79%</td>
+                            <td><span style="color: #48bb78;">Improving</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Matching Game</strong></td>
+                            <td>
+                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity
+                            </td>
+                            <td>Active range & strength</td>
+                            <td>78%</td>
+                            <td><span style="color: #48bb78;">Improving</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Catching Objects</strong></td>
+                            <td>
+                                <span class="muscle-indicator indicator-high"></span> Infraspinatus<br>
+                                <span class="muscle-indicator indicator-high"></span> Teres Minor
+                            </td>
+                            <td>Prevent contracture, improve alignment</td>
+                            <td>85%</td>
+                            <td><span style="color: #48bb78;">Excellent</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Back Button -->
@@ -755,25 +862,18 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentPatient = 'PT002';
+        // Patient data - PT002 removed, only PT004, PT005, PT006
+        let currentPatient = 'PT005';
 
         const patientsData = {
-            'PT002': {
-                name: 'Ali Ahmed',
-                games: {
-                    stars: { shoulder: 75, elbow: 70, grasp: 72, sessions: 8, caught: 65, accuracy: 72 },
-                    match: { range: 78, grip: 70, trap: 10, sessions: 7, matches: 52, accuracy: 74 },
-                    rotation: { external: 82, alignment: 76, sessions: 9, caught: 68, prevention: 80 }
-                }
-            },
             'PT004': {
-                name: 'Omar Hassan',
-                games: {
-                    stars: { shoulder: 82, elbow: 78, grasp: 80, sessions: 12, caught: 98, accuracy: 80 },
-                    match: { range: 85, grip: 78, trap: 8, sessions: 10, matches: 82, accuracy: 82 },
-                    rotation: { external: 88, alignment: 82, sessions: 14, caught: 112, prevention: 88 }
-                }
-            },
+    name: 'Omar Hassan',
+    games: {
+        stars: { shoulder: 82, elbow: 78, grasp: 80, sessions: 12, caught: 98, accuracy: 80 },
+        match: { range: 85, grip: 78, trap: 8, sessions: 10, matches: 82, accuracy: 82 },
+        rotation: { external: 88, alignment: 82, sessions: 14, caught: 112, prevention: 88 }
+    }
+},
             'PT005': {
                 name: 'Sara Khaled',
                 games: {
@@ -815,6 +915,7 @@
             const match = data.games.match;
             const rotation = data.games.rotation;
 
+            // Update Catching Stars game data
             document.getElementById('starShoulderScore').textContent = stars.shoulder + '%';
             document.getElementById('starShoulderBar').style.width = stars.shoulder + '%';
             document.getElementById('starElbowScore').textContent = stars.elbow + '%';
@@ -823,6 +924,7 @@
             document.getElementById('starStars').textContent = stars.caught;
             document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
 
+            // Update Matching Game data
             document.getElementById('matchRangeScore').textContent = match.range + '%';
             document.getElementById('matchRangeBar').style.width = match.range + '%';
             document.getElementById('matchGripScore').textContent = match.grip + '%';
@@ -831,6 +933,7 @@
             document.getElementById('matchMatches').textContent = match.matches;
             document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
 
+            // Update Catching Objects game data
             document.getElementById('rotationScore').textContent = rotation.external + '%';
             document.getElementById('rotationBar').style.width = rotation.external + '%';
             document.getElementById('alignmentScore').textContent = rotation.alignment + '%';
@@ -838,19 +941,217 @@
             document.getElementById('rotationSessions').textContent = rotation.sessions;
             document.getElementById('rotationCaught').textContent = rotation.caught;
             document.getElementById('rotationPrevention').textContent = rotation.prevention + '%';
+
+            updateOverallStats(data);
+        }
+
+        function updateOverallStats(data) {
+            const stars = data.games.stars;
+            const match = data.games.match;
+            const rotation = data.games.rotation;
+
+            const totalSessions = stars.sessions + match.sessions + rotation.sessions;
+            const avgActivation = Math.round((stars.shoulder + stars.elbow +
+                                            match.range + match.grip +
+                                            rotation.external + rotation.alignment) / 6);
+
+            document.getElementById('activeSessions').textContent = totalSessions;
+            document.getElementById('avgActivation').textContent = avgActivation + '%';
+
+            const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.prevention) / 3);
+            document.getElementById('completionRate').textContent = completionRate + '%';
         }
 
         function filterByDate() {
             const date = document.getElementById('dateFilter').value;
-            alert(`Showing data for: ${new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
+            const formattedDate = new Date(date).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            alert(`Showing data for: ${formattedDate}`);
         }
 
-        function logoutDoctor() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = "{% url 'index' %}";
-            }
+        // ============================================
+// CUSTOM LOGOUT FUNCTION
+// ============================================
+function logoutDoctor() {
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            ">
+                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+            </div>
+            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                Are you sure you want to log out? 
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-check-circle"></i> Yes, Log Out
+                </button>
+                <button id="cancelLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('confirmLogout').addEventListener('click', function() {
+        modal.remove();
+        localStorage.removeItem('userType');
+        localStorage.removeItem('doctorId');
+        localStorage.removeItem('doctorName');
+        localStorage.removeItem('doctorEmail');
+        localStorage.removeItem('doctorSpecialty');
+        localStorage.removeItem('doctorPhone');
+        localStorage.removeItem('doctorAvatar');
+        
+        showNotification('Logged out successfully', 'info');
+        
+        setTimeout(() => {
+            window.location.href = "{% url 'index' %}";
+        }, 800);
+    });
+    
+    document.getElementById('cancelLogout').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
         }
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const oldNotification = document.querySelector('.custom-notification');
+    if (oldNotification) {
+        oldNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = 'custom-notification';
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    
+    const colors = {
+        info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+        success: 'linear-gradient(135deg, #10b981, #059669)',
+        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 12px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+        max-width: 350px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        cursor: pointer;
+    `;
+    
+    notification.onclick = function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    };
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
+}
     </script>
 </body>
 </html>

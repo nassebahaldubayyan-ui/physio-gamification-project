@@ -449,7 +449,7 @@
                 document.getElementById('stat2Label').textContent = 'Experience';
                 document.getElementById('stat3Label').textContent = 'Sessions';
                 
-                document.getElementById('stat1').textContent = '4';
+                document.getElementById('stat1').textContent = '3';
                 document.getElementById('stat2').textContent = '10 years';
                 document.getElementById('stat3').textContent = '128';
                 
@@ -471,14 +471,7 @@
                 let accuracy, level, sessions, condition, therapy, affectedHand;
                 
                 // Match exactly with your database records
-                if (patientId === 'PT002') {  // User ID 2
-                    accuracy = '75%';
-                    level = '1';
-                    sessions = '8';
-                    condition = 'Not specified';
-                    therapy = 'Physical Therapy';
-                    affectedHand = 'right';
-                } else if (patientId === 'PT004') {  // User ID 4
+                if (patientId === 'PT004') {  // User ID 4
                     accuracy = '82%';
                     level = '1';
                     sessions = '12';

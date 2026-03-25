@@ -886,7 +886,9 @@
                 setTimeout(() => {
                     showNotification('✅ Assessment video saved successfully!', 'success');
                     localStorage.setItem('hasAssessmentVideo', 'true');
+                    localStorage.setItem('assessmentCompleted', 'true'); 
                     localStorage.removeItem('assessmentSkipped');
+                    localStorage.removeItem('firstTime');
                     setTimeout(() => {
                         window.location.href = "{% url 'patient_dashboard' %}";
                     }, 1500);

@@ -14,7 +14,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -23,7 +23,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .chat-container {
             max-width: 800px;
             width: 100%;
@@ -32,7 +32,7 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
         }
-        
+
         .chat-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -41,7 +41,7 @@
             align-items: center;
             gap: 20px;
         }
-        
+
         .doctor-avatar-large {
             width: 60px;
             height: 60px;
@@ -54,12 +54,12 @@
             color: white;
             border: 2px solid white;
         }
-        
+
         .chat-header-info h2 {
             font-size: 24px;
             margin-bottom: 5px;
         }
-        
+
         .chat-header-info p {
             opacity: 0.9;
             font-size: 14px;
@@ -67,16 +67,15 @@
             align-items: center;
             gap: 5px;
         }
-        
+
         .online-dot {
             width: 10px;
             height: 10px;
             background: #10b981;
             border-radius: 50%;
             display: inline-block;
-            margin-right: 5px;
         }
-        
+
         .chat-messages {
             height: 400px;
             overflow-y: auto;
@@ -86,20 +85,20 @@
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .message {
             display: flex;
             margin-bottom: 10px;
         }
-        
+
         .message.doctor {
             justify-content: flex-start;
         }
-        
+
         .message.patient {
             justify-content: flex-end;
         }
-        
+
         .message-content {
             max-width: 70%;
             padding: 12px 18px;
@@ -107,26 +106,26 @@
             position: relative;
             word-wrap: break-word;
         }
-        
+
         .message.doctor .message-content {
             background: white;
             color: #1e293b;
             border: 1px solid #e2e8f0;
             border-bottom-left-radius: 5px;
         }
-        
+
         .message.patient .message-content {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-bottom-right-radius: 5px;
         }
-        
+
         .message-time {
             font-size: 11px;
             margin-top: 5px;
             opacity: 0.7;
         }
-        
+
         .chat-input {
             padding: 20px 30px;
             background: white;
@@ -134,7 +133,7 @@
             display: flex;
             gap: 15px;
         }
-        
+
         .chat-input input {
             flex: 1;
             padding: 15px 20px;
@@ -144,12 +143,12 @@
             outline: none;
             transition: all 0.3s;
         }
-        
+
         .chat-input input:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .chat-input button {
             padding: 15px 30px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -160,13 +159,16 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
         .chat-input button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-back {
             margin: 20px 30px 30px;
             padding: 12px 30px;
@@ -182,17 +184,45 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .btn-back:hover {
             background: #e2e8f0;
             transform: translateY(-2px);
         }
-        
-        .loading {
+
+        .no-messages {
             text-align: center;
             padding: 40px;
             color: #64748b;
-            font-size: 18px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
@@ -209,94 +239,200 @@
         </div>
 
         <div class="chat-messages" id="chatMessages">
-            <div class="loading" id="loading">Loading messages...</div>
+            <div class="no-messages" id="loadingMessages">
+                <i class="fas fa-spinner fa-spin"></i> Loading messages...
+            </div>
         </div>
 
         <div class="chat-input">
             <input type="text" placeholder="Type your message..." id="messageInput">
-            <button onclick="sendMessage()" id="sendBtn">Send</button>
+            <button onclick="sendMessage()" id="sendBtn">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
         </div>
 
         <button class="btn-back" onclick="window.location.href='{% url 'patient_dashboard' %}'">
-            <span>←</span> Back to Dashboard
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
         </button>
     </div>
 
-    <script src="{% static 'js/script.js' %}"></script>
     <script>
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        const patientId = localStorage.getItem('patientId') || 'PT005';
+        const patientName = localStorage.getItem('patientName') || 'Sara Khaled';
+        const doctorId = '3'; // Doctor ID
+        const doctorName = 'Dr. Ahmad';
+        
+        let currentMessages = [];
+        let refreshInterval = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             loadMessages();
+            
+            // Refresh messages every 5 seconds
+            refreshInterval = setInterval(() => {
+                loadMessages();
+            }, 5000);
         });
 
-        function loadMessages() {
-            document.getElementById('loading').style.display = 'block';
-            
-            setTimeout(() => {
-                const mockMessages = [
-                    { sender: 'doctor', text: 'Hello! How are you feeling today?', time: '10:30 AM' },
-                    { sender: 'patient', text: 'I am feeling much better, thank you!', time: '10:32 AM' }
-                ];
-                renderMessages(mockMessages);
-                document.getElementById('loading').style.display = 'none';
-            }, 500);
+        // ============================================
+        // LOAD MESSAGES
+        // ============================================
+        async function loadMessages() {
+            try {
+                const response = await fetch(`/api/messages/?user_id=${patientId}&user_type=patient&other_id=${doctorId}&other_type=doctor`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentMessages = data.messages;
+                    renderMessages();
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
         }
 
-        function renderMessages(messagesArray) {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '';
+        // ============================================
+        // RENDER MESSAGES
+        // ============================================
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
             
-            messagesArray.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${msg.sender === 'patient' ? 'patient' : 'doctor'}`;
-                messageDiv.innerHTML = `
+            if (currentMessages.length === 0) {
+                container.innerHTML = '<div class="no-messages"><i class="fas fa-comment-dots"></i><br>No messages yet. Send a message to your doctor.</div>';
+                return;
+            }
+            
+            currentMessages.forEach(msg => {
+                const div = document.createElement('div');
+                const isPatient = msg.sender_type === 'patient';
+                div.className = `message ${isPatient ? 'patient' : 'doctor'}`;
+                div.innerHTML = `
                     <div class="message-content">
-                        ${msg.text}
-                        <div class="message-time">${msg.time}</div>
+                        ${escapeHtml(msg.content)}
+                        <div class="message-time">${formatTime(msg.created_at)}</div>
                     </div>
                 `;
-                chatMessages.appendChild(messageDiv);
+                container.appendChild(div);
             });
             
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         }
 
-        function sendMessage() {
+        // ============================================
+        // SEND MESSAGE
+        // ============================================
+        async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
-            if (!message) return;
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
             
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message patient';
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${message}
-                    <div class="message-time">Just now</div>
-                </div>
-            `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Disable send button temporarily
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             
-            input.value = '';
-            
-            setTimeout(() => {
-                const replyDiv = document.createElement('div');
-                replyDiv.className = 'message doctor';
-                replyDiv.innerHTML = `
-                    <div class="message-content">
-                        Thank you for your message. I will get back to you soon.
-                        <div class="message-time">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-                    </div>
-                `;
-                chatMessages.appendChild(replyDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 2000);
+            try {
+                const response = await fetch('/api/send-message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        sender_id: patientId,
+                        sender_type: 'patient',
+                        receiver_id: doctorId,
+                        receiver_type: 'doctor',
+                        content: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    await loadMessages();
+                    showNotification('Message sent!', 'success');
+                } else {
+                    showNotification('Error sending message', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Connection error', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+            }
         }
 
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            // If less than 24 hours, show time
+            if (diff < 24 * 60 * 60 * 1000) {
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            }
+            // Otherwise show date
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Enter key to send message
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
+            }
+        });
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
             }
         });
     </script>

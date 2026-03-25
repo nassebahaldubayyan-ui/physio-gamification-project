@@ -1,15 +1,15 @@
 from django.db import models
-from django.contrib.auth.hashers import check_password, make_password
+from django.utils import timezone
 
 class Users(models.Model):
-    id = models.AutoField(primary_key=True)  
-    name = models.TextField()
-    email = models.TextField(unique=True)
-    password = models.TextField()
-    role = models.TextField()
-    phone = models.TextField()
-    avatar = models.TextField(blank=True, null=True)
-    is_active = models.IntegerField(blank=True, null=True, default=1)
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100)
+    email = models.CharField(unique=True, max_length=100)
+    password = models.CharField(max_length=255)
+    role = models.CharField(max_length=10)
+    phone = models.CharField(max_length=20)
+    avatar = models.CharField(max_length=255)
+    is_active = models.IntegerField(blank=True, null=True)
     last_login = models.TextField(blank=True, null=True)
     created_at = models.TextField(blank=True, null=True)
     updated_at = models.TextField(blank=True, null=True)
@@ -17,16 +17,13 @@ class Users(models.Model):
     class Meta:
         managed = False
         db_table = 'users'
-    
+
     def __str__(self):
         return self.name
-    
-    def verify_password(self, raw_password):
-        return check_password(raw_password, self.password)
 
 
 class Patients(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.DO_NOTHING)
+    user = models.OneToOneField(Users, models.DO_NOTHING)
     patient_id = models.TextField(unique=True)
     date_of_birth = models.TextField()
     gender = models.TextField()
@@ -44,17 +41,21 @@ class Patients(models.Model):
     grip_strength = models.IntegerField(blank=True, null=True)
     affected_hand = models.TextField()
     photo_url = models.TextField(blank=True, null=True)
+    
+    # NEW FIELD - For tracking assessment video
+    has_assessment_video = models.IntegerField(blank=True, null=True, default=0)
+    assessment_date = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'patients'
-    
+
     def __str__(self):
         return f"Patient: {self.user.name}"
 
 
 class Doctors(models.Model):
-    user = models.OneToOneField(Users, on_delete=models.DO_NOTHING)
+    user = models.OneToOneField(Users, models.DO_NOTHING)
     doctor_id = models.TextField(unique=True)
     specialty = models.TextField()
     license_number = models.TextField(unique=True)
@@ -65,13 +66,32 @@ class Doctors(models.Model):
     class Meta:
         managed = False
         db_table = 'doctors'
-    
+
     def __str__(self):
         return f"Dr. {self.user.name}"
 
 
+class Messages(models.Model):
+    id = models.AutoField(primary_key=True)
+    sender_id = models.IntegerField()
+    sender_type = models.TextField()
+    receiver_id = models.IntegerField()
+    receiver_type = models.TextField()
+    content = models.TextField()
+    is_read = models.IntegerField(blank=True, null=True, default=0)
+    read_at = models.TextField(blank=True, null=True)
+    created_at = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'messages'
+
+    def __str__(self):
+        return f"Message {self.id}"
+
+
 class GameSessions(models.Model):
-    patient = models.ForeignKey(Patients, on_delete=models.DO_NOTHING)
+    patient = models.ForeignKey(Patients, models.DO_NOTHING)
     game_type = models.TextField()
     level = models.IntegerField()
     score = models.IntegerField()
@@ -92,24 +112,6 @@ class GameSessions(models.Model):
     class Meta:
         managed = False
         db_table = 'game_sessions'
-    
+
     def __str__(self):
         return f"Session {self.id} - {self.game_type}"
-
-
-class Messages(models.Model):
-    sender_id = models.IntegerField()
-    sender_type = models.TextField()
-    receiver_id = models.IntegerField()
-    receiver_type = models.TextField()
-    content = models.TextField()
-    is_read = models.IntegerField(blank=True, null=True, default=0)
-    read_at = models.TextField(blank=True, null=True)
-    created_at = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'messages'
-    
-    def __str__(self):
-        return f"Message {self.id}"

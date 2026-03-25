@@ -69,7 +69,6 @@
             flex: 1;
         }
 
-        /* تنسيق عناصر القائمة */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -84,7 +83,6 @@
             color: white;
         }
 
-        /* تنسيق الأيقونات */
         .sidebar li i {
             font-size: 20px;
             width: 24px;
@@ -96,10 +94,6 @@
             background: rgba(255, 255, 255, 0.15);
             border-left: 4px solid #60a5fa;
             font-weight: 600;
-        }
-
-        .sidebar li.active i {
-            color: white;
         }
 
         .sidebar li:hover:not(.active) {
@@ -158,26 +152,6 @@
             margin: 0;
         }
 
-        .new-message-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .new-message-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
         .conversations-container {
             display: grid;
             grid-template-columns: 350px 1fr;
@@ -222,6 +196,14 @@
             background: #f8fafc;
         }
 
+        .patient-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
         .patient-selector select {
             width: 100%;
             padding: 12px 15px;
@@ -231,33 +213,12 @@
             outline: none;
             background: white;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .patient-selector select:focus {
             border-color: #3b82f6;
-        }
-
-        .start-chat-btn {
-            width: 100%;
-            margin-top: 10px;
-            padding: 12px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .start-chat-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .conversation-item {
@@ -301,6 +262,18 @@
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 600;
         }
 
         .conv-last {
@@ -499,6 +472,49 @@
             gap: 20px;
         }
 
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 768px) {
             .conversations-container {
                 grid-template-columns: 1fr;
@@ -553,9 +569,6 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Messages from Patients</h2>
-                <button class="new-message-btn" onclick="showNewMessageModal()">
-                    <i class="fas fa-pen"></i> New Message
-                </button>
             </div>
 
             <div class="conversations-container">
@@ -564,23 +577,24 @@
                     <div class="list-header">
                         <h3><i class="fas fa-comments"></i> Active Conversations</h3>
                     </div>
-
-                    <!-- Patient Selector for New Chat -->
+                    
+                    <!-- Patient Selector - Direct Selection (No Modal) -->
                     <div class="patient-selector">
-                        <select id="patientSelect">
+                        <label>
+                            <i class="fas fa-user-plus"></i> Start New Conversation:
+                        </label>
+                        <select id="patientSelect" onchange="startNewChat()">
                             <option value="">-- Select a patient --</option>
-                            <option value="PT002">Ali Ahmed (PT002)</option>
-                            <option value="PT004">Omar Hassan (PT004)</option>
-                            <option value="PT005">Sara Khaled (PT005)</option>
-                            <option value="PT006">Ali Ahmed (PT006)</option>
+                            <option value="4">Omar Hassan (ID: 4) - Movement Disorder</option>
+                            <option value="5">Sara Khaled (ID: 5) - Arm Weakness</option>
+                            <option value="6">Ali Ahmed (ID: 6) - Motor Disability</option>
                         </select>
-                        <button class="start-chat-btn" onclick="startNewChat()">
-                            <i class="fas fa-comment"></i> Start New Conversation
-                        </button>
                     </div>
-
+                    
                     <div id="conversationsList">
-                        <div class="loading">Loading conversations...</div>
+                        <div class="loading" style="padding: 40px; text-align: center; color: #64748b;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading conversations...
+                        </div>
                     </div>
                 </div>
 
@@ -588,7 +602,7 @@
                 <div class="chat-window" id="chatWindow">
                     <div class="no-chat-selected" id="noChatSelected">
                         <div style="font-size: 60px;"><i class="fas fa-comment-dots"></i></div>
-                        <div>Select a conversation or start a new one</div>
+                        <div>Select a conversation or choose a patient from the list</div>
                     </div>
 
                     <div id="activeChat" style="display: none; height: 100%; flex-direction: column;">
@@ -596,7 +610,7 @@
                         <div class="chat-messages" id="chatMessages"></div>
                         <div class="chat-input">
                             <input type="text" id="replyMessage" placeholder="Type your reply...">
-                            <button onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send</button>
+                            <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
                         </div>
                     </div>
                 </div>
@@ -608,235 +622,317 @@
         </div>
     </div>
 
-    <!-- New Message Modal -->
-    <div id="newMessageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 30px; border-radius: 20px; width: 400px;">
-            <h3 style="margin-bottom: 20px;"><i class="fas fa-pen"></i> New Message</h3>
-            <select id="modalPatientSelect" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
-                <option value="">Select Patient</option>
-                <option value="PT002">Ali Ahmed (PT002)</option>
-                <option value="PT004">Omar Hassan (PT004)</option>
-                <option value="PT005">Sara Khaled (PT005)</option>
-                <option value="PT006">Ali Ahmed (PT006)</option>
-            </select>
-            <textarea id="modalMessage" placeholder="Type your message..." rows="4" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e2e8f0; border-radius: 10px;"></textarea>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="sendNewMessage()" style="flex: 2; padding: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px;">
-                    <i class="fas fa-paper-plane"></i> Send
-                </button>
-                <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 10px;">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        const patients = {
-            'PT002': { id: 2, name: 'Ali Ahmed', avatar: 'A', color: '#4299e1' },
-            'PT004': { id: 4, name: 'Omar Hassan', avatar: 'O', color: '#48bb78' },
-            'PT005': { id: 5, name: 'Sara Khaled', avatar: 'S', color: '#ed8936' },
-            'PT006': { id: 6, name: 'Ali Ahmed', avatar: 'A', color: '#9b59b6' }
-        };
-
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        const doctorId = localStorage.getItem('doctorId') || '3';
+        const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
         let currentPatientId = null;
-        let conversations = {
-            'PT002': {
-                patientName: 'Ali Ahmed',
-                avatar: 'A',
-                avatarColor: '#4299e1',
-                messages: [
-                    { sender: 'patient', text: 'Hello doctor, I feel better today.', time: '2:30 PM' },
-                    { sender: 'doctor', text: "That's great to hear, Ali!", time: '2:35 PM' }
-                ]
-            },
-            'PT004': {
-                patientName: 'Omar Hassan',
-                avatar: 'O',
-                avatarColor: '#48bb78',
-                messages: [
-                    { sender: 'patient', text: 'Can we increase the level?', time: '11:20 AM' }
-                ]
-            }
-        };
-
+        let currentPatientName = null;
         let currentMessages = [];
+        let refreshInterval = null;
 
+        // Patient ID to Name mapping
+        const patientNames = {
+    '4': 'Omar Hassan',
+    '5': 'Sara Khaled',
+    '6': 'Ali Ahmed'
+};
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             loadDoctorInfo();
-            renderConversationsList();
+            loadConversations();
+            
+            // Refresh messages every 5 seconds
+            refreshInterval = setInterval(() => {
+                if (currentPatientId) {
+                    loadMessages(currentPatientId);
+                }
+                loadConversations();
+            }, 5000);
         });
 
+        // ============================================
+        // LOAD DOCTOR INFO
+        // ============================================
         function loadDoctorInfo() {
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || '3';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-
             document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
+            document.getElementById('doctorInfo').textContent = `Physiotherapy • #${doctorId}`;
         }
 
-        function renderConversationsList() {
+        // ============================================
+        // LOAD CONVERSATIONS
+        // ============================================
+        async function loadConversations() {
+            try {
+                const response = await fetch(`/api/conversations/?user_id=${doctorId}&user_type=doctor`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderConversationsList(data.conversations);
+                }
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+            }
+        }
+
+        // ============================================
+        // RENDER CONVERSATIONS LIST
+        // ============================================
+        function renderConversationsList(conversations) {
             const list = document.getElementById('conversationsList');
+            if (!list) return;
+            
             list.innerHTML = '';
-
-            Object.keys(conversations).forEach(patientId => {
-                const conv = conversations[patientId];
-                const lastMsg = conv.messages[conv.messages.length - 1];
-
+            
+            if (conversations.length === 0) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;"><i class="fas fa-inbox"></i><br>No conversations yet<br><small>Select a patient above to start messaging</small></div>';
+                return;
+            }
+            
+            conversations.forEach(conv => {
                 const item = document.createElement('div');
-                item.className = `conversation-item ${currentPatientId === patientId ? 'active' : ''}`;
-                item.setAttribute('data-patient-id', patientId);
-                item.onclick = () => selectConversation(patientId);
-
+                item.className = `conversation-item ${currentPatientId === conv.partner_id ? 'active' : ''}`;
+                item.setAttribute('data-patient-id', conv.partner_id);
+                item.onclick = () => selectConversation(conv.partner_id, conv.partner_name);
+                
+                const unreadBadge = conv.unread_count > 0 ? `<span class="unread-badge">${conv.unread_count}</span>` : '';
+                
                 item.innerHTML = `
                     <div class="conv-avatar">
                         <i class="fas fa-user-circle"></i>
                     </div>
                     <div class="conv-info">
-                        <div class="conv-name">${conv.patientName}</div>
-                        <div class="conv-last">${lastMsg.text}</div>
+                        <div class="conv-name">${escapeHtml(conv.partner_name)} ${unreadBadge}</div>
+                        <div class="conv-last">${escapeHtml(conv.last_message.substring(0, 50))}</div>
                     </div>
-                    <div class="conv-time">${lastMsg.time}</div>
+                    <div class="conv-time">${formatTime(conv.last_message_time)}</div>
                 `;
                 list.appendChild(item);
             });
         }
 
-        function selectConversation(patientId) {
+        // ============================================
+        // SELECT CONVERSATION
+        // ============================================
+        async function selectConversation(patientId, patientName) {
             currentPatientId = patientId;
-
+            currentPatientName = patientName;
+            
+            // Update UI
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('data-patient-id') === patientId) {
+                if (item.getAttribute('data-patient-id') == patientId) {
                     item.classList.add('active');
                 }
             });
-
-            const conv = conversations[patientId];
-
+            
             document.getElementById('noChatSelected').style.display = 'none';
             document.getElementById('activeChat').style.display = 'flex';
-
+            
             document.getElementById('chatHeader').innerHTML = `
                 <div class="chat-header-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="chat-header-info">
-                    <h3>${conv.patientName}</h3>
+                    <h3>${escapeHtml(patientName)}</h3>
                     <p><span class="online-indicator"></span> Online</p>
                 </div>
             `;
-
-            currentMessages = conv.messages;
-            renderMessages();
+            
+            await loadMessages(patientId);
         }
 
+        // ============================================
+        // LOAD MESSAGES
+        // ============================================
+        async function loadMessages(patientId) {
+            try {
+                const response = await fetch(`/api/messages/?user_id=${doctorId}&user_type=doctor&other_id=${patientId}&other_type=patient`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentMessages = data.messages;
+                    renderMessages();
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // ============================================
+        // RENDER MESSAGES
+        // ============================================
         function renderMessages() {
             const container = document.getElementById('chatMessages');
             container.innerHTML = '';
-
+            
+            if (currentMessages.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;"><i class="fas fa-comment"></i><br>No messages yet. Send a message to start the conversation.</div>';
+                return;
+            }
+            
             currentMessages.forEach(msg => {
                 const div = document.createElement('div');
-                div.className = `message ${msg.sender}`;
+                const isDoctor = msg.sender_type === 'doctor';
+                div.className = `message ${isDoctor ? 'doctor' : 'patient'}`;
                 div.innerHTML = `
                     <div class="message-content">
-                        ${msg.text}
-                        <div class="message-time">${msg.time}</div>
+                        ${escapeHtml(msg.content)}
+                        <div class="message-time">${formatTime(msg.created_at)}</div>
                     </div>
                 `;
                 container.appendChild(div);
             });
-
+            
             container.scrollTop = container.scrollHeight;
         }
 
-        function startNewChat() {
+        // ============================================
+        // START NEW CHAT (Direct from select)
+        // ============================================
+        async function startNewChat() {
             const patientId = document.getElementById('patientSelect').value;
-            if (!patientId) {
-                alert('Please select a patient');
-                return;
+            if (!patientId) return;
+            
+            const patientName = patientNames[patientId] || 'Patient';
+            
+            // Reset select to default
+            document.getElementById('patientSelect').value = '';
+            
+            // Check if conversation already exists in list
+            const existingItem = document.querySelector(`.conversation-item[data-patient-id="${patientId}"]`);
+            if (existingItem) {
+                // If exists, just select it
+                await selectConversation(patientId, patientName);
+                showNotification(`Opened conversation with ${patientName}`, 'info');
+            } else {
+                // If new conversation, create it and select
+                await selectConversation(patientId, patientName);
+                showNotification(`Started new conversation with ${patientName}`, 'success');
+                // Refresh conversations list
+                await loadConversations();
             }
-
-            if (!conversations[patientId]) {
-                const patientName = patientId === 'PT002' ? 'Ali Ahmed' :
-                                   patientId === 'PT004' ? 'Omar Hassan' :
-                                   patientId === 'PT005' ? 'Sara Khaled' : 'Ali Ahmed';
-
-                conversations[patientId] = {
-                    patientName: patientName,
-                    avatar: patientName.charAt(0),
-                    avatarColor: patientId === 'PT002' ? '#4299e1' :
-                                patientId === 'PT004' ? '#48bb78' :
-                                patientId === 'PT005' ? '#ed8936' : '#9b59b6',
-                    messages: []
-                };
-            }
-
-            selectConversation(patientId);
         }
 
-        function sendReply() {
+        // ============================================
+        // SEND MESSAGE
+        // ============================================
+        async function sendMessage() {
             const input = document.getElementById('replyMessage');
             const message = input.value.trim();
-
-            if (!message || !currentPatientId) return;
-
-            const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-            conversations[currentPatientId].messages.push({
-                sender: 'doctor',
-                text: message,
-                time: time
-            });
-
-            currentMessages = conversations[currentPatientId].messages;
-            renderMessages();
-            renderConversationsList();
-            input.value = '';
-        }
-
-        function showNewMessageModal() {
-            document.getElementById('newMessageModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('newMessageModal').style.display = 'none';
-        }
-
-        function sendNewMessage() {
-            const patientId = document.getElementById('modalPatientSelect').value;
-            const message = document.getElementById('modalMessage').value.trim();
-
-            if (!patientId || !message) {
-                alert('Please select a patient and enter a message');
+            
+            if (!message || !currentPatientId) {
+                showNotification('Please select a patient and enter a message', 'error');
                 return;
             }
-
-            startNewChat();
-
-            setTimeout(() => {
-                document.getElementById('replyMessage').value = message;
-                sendReply();
-            }, 100);
-
-            closeModal();
-            document.getElementById('modalMessage').value = '';
+            
+            // Disable send button temporarily
+            const sendBtn = document.querySelector('.chat-input button');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const response = await fetch('/api/send-message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        sender_id: doctorId,
+                        sender_type: 'doctor',
+                        receiver_id: currentPatientId,
+                        receiver_type: 'patient',
+                        content: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    input.value = '';
+                    await loadMessages(currentPatientId);
+                    await loadConversations();
+                } else {
+                    showNotification('Error sending message', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Connection error', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText;
+            }
         }
 
-        document.getElementById('replyMessage').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendReply();
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            // If less than 24 hours, show time
+            if (diff < 24 * 60 * 60 * 1000) {
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             }
-        });
+            // Otherwise show date
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(message)}`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
 
         function logoutDoctor() {
             if (confirm('Are you sure you want to log out?')) {
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                }
                 localStorage.clear();
                 window.location.href = "{% url 'index' %}";
             }
         }
+
+        // Enter key to send message
+        document.getElementById('replyMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>

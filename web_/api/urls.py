@@ -7,6 +7,8 @@ urlpatterns = [
     path('api/login/', views.api_login),
     path('api/register/', views.api_register),
     path('api/messages/', views.api_get_messages),
+    path('api/send-message/', views.api_send_message),
+    path('api/conversations/', views.api_get_conversations),
     
     # ========== HTML PAGES ==========
     # Main Pages
@@ -24,7 +26,10 @@ urlpatterns = [
     path('patient/result/', views.patient_result, name='patient_result'),
     path('patient/edit/', views.edit_patient_profile, name='edit_patient_profile'),
     path('patient/capture-video/', views.capture_video, name='capture_video'),
-    path('patient/physio-assessment/', views.physio_assessment, name='physio_assessment'),  
+    path('patient/physio-assessment/', views.physio_assessment, name='physio_assessment'),
+    
+    # Patient Progress Page - ADD THIS
+    path('patient-progress/', views.patient_progress, name='patient_progress'),
     
     # Doctor Pages
     path('doctor/', views.doctor_dashboard, name='doctor_dashboard'),

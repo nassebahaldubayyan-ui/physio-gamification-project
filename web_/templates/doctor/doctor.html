@@ -69,7 +69,6 @@
             flex: 1;
         }
 
-        /* تنسيق عناصر القائمة */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -84,7 +83,6 @@
             color: white;
         }
 
-        /* تنسيق الأيقونات */
         .sidebar li i {
             font-size: 20px;
             width: 24px;
@@ -342,6 +340,43 @@
             color: white;
         }
 
+        /* Custom Logout Modal Styles */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .custom-notification {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-notification:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
         @media (max-width: 768px) {
             .dashboard-layout {
                 flex-direction: column;
@@ -397,17 +432,17 @@
         <div class="main-content">
             <div class="page-header">
                 <h2>Dashboard Overview</h2>
-                <p><i class="fas fa-users"></i> 4 Active Patients</p>
+                <p><i class="fas fa-users"></i> 3 Active Patients</p>
             </div>
 
             <!-- Stats Cards -->
             <div class="stats-cards">
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="totalPatients">4</div>
+                    <div class="stat-number-large" id="totalPatients">3</div>
                     <div class="stat-label-small">Total Patients</div>
                 </div>
                 <div class="stat-card-small">
-                    <div class="stat-number-large" id="inProgressCount">4</div>
+                    <div class="stat-number-large" id="inProgressCount">3</div>
                     <div class="stat-label-small">In Progress</div>
                 </div>
                 <div class="stat-card-small">
@@ -419,10 +454,10 @@
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <button class="filter-tab active" onclick="filterPatients('all', this)">
-                    <i class="fas fa-list"></i> All patients <span class="tab-count" id="allCount">4</span>
+                    <i class="fas fa-list"></i> All patients <span class="tab-count" id="allCount">3</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('progress', this)">
-                    <i class="fas fa-spinner"></i> In Progress <span class="tab-count" id="progressCount">4</span>
+                    <i class="fas fa-spinner"></i> In Progress <span class="tab-count" id="progressCount">3</span>
                 </button>
                 <button class="filter-tab" onclick="filterPatients('completed', this)">
                     <i class="fas fa-check-circle"></i> Completed <span class="tab-count" id="completedFilterCount">0</span>
@@ -440,24 +475,11 @@
     <script>
         const patients = [
             {
-                id: 'PT002',
-                name: 'Ali Ahmed',
-                age: 25,
-                condition: 'Not specified',
-                status: 'in-progress',
-                level: 1,
-                accuracy: 75,
-                speed: 70,
-                sessions: 8,
-                avatar: 'A',
-                avatarColor: 'linear-gradient(135deg, #4299e1, #63b3ed)'
-            },
-            {
                 id: 'PT004',
                 name: 'Omar Hassan',
                 age: 9,
                 condition: 'Movement Disorder',
-                status: 'in-progress',
+                status: 'completed',
                 level: 1,
                 accuracy: 82,
                 speed: 75,
@@ -577,13 +599,13 @@
         }
 
         function updateCounts() {
-            document.getElementById('totalPatients').textContent = patients.length;
-            document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-            document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;
-            document.getElementById('allCount').textContent = patients.length;
-            document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-            document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
-        }
+    document.getElementById('totalPatients').textContent = patients.length;  // 3
+    document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;  // 2
+    document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;  // 1
+    document.getElementById('allCount').textContent = patients.length;
+    document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
+    document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
+}
 
         function viewPatientDetails(patientId) {
             window.location.href = `{% url 'doctor_patient_details' %}?patient=${patientId}`;
@@ -593,17 +615,188 @@
             window.location.href = `{% url 'doctor_messages' %}?patient=${patientId}`;
         }
 
+        // ============================================
+        // CUSTOM LOGOUT FUNCTION
+        // ============================================
         function logoutDoctor() {
-            if (confirm('Are you sure you want to log out?')) {
+            const modal = document.createElement('div');
+            modal.className = 'logout-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 30px;
+                    padding: 40px;
+                    max-width: 400px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 20px;
+                    ">
+                        <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+                    </div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+                    <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                        Are you sure you want to log out? 
+                    </p>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="confirmLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-check-circle"></i> Yes, Log Out
+                        </button>
+                        <button id="cancelLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('confirmLogout').addEventListener('click', function() {
+                modal.remove();
                 localStorage.removeItem('userType');
                 localStorage.removeItem('doctorId');
                 localStorage.removeItem('doctorName');
                 localStorage.removeItem('doctorEmail');
                 localStorage.removeItem('doctorSpecialty');
                 localStorage.removeItem('doctorPhone');
+                localStorage.removeItem('doctorAvatar');
+                
+                showNotification('Logged out successfully', 'info');
+                
+                setTimeout(() => {
+                    window.location.href = "{% url 'index' %}";
+                }, 800);
+            });
+            
+            document.getElementById('cancelLogout').addEventListener('click', function() {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
 
-                window.location.href = "{% url 'index' %}";
+        // ============================================
+        // NOTIFICATION FUNCTION
+        // ============================================
+        function showNotification(message, type = 'info') {
+            const oldNotification = document.querySelector('.custom-notification');
+            if (oldNotification) {
+                oldNotification.remove();
             }
+            
+            const notification = document.createElement('div');
+            notification.className = 'custom-notification';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            
+            const colors = {
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            };
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 12px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+                max-width: 350px;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 15px;
+                cursor: pointer;
+            `;
+            
+            notification.onclick = function() {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            };
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 4000);
         }
     </script>
 </body>

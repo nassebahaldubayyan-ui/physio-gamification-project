@@ -100,6 +100,25 @@ function validateEmail(email) {
     return re.test(email);
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    
+    // If less than 24 hours, show time
+    if (diff < 24 * 60 * 60 * 1000) {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+    // Otherwise show date
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 // ============================================
 // PATIENT LOGIN FUNCTION 
 // ============================================
@@ -299,15 +318,104 @@ async function registerUser() {
 }
 
 // ============================================
-// LOGOUT FUNCTIONS
+// LOGOUT FUNCTIONS WITH CUSTOM DIALOG
 // ============================================
 
 function logoutDoctor() {
-    if (confirm('Are you sure you want to log out?')) {
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            ">
+                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+            </div>
+            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                Are you sure you want to log out? You will need to login again to access your dashboard.
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-check-circle"></i> Yes, Log Out
+                </button>
+                <button id="cancelLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('confirmLogout').addEventListener('click', function() {
+        modal.remove();
         localStorage.removeItem('userType');
         localStorage.removeItem('doctorId');
         localStorage.removeItem('doctorName');
         localStorage.removeItem('doctorEmail');
+        localStorage.removeItem('doctorSpecialty');
         localStorage.removeItem('doctorPhone');
         localStorage.removeItem('doctorAvatar');
         
@@ -315,37 +423,246 @@ function logoutDoctor() {
         
         setTimeout(() => {
             window.location.href = '/';
-        }, 1000);
-    }
+        }, 800);
+    });
+    
+    document.getElementById('cancelLogout').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
 }
 
 function logoutPatient() {
-    if (confirm('Are you sure you want to log out?')) {
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            ">
+                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+            </div>
+            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                Are you sure you want to log out? Your progress will be saved.
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-check-circle"></i> Yes, Log Out
+                </button>
+                <button id="cancelLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('confirmLogout').addEventListener('click', function() {
+        modal.remove();
         localStorage.removeItem('userType');
         localStorage.removeItem('patientId');
         localStorage.removeItem('patientName');
         localStorage.removeItem('patientEmail');
         localStorage.removeItem('patientPhone');
         localStorage.removeItem('patientAvatar');
+        localStorage.removeItem('affectedHand');
+        localStorage.removeItem('hasAssessmentVideo');
+        localStorage.removeItem('assessmentSkipped');
         
         showNotification('Logged out successfully', 'info');
         
         setTimeout(() => {
             window.location.href = '/';
-        }, 1000);
-    }
+        }, 800);
+    });
+    
+    document.getElementById('cancelLogout').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
 }
 
 function logout() {
-    if (confirm('Are you sure you want to log out?')) {
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            ">
+                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+            </div>
+            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                Are you sure you want to log out?
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-check-circle"></i> Yes, Log Out
+                </button>
+                <button id="cancelLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('confirmLogout').addEventListener('click', function() {
+        modal.remove();
         localStorage.clear();
         
         showNotification('Logged out successfully', 'info');
         
         setTimeout(() => {
             window.location.href = '/';
-        }, 1000);
-    }
+        }, 800);
+    });
+    
+    document.getElementById('cancelLogout').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
 }
 
 // ============================================
@@ -360,7 +677,12 @@ function showNotification(message, type = 'info') {
     
     const notification = document.createElement('div');
     notification.className = 'custom-notification';
-    notification.textContent = message;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    notification.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(message)}`;
     
     const colors = {
         info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
@@ -374,16 +696,26 @@ function showNotification(message, type = 'info') {
         top: 20px;
         right: 20px;
         padding: 15px 25px;
-        border-radius: 8px;
+        border-radius: 12px;
         background: ${colors[type] || colors.info};
         color: white;
         font-weight: 500;
         z-index: 9999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         animation: slideIn 0.3s ease;
-        max-width: 300px;
+        max-width: 350px;
         text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        cursor: pointer;
     `;
+    
+    notification.onclick = function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    };
     
     document.body.appendChild(notification);
     
@@ -396,7 +728,7 @@ function showNotification(message, type = 'info') {
                 }
             }, 300);
         }
-    }, 3000);
+    }, 4000);
 }
 
 // ============================================
@@ -466,13 +798,13 @@ function formatDate(date) {
     return new Date(date).toLocaleDateString('en-US', options);
 }
 
-function formatTime(date) {
+function formatTimeAMPM(date) {
     const options = { hour: '2-digit', minute: '2-digit' };
     return new Date(date).toLocaleTimeString('en-US', options);
 }
 
 function formatDateTime(date) {
-    return `${formatDate(date)} at ${formatTime(date)}`;
+    return `${formatDate(date)} at ${formatTimeAMPM(date)}`;
 }
 
 // ============================================
@@ -499,6 +831,17 @@ function formatDateTime(date) {
                 to { opacity: 1; }
             }
             
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
             @keyframes pulse {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.05); }
@@ -519,31 +862,6 @@ function formatDateTime(date) {
         document.head.appendChild(style);
     }
 })();
-
-// ============================================
-// ASSESSMENT VIDEO FUNCTIONS
-// ============================================
-function checkAssessmentStatus() {
-    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-    const assessmentDate = localStorage.getItem('assessmentDate') || 'Never';
-    const assessmentBadge = document.getElementById('assessmentBadge');
-    const assessmentStatus = document.getElementById('assessmentStatus');
-    const assessmentDateEl = document.getElementById('assessmentDate');
-    
-    if (hasVideo) {
-        assessmentBadge.textContent = 'Completed';
-        assessmentBadge.className = 'status-badge completed';
-        assessmentDateEl.textContent = assessmentDate;
-    } else {
-        assessmentBadge.textContent = 'Not Completed';
-        assessmentBadge.className = 'status-badge pending';
-        assessmentDateEl.textContent = 'Never';
-    }
-}
-
-function goToAssessment() {
-    window.location.href = "{% url 'capture_video' %}";
-}
 
 // ============================================
 // INITIALIZATION

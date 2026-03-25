@@ -346,26 +346,6 @@
                         <tr>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div class="patient-avatar-small" style="background: linear-gradient(135deg, #4299e1, #63b3ed);">A</div>
-                                    <div>
-                                        <div style="font-weight: 600;">Ali Ahmed</div>
-                                        <div style="font-size: 13px; color: #64748b;">ID: PT002</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>25 years</td>
-                            <td>Not specified</td>
-                            <td><span style="font-weight: 600; color: #3b82f6;">Right</span></td>
-                            <td><span class="status-badge status-active">In Progress</span></td>
-                            <td>
-                                <button class="btn-details" onclick="viewPatientDetails('PT002')">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
                                     <div class="patient-avatar-small" style="background: linear-gradient(135deg, #48bb78, #68d391);">O</div>
                                     <div>
                                         <div style="font-weight: 600;">Omar Hassan</div>
@@ -376,7 +356,7 @@
                             <td>9 years</td>
                             <td>Movement Disorder</td>
                             <td><span style="font-weight: 600; color: #3b82f6;">Left</span></td>
-                            <td><span class="status-badge status-active">In Progress</span></td>
+                            <td><span class="status-badge status-active">Completed</span></td>
                             <td>
                                 <button class="btn-details" onclick="viewPatientDetails('PT004')">
                                     <i class="fas fa-eye"></i> View
@@ -464,12 +444,186 @@
             window.location.href = `{% url 'doctor_patient_details' %}?patient=${patientId}`;
         }
 
-        function logoutDoctor() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = "{% url 'index' %}";
-            }
+        // ============================================
+// CUSTOM LOGOUT FUNCTION
+// ============================================
+function logoutDoctor() {
+    const modal = document.createElement('div');
+    modal.className = 'logout-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            ">
+                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+            </div>
+            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                Are you sure you want to log out?
+            </p>
+            <div style="display: flex; gap: 15px;">
+                <button id="confirmLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-check-circle"></i> Yes, Log Out
+                </button>
+                <button id="cancelLogout" style="
+                    flex: 1;
+                    padding: 14px;
+                    background: #f1f5f9;
+                    color: #475569;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('confirmLogout').addEventListener('click', function() {
+        modal.remove();
+        localStorage.removeItem('userType');
+        localStorage.removeItem('doctorId');
+        localStorage.removeItem('doctorName');
+        localStorage.removeItem('doctorEmail');
+        localStorage.removeItem('doctorSpecialty');
+        localStorage.removeItem('doctorPhone');
+        localStorage.removeItem('doctorAvatar');
+        
+        showNotification('Logged out successfully', 'info');
+        
+        setTimeout(() => {
+            window.location.href = "{% url 'index' %}";
+        }, 800);
+    });
+    
+    document.getElementById('cancelLogout').addEventListener('click', function() {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
         }
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const oldNotification = document.querySelector('.custom-notification');
+    if (oldNotification) {
+        oldNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = 'custom-notification';
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    
+    const colors = {
+        info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+        success: 'linear-gradient(135deg, #10b981, #059669)',
+        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 12px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+        max-width: 350px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        cursor: pointer;
+    `;
+    
+    notification.onclick = function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    };
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
+}
     </script>
 </body>
 </html>

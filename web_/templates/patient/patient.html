@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Dashboard - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         * {
             margin: 0;
@@ -13,18 +14,18 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
-        
+
         .patient-dashboard {
             max-width: 1200px;
             margin: 0 auto;
             padding: 30px 20px;
         }
-        
+
         .patient-header {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 30px;
@@ -37,13 +38,13 @@
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .patient-info {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-        
+
         .patient-avatar {
             width: 70px;
             height: 70px;
@@ -58,21 +59,22 @@
             border: 3px solid white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .patient-details h2 {
             color: #1e293b;
             font-size: 28px;
             margin-bottom: 5px;
         }
-        
+
         .patient-details p {
             color: #64748b;
             font-size: 16px;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
-        
+
         .level-badge {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
@@ -81,13 +83,22 @@
             font-weight: 600;
             font-size: 14px;
         }
-        
+
+        .affected-hand-badge {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
         .header-actions {
             display: flex;
             gap: 10px;
         }
-        
-        .settings-btn, .profile-btn {
+
+        .profile-btn, .settings-btn {
             background: #f1f5f9;
             border: none;
             width: 50px;
@@ -100,24 +111,19 @@
             align-items: center;
             justify-content: center;
         }
-        
-        .settings-btn:hover {
-            background: #e2e8f0;
-            transform: rotate(90deg);
-        }
-        
-        .profile-btn:hover {
+
+        .profile-btn:hover, .settings-btn:hover {
             background: #e2e8f0;
             transform: scale(1.1);
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 25px;
             margin-bottom: 40px;
         }
-        
+
         .stat-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -129,7 +135,7 @@
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -141,7 +147,7 @@
             font-size: 24px;
             color: white;
         }
-        
+
         .stat-content h3 {
             color: #64748b;
             font-size: 13px;
@@ -149,13 +155,13 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .stat-content .stat-value {
             color: #1e293b;
             font-size: 24px;
             font-weight: 700;
         }
-        
+
         .section-title {
             color: white;
             font-size: 28px;
@@ -165,14 +171,14 @@
             gap: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-        
+
         .games-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             margin-bottom: 40px;
         }
-        
+
         .game-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 25px;
@@ -185,12 +191,12 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .game-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
-        
+
         .game-card::before {
             content: '';
             position: absolute;
@@ -199,32 +205,42 @@
             right: 0;
             height: 6px;
         }
-        
+
         .game-card:nth-child(1)::before {
             background: linear-gradient(90deg, #ffd700, #ffa500);
         }
-        
+
         .game-card:nth-child(2)::before {
             background: linear-gradient(90deg, #48bb78, #38a169);
         }
-        
+
         .game-card:nth-child(3)::before {
             background: linear-gradient(90deg, #4299e1, #3182ce);
         }
-        
+
+        .game-card.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .game-card.disabled:hover {
+            transform: none;
+        }
+
         .game-icon {
             font-size: 60px;
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .game-card h3 {
             color: #1e293b;
             font-size: 24px;
             margin-bottom: 10px;
             text-align: center;
         }
-        
+
         .game-description {
             color: #64748b;
             font-size: 14px;
@@ -233,7 +249,7 @@
             line-height: 1.5;
             min-height: 60px;
         }
-        
+
         .game-footer {
             display: flex;
             justify-content: space-between;
@@ -242,7 +258,7 @@
             padding-top: 15px;
             border-top: 1px solid #e2e8f0;
         }
-        
+
         .game-level {
             background: #f1f5f9;
             padding: 8px 16px;
@@ -251,13 +267,53 @@
             color: #667eea;
             font-size: 14px;
         }
-        
+
         .game-progress {
             color: #10b981;
             font-weight: 600;
             font-size: 14px;
         }
-        
+
+        .assessment-warning {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 2px solid #fecaca;
+        }
+
+        .assessment-warning i {
+            font-size: 20px;
+        }
+
+        .assessment-warning button {
+            padding: 10px 25px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assessment-warning button:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
         .contact-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 25px;
@@ -270,13 +326,13 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
             margin-top: 30px;
         }
-        
+
         .contact-info {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-        
+
         .doctor-avatar {
             width: 60px;
             height: 60px;
@@ -289,20 +345,20 @@
             color: #a78bfa;
             border: 2px solid #a78bfa;
         }
-        
+
         .contact-text h3 {
             color: #1e293b;
             font-size: 20px;
             margin-bottom: 5px;
         }
-        
+
         .contact-text p {
             color: #64748b;
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        
+
         .online-indicator {
             width: 8px;
             height: 8px;
@@ -310,7 +366,7 @@
             border-radius: 50%;
             display: inline-block;
         }
-        
+
         .contact-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
@@ -325,12 +381,12 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .contact-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
         }
-        
+
         .logout-btn {
             margin-top: 25px;
             padding: 15px 30px;
@@ -346,12 +402,12 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .logout-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-3px);
         }
-        
+
         .loading {
             text-align: center;
             color: white;
@@ -359,269 +415,68 @@
             padding: 50px;
         }
 
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
+        /* Custom Logout Modal Styles */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        
-        .notification.success {
-            background: linear-gradient(135deg, #10b981, #059669);
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-        
-        .notification.info {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        }
-        
-        .game-card.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            cursor: not-allowed;
-        }
-        
-        .game-card.disabled:hover {
-            transform: none;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-        }
-        
-        .assessment-warning {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            border: 2px solid #fecaca;
-        }
-        
-        .assessment-warning i {
-            font-size: 20px;
-        }
-        
-        .assessment-warning button {
-            padding: 10px 25px;
-            background: #dc2626;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .assessment-warning button:hover {
-            background: #b91c1c;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
-        }
-        
-        .camera-dialog {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-        
-        .dialog-content {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .dialog-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-        
-        .dialog-title {
-            color: #1e293b;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        
-        .dialog-text {
-            color: #64748b;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        
-        .dialog-small {
-            color: #94a3b8;
-            font-size: 14px;
-        }
-        
-        .camera-info-box {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .camera-info-title {
-            color: #1e293b;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .camera-info-text {
-            color: #64748b;
-            font-size: 14px;
-        }
-        
-        .dialog-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .btn-primary, .btn-secondary {
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            flex: 2;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        .btn-secondary {
-            flex: 1;
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-primary:hover, .btn-secondary:hover {
-            transform: translateY(-2px);
-        }
-        
-        .warning-text {
-            color: #ef4444;
-            font-size: 13px;
-            margin-top: 15px;
-            font-weight: 500;
-        }
-        
-        .loading-dialog {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10001;
-        }
-        
-        .loading-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-        }
-        
-        .loading-spinner {
-            font-size: 40px;
-            color: #667eea;
-            animation: spin 1s linear infinite;
-        }
-        
-        .loading-text {
-            margin-top: 15px;
-            color: #1e293b;
-        }
-        
+
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        .custom-notification {
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        
+
+        .custom-notification:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
             .games-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        
+
         @media (max-width: 768px) {
             .patient-header {
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
             }
-            
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            
             .games-grid {
                 grid-template-columns: 1fr;
             }
-            
             .contact-section {
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
-            }
-            
-            .dialog-buttons {
-                flex-direction: column;
             }
         }
     </style>
@@ -635,10 +490,11 @@
                     <span id="avatarText">A</span>
                 </div>
                 <div class="patient-details">
-                    <h2 id="patientName">Ali Ahmed</h2>
+                    <h2 id="patientName">Loading...</h2>
                     <p>
-                        <span>ID: <span id="patientId">PT002</span></span>
-                        <span class="level-badge" id="patientCondition">Not specified</span>
+                        <span>ID: <span id="patientId">---</span></span>
+                        <span class="level-badge" id="patientCondition">Loading...</span>
+                        <span class="affected-hand-badge" id="affectedHandBadge">Loading...</span>
                     </p>
                 </div>
             </div>
@@ -658,30 +514,39 @@
                 <div class="stat-icon"><i class="fas fa-bullseye"></i></div>
                 <div class="stat-content">
                     <h3>Accuracy</h3>
-                    <div class="stat-value" id="patientAccuracy">75%</div>
+                    <div class="stat-value" id="patientAccuracy">0%</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
                 <div class="stat-content">
                     <h3>Shoulder Strength</h3>
-                    <div class="stat-value" id="shoulderStrength">75%</div>
+                    <div class="stat-value" id="shoulderStrength">0%</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-rotate"></i></div>
                 <div class="stat-content">
                     <h3>External Rotation</h3>
-                    <div class="stat-value" id="externalRotation">70%</div>
+                    <div class="stat-value" id="externalRotation">0%</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-clock"></i></div>
                 <div class="stat-content">
                     <h3>Sessions</h3>
-                    <div class="stat-value" id="totalSessions">8</div>
+                    <div class="stat-value" id="totalSessions">0</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Assessment Warning -->
+        <div class="assessment-warning" id="assessmentWarning" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            Please complete your initial assessment video to unlock games.
+            <button onclick="window.location.href='{% url 'capture_video' %}'">
+                <i class="fas fa-video"></i> Take Assessment Now
+            </button>
         </div>
 
         <!-- Games Section -->
@@ -696,7 +561,7 @@
                 <p class="game-description">Reach up to catch stars. Targets shoulder elevation and elbow movement.</p>
                 <div class="game-footer">
                     <span class="game-level" id="game1Level">Level 1</span>
-                    <span class="game-progress" id="game1Progress">75%</span>
+                    <span class="game-progress" id="game1Progress">0%</span>
                 </div>
             </div>
 
@@ -706,7 +571,7 @@
                 <p class="game-description">Match objects to colors. Full upper extremity workout.</p>
                 <div class="game-footer">
                     <span class="game-level" id="game2Level">Level 1</span>
-                    <span class="game-progress" id="game2Progress">75%</span>
+                    <span class="game-progress" id="game2Progress">0%</span>
                 </div>
             </div>
 
@@ -716,7 +581,7 @@
                 <p class="game-description">External rotation training. Prevents contractures.</p>
                 <div class="game-footer">
                     <span class="game-level" id="game3Level">Level 1</span>
-                    <span class="game-progress" id="game3Progress">75%</span>
+                    <span class="game-progress" id="game3Progress">0%</span>
                 </div>
             </div>
         </div>
@@ -751,14 +616,14 @@
         // ============================================
         // GLOBAL VARIABLES
         // ============================================
-        const userType = localStorage.getItem('userType');
-        const patientId = localStorage.getItem('patientId') || 'PT002';
-        const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
-        const affectedHand = localStorage.getItem('affectedHand') || 'right';
+        let patientId = localStorage.getItem('patientId') || '7';
+        let patientName = localStorage.getItem('patientName') || 'Amal';
+        let affectedHand = localStorage.getItem('affectedHand') || 'right';
         
         let hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-        let assessmentChecked = false;
-
+        let assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+        let assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
+        
         // ============================================
         // INITIALIZATION
         // ============================================
@@ -768,41 +633,130 @@
         });
 
         // ============================================
+        // LOAD PATIENT DATA
+        // ============================================
+        function loadPatientData() {
+            // Get data from localStorage
+            patientId = localStorage.getItem('patientId') || '7';
+            patientName = localStorage.getItem('patientName') || 'Amal';
+            affectedHand = localStorage.getItem('affectedHand') || 'right';
+            
+            // Update UI with patient info
+            document.getElementById('patientName').textContent = patientName;
+            document.getElementById('patientId').textContent = patientId;
+            document.getElementById('avatarText').textContent = patientName.charAt(0).toUpperCase();
+            
+            // Set affected hand badge
+            const handText = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
+            const affectedHandBadge = document.getElementById('affectedHandBadge');
+            if (affectedHandBadge) {
+                affectedHandBadge.textContent = handText;
+            }
+            
+            // Check if patient has completed assessment
+            hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+            assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+            
+            // For new patient - all data is 0
+            if (!hasVideo && !assessmentCompleted) {
+                // New patient - show zeros
+                document.getElementById('patientCondition').textContent = 'New Patient';
+                document.getElementById('patientAccuracy').textContent = '0%';
+                document.getElementById('shoulderStrength').textContent = '0%';
+                document.getElementById('externalRotation').textContent = '0%';
+                document.getElementById('totalSessions').textContent = '0';
+                document.getElementById('game1Progress').textContent = '0%';
+                document.getElementById('game2Progress').textContent = '0%';
+                document.getElementById('game3Progress').textContent = '0%';
+            } 
+            // For existing patients
+            else if (patientId === '4') {
+                document.getElementById('patientCondition').textContent = 'Movement Disorder';
+                document.getElementById('patientAccuracy').textContent = '82%';
+                document.getElementById('shoulderStrength').textContent = '82%';
+                document.getElementById('externalRotation').textContent = '75%';
+                document.getElementById('totalSessions').textContent = '12';
+                document.getElementById('game1Progress').textContent = '82%';
+                document.getElementById('game2Progress').textContent = '82%';
+                document.getElementById('game3Progress').textContent = '82%';
+            } else if (patientId === '5') {
+                document.getElementById('patientCondition').textContent = 'Arm Weakness';
+                document.getElementById('patientAccuracy').textContent = '79%';
+                document.getElementById('shoulderStrength').textContent = '79%';
+                document.getElementById('externalRotation').textContent = '72%';
+                document.getElementById('totalSessions').textContent = '10';
+                document.getElementById('game1Progress').textContent = '79%';
+                document.getElementById('game2Progress').textContent = '79%';
+                document.getElementById('game3Progress').textContent = '79%';
+            } else if (patientId === '6') {
+                document.getElementById('patientCondition').textContent = 'Motor Disability';
+                document.getElementById('patientAccuracy').textContent = '81%';
+                document.getElementById('shoulderStrength').textContent = '81%';
+                document.getElementById('externalRotation').textContent = '73%';
+                document.getElementById('totalSessions').textContent = '15';
+                document.getElementById('game1Progress').textContent = '81%';
+                document.getElementById('game2Progress').textContent = '81%';
+                document.getElementById('game3Progress').textContent = '81%';
+            } else {
+                // Default for any other patient ID
+                document.getElementById('patientCondition').textContent = 'Patient';
+                document.getElementById('patientAccuracy').textContent = '0%';
+                document.getElementById('shoulderStrength').textContent = '0%';
+                document.getElementById('externalRotation').textContent = '0%';
+                document.getElementById('totalSessions').textContent = '0';
+                document.getElementById('game1Progress').textContent = '0%';
+                document.getElementById('game2Progress').textContent = '0%';
+                document.getElementById('game3Progress').textContent = '0%';
+            }
+            
+            // Hide loading, show dashboard
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+        }
+
+        // ============================================
         // CHECK ASSESSMENT STATUS
         // ============================================
         function checkAssessmentStatus() {
-            // Check if user is new (no assessment video)
+            // Get assessment status from localStorage
             const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-            const assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
-            const firstTime = localStorage.getItem('firstTime') === null;
+            const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+            const isFirstTime = localStorage.getItem('firstTime') === null;
             
-            assessmentChecked = true;
+            console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
             
-            // If first time login and no video
-            if (firstTime && !hasVideo && !assessmentSkipped) {
-                console.log('New patient - showing assessment dialog');
+            // Case 1: User has already completed assessment
+            if (hasVideo || assessmentCompleted) {
+                console.log('User has completed assessment');
+                enableGameCards();
+                return;
+            }
+            
+            // Case 2: User is new (first time)
+            if (isFirstTime) {
+                console.log('First time user - showing assessment dialog');
                 localStorage.setItem('firstTime', 'false');
                 setTimeout(() => {
                     showAssessmentDialog();
                 }, 2000);
-            } else if (!hasVideo && !assessmentSkipped) {
-                // Returning user without video
-                console.log('Returning patient without video');
+                return;
+            }
+            
+            // Case 3: Returning user who hasn't completed assessment
+            if (!hasVideo && !assessmentCompleted) {
+                console.log('Returning user without assessment - showing warning');
                 disableGameCards();
-            } else if (hasVideo) {
-                // User with video
-                console.log('Patient has assessment video');
-                enableGameCards();
+                return;
             }
         }
 
         // ============================================
-        // ASSESSMENT DIALOG
+        // SHOW ASSESSMENT DIALOG
         // ============================================
         function showAssessmentDialog() {
             // Check if already shown in this session
             if (sessionStorage.getItem('assessmentShownThisSession')) {
-                console.log('Assessment already shown in this session');
+                console.log('Assessment already shown this session');
                 return;
             }
             
@@ -812,30 +766,77 @@
                 existingDialog.remove();
             }
             
-            // Create dialog
             const dialog = document.createElement('div');
             dialog.className = 'camera-dialog';
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease;
+            `;
+            
             dialog.innerHTML = `
-                <div class="dialog-content">
-                    <div class="dialog-icon">📹</div>
-                    <h3 class="dialog-title">Initial Assessment Required</h3>
-                    <p class="dialog-text">
+                <div style="
+                    background: white;
+                    border-radius: 30px;
+                    padding: 40px;
+                    max-width: 450px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Initial Assessment Required</h3>
+                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
                         Welcome! As this is your first time, we need to record an assessment video.<br>
-                        <span class="dialog-small">This helps us track your progress and customize your therapy plan.</span>
+                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
                     </p>
-                    <div class="camera-info-box">
-                        <p class="camera-info-title">Camera permission needed:</p>
-                        <p class="camera-info-text">We'll need access to your camera to record the assessment. This is a one-time requirement.</p>
+                    <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
+                        <p style="color: #1e293b; font-weight: 600; margin-bottom: 5px;">Camera permission needed:</p>
+                        <p style="color: #64748b; font-size: 14px;">We'll need access to your camera to record the assessment. This is a one-time requirement.</p>
                     </div>
-                    <div class="dialog-buttons">
-                        <button class="btn-primary" id="cameraYes">
+                    <div style="display: flex; gap: 15px;">
+                        <button id="cameraYes" style="
+                            flex: 2;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #10b981, #059669);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
                             <i class="fas fa-video"></i> Allow Camera & Record
                         </button>
-                        <button class="btn-secondary" id="cameraNo">
+                        <button id="cameraNo" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
                             Not Now
                         </button>
                     </div>
-                    <p class="warning-text">
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 15px; font-weight: 500;">
                         ⚠️ You cannot play games until you complete the assessment.
                     </p>
                 </div>
@@ -844,7 +845,6 @@
             document.body.appendChild(dialog);
             sessionStorage.setItem('assessmentShownThisSession', 'true');
             
-            // Add event listeners
             document.getElementById('cameraYes').addEventListener('click', function() {
                 dialog.remove();
                 requestCameraAndGoToVideo();
@@ -863,25 +863,31 @@
         // ============================================
         async function requestCameraAndGoToVideo() {
             try {
-                // Show loading dialog
                 const loadingDialog = document.createElement('div');
-                loadingDialog.className = 'loading-dialog';
+                loadingDialog.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                `;
                 loadingDialog.innerHTML = `
-                    <div class="loading-content">
-                        <i class="fas fa-spinner loading-spinner"></i>
-                        <p class="loading-text">Requesting camera access...</p>
+                    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #667eea;"></i>
+                        <p style="margin-top: 15px; color: #1e293b;">Requesting camera access...</p>
                     </div>
                 `;
                 document.body.appendChild(loadingDialog);
                 
-                // Request camera access
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 stream.getTracks().forEach(track => track.stop());
                 
-                // Remove loading dialog
                 loadingDialog.remove();
-                
-                // Go to capture video page
                 window.location.href = "{% url 'capture_video' %}";
                 
             } catch (error) {
@@ -896,17 +902,12 @@
         // ============================================
         function checkGameAccess(gameNumber) {
             const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+            const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
             const assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
             
-            if (hasVideo) {
-                // User has completed assessment
+            if (hasVideo || assessmentCompleted) {
                 goToGame(gameNumber);
-            } else if (assessmentSkipped) {
-                // User skipped but still no video
-                showNotification('Please complete your initial assessment video first.', 'error');
-                showAssessmentDialog();
             } else {
-                // New user without video
                 showNotification('Please complete your initial assessment video first.', 'error');
                 showAssessmentDialog();
             }
@@ -932,19 +933,9 @@
                 card.setAttribute('title', 'Complete initial assessment to play games');
             });
             
-            // Add warning message if not exists
-            if (!document.querySelector('.assessment-warning')) {
-                const gamesSection = document.querySelector('.section-title');
-                const warningMsg = document.createElement('div');
-                warningMsg.className = 'assessment-warning';
-                warningMsg.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    Please complete your initial assessment video to unlock games.
-                    <button onclick="window.location.href='{% url 'capture_video' %}'">
-                        <i class="fas fa-video"></i> Take Assessment Now
-                    </button>
-                `;
-                gamesSection.parentNode.insertBefore(warningMsg, gamesSection.nextSibling);
+            const warningEl = document.getElementById('assessmentWarning');
+            if (warningEl) {
+                warningEl.style.display = 'flex';
             }
         }
 
@@ -958,110 +949,189 @@
             // Remove warning message if exists
             const warningMsg = document.querySelector('.assessment-warning');
             if (warningMsg) {
-                warningMsg.remove();
-            }
-        }
-
-        // ============================================
-        // LOAD PATIENT DATA
-        // ============================================
-        function loadPatientData() {
-            const patientId = localStorage.getItem('patientId') || 'PT002';
-            const patientName = localStorage.getItem('patientName') || 'Ali Ahmed';
-            
-            document.getElementById('patientName').textContent = patientName;
-            document.getElementById('patientId').textContent = patientId;
-            document.getElementById('avatarText').textContent = patientName.charAt(0);
-            
-            // Set data based on patient ID - matching your database
-            if (patientId === 'PT002') {
-                document.getElementById('patientCondition').textContent = 'Not specified';
-                document.getElementById('patientAccuracy').textContent = '75%';
-                document.getElementById('shoulderStrength').textContent = '75%';
-                document.getElementById('externalRotation').textContent = '70%';
-                document.getElementById('totalSessions').textContent = '8';
-                document.getElementById('game1Level').textContent = 'Level 1';
-                document.getElementById('game1Progress').textContent = '75%';
-                document.getElementById('game2Level').textContent = 'Level 1';
-                document.getElementById('game2Progress').textContent = '75%';
-                document.getElementById('game3Level').textContent = 'Level 1';
-                document.getElementById('game3Progress').textContent = '75%';
-            } else if (patientId === 'PT004') {
-                document.getElementById('patientCondition').textContent = 'Movement Disorder';
-                document.getElementById('patientAccuracy').textContent = '82%';
-                document.getElementById('shoulderStrength').textContent = '82%';
-                document.getElementById('externalRotation').textContent = '75%';
-                document.getElementById('totalSessions').textContent = '12';
-                document.getElementById('game1Level').textContent = 'Level 1';
-                document.getElementById('game1Progress').textContent = '82%';
-                document.getElementById('game2Level').textContent = 'Level 1';
-                document.getElementById('game2Progress').textContent = '82%';
-                document.getElementById('game3Level').textContent = 'Level 1';
-                document.getElementById('game3Progress').textContent = '82%';
-            } else if (patientId === 'PT005') {
-                document.getElementById('patientCondition').textContent = 'Arm Weakness';
-                document.getElementById('patientAccuracy').textContent = '79%';
-                document.getElementById('shoulderStrength').textContent = '79%';
-                document.getElementById('externalRotation').textContent = '72%';
-                document.getElementById('totalSessions').textContent = '10';
-                document.getElementById('game1Level').textContent = 'Level 1';
-                document.getElementById('game1Progress').textContent = '79%';
-                document.getElementById('game2Level').textContent = 'Level 1';
-                document.getElementById('game2Progress').textContent = '79%';
-                document.getElementById('game3Level').textContent = 'Level 1';
-                document.getElementById('game3Progress').textContent = '79%';
-            } else if (patientId === 'PT006') {
-                document.getElementById('patientCondition').textContent = 'Motor Disability';
-                document.getElementById('patientAccuracy').textContent = '81%';
-                document.getElementById('shoulderStrength').textContent = '81%';
-                document.getElementById('externalRotation').textContent = '73%';
-                document.getElementById('totalSessions').textContent = '15';
-                document.getElementById('game1Level').textContent = 'Level 1';
-                document.getElementById('game1Progress').textContent = '81%';
-                document.getElementById('game2Level').textContent = 'Level 1';
-                document.getElementById('game2Progress').textContent = '81%';
-                document.getElementById('game3Level').textContent = 'Level 1';
-                document.getElementById('game3Progress').textContent = '81%';
+                warningMsg.style.display = 'none';
             }
             
-            // Show dashboard
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+            // Ensure localStorage is set correctly
+            localStorage.setItem('hasAssessmentVideo', 'true');
+            localStorage.setItem('assessmentCompleted', 'true');
         }
 
         // ============================================
         // NOTIFICATION SYSTEM
         // ============================================
-        function showNotification(message, type = 'success') {
+        function showNotification(message, type = 'info') {
+            const oldNotification = document.querySelector('.custom-notification');
+            if (oldNotification) {
+                oldNotification.remove();
+            }
+            
             const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = message;
+            notification.className = 'custom-notification';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            
+            const colors = {
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            };
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 12px;
+                background: ${colors[type] || colors.info};
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+                max-width: 350px;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 15px;
+                cursor: pointer;
+            `;
+            
+            notification.onclick = function() {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            };
             
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
             }, 4000);
         }
 
         // ============================================
-        // LOGOUT FUNCTION
+        // CUSTOM LOGOUT FUNCTION
         // ============================================
         function logoutPatient() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.removeItem('userType');
-                localStorage.removeItem('patientId');
-                localStorage.removeItem('patientName');
-                localStorage.removeItem('patientEmail');
-                localStorage.removeItem('patientPhone');
-                localStorage.removeItem('affectedHand');
-                localStorage.removeItem('hasAssessmentVideo');
-                localStorage.removeItem('assessmentSkipped');
+            const modal = document.createElement('div');
+            modal.className = 'logout-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 30px;
+                    padding: 40px;
+                    max-width: 400px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 20px;
+                    ">
+                        <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+                    </div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+                    <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                        Are you sure you want to log out?
+                    </p>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="confirmLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-check-circle"></i> Yes, Log Out
+                        </button>
+                        <button id="cancelLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('confirmLogout').addEventListener('click', function() {
+                modal.remove();
+                localStorage.clear();
                 sessionStorage.clear();
-                
-                window.location.href = "{% url 'index' %}";
-            }
+                showNotification('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = "{% url 'index' %}";
+                }, 800);
+            });
+            
+            document.getElementById('cancelLogout').addEventListener('click', function() {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
         }
     </script>
 </body>
