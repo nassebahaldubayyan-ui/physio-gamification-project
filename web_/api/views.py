@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
+from django.db import models
 from .models import Users, Messages, Patients, Doctors
 import json
 

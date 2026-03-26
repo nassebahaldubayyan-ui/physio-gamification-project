@@ -5,27 +5,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rehabilitation System - Welcome</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .welcome-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-page::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><circle cx="50" cy="50" r="40" stroke="white" stroke-width="2" fill="none"/><circle cx="50" cy="50" r="20" stroke="white" stroke-width="2" fill="none"/></svg>');
+            background-repeat: repeat;
+            animation: rotate 60s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .welcome-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            width: 500px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .welcome-title {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .welcome-subtitle {
+            color: #64748b;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        .role-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 20px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-btn:hover {
+            transform: translateY(-10px);
+        }
+
+        .doctor-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .patient-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .role-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-container {
+                width: 90%;
+                padding: 30px;
+            }
+            .role-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="welcome-page">
-        <div class="floating-shapes">
-            <div class="shape shape1"></div>
-            <div class="shape shape2"></div>
-            <div class="shape shape3"></div>
-        </div>
-        
         <div class="welcome-container">
             <h1 class="welcome-title">WELCOME</h1>
             <p class="welcome-subtitle">LOGIN AS</p>
-            
+
             <div class="role-buttons">
                 <button class="role-btn patient-btn" onclick="window.location.href='{% url 'gamer_login' %}'">
+                    <div class="role-icon"><i class="fas fa-gamepad"></i></div>
                     <span>A GAMER</span>
                     <span style="font-size: 14px; opacity: 0.8;">Patient Interface</span>
                 </button>
-                
+
                 <button class="role-btn doctor-btn" onclick="window.location.href='{% url 'doctor_login' %}'">
+                    <div class="role-icon"><i class="fas fa-stethoscope"></i></div>
                     <span>A DOCTOR</span>
                     <span style="font-size: 14px; opacity: 0.8;">Therapist Interface</span>
                 </button>
