@@ -388,3 +388,12 @@ def api_update_assessment_status(request):
 
 def api_test(request):
     return JsonResponse({"message": "Django backend working"})
+
+
+def about_us(request):
+    """About Us page"""
+    return render(request, 'about-us.html')
+
+def contact_us(request):
+    """Contact Us page"""
+    return render(request, 'contact-us.html')

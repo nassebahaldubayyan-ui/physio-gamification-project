@@ -1,207 +1,272 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Login - Rehabilitation System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Doctor Login - rehabbo</title>
+<style>
+:root {
+    --header-height: 52px;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --doctor-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    --doctor-light: rgba(59, 130, 246, 0.2);
+}
 
-        .login-page {
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            position: relative;
-            overflow: hidden;
-        }
+html, body {
+    min-height: 100%;
+}
 
-        .login-page::before {
-            content: '';
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><circle cx="50" cy="50" r="40" stroke="white" stroke-width="2" fill="none"/><circle cx="50" cy="50" r="20" stroke="white" stroke-width="2" fill="none"/></svg>');
-            background-repeat: repeat;
-            animation: rotate 60s linear infinite;
-        }
+body {
+    margin: 0;
+    background: #ffffff;
+    color: #111827;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+/* Header */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    min-height: var(--header-height);
+    padding: 6px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
 
-        .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 50px;
-            border-radius: 30px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            width: 450px;
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 10;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
+.brand {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+}
 
-        .login-icon {
-            font-size: 60px;
-            color: #3b82f6;
-            margin-bottom: 20px;
-        }
+.back-link {
+    color: inherit;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid rgba(17, 24, 39, 0.16);
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.65);
+    transition: all 0.2s;
+}
 
-        .login-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
+.back-link:hover {
+    border-color: rgba(17, 24, 39, 0.35);
+}
 
-        .login-subtitle {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 30px;
-        }
+/* Background Shapes */
+.bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+}
 
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+.shape {
+    position: absolute;
+    box-shadow: 0 18px 45px rgba(17, 24, 39, 0.06);
+    opacity: 0.85;
+}
 
-        .input-label {
-            display: block;
-            color: #1e293b;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
+.s1 { width: 260px; height: 180px; left: -70px; top: 80px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2)); border-radius: 72px; }
+.s2 { width: 150px; height: 190px; right: 3%; top: 105px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(29, 78, 216, 0.2)); border-radius: 42px; }
+.s3 { width: 220px; height: 180px; left: 6%; bottom: 12%; background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.2)); border-radius: 52% 48% 60% 40% / 45% 55% 45% 55%; }
+.s4 { width: 170px; height: 170px; right: 6%; bottom: 14%; background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(109, 40, 217, 0.2)); border-radius: 50px; }
 
-        .input-field {
-            width: 100%;
-            padding: 15px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
+/* Content */
+.content {
+    min-height: 100vh;
+    padding: calc(var(--header-height) + 40px) 18px 40px;
+    display: grid;
+    place-items: center;
+}
 
-        .input-field:focus {
-            border-color: #3b82f6;
-            outline: none;
-        }
+.card {
+    width: min(520px, 92vw);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+    padding: 32px 28px;
+}
 
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+h1 {
+    margin: 0 0 6px;
+    font-size: clamp(30px, 4vw, 40px);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-        .login-btn:hover {
-            transform: translateY(-3px);
-        }
+p {
+    margin: 0 0 24px;
+    color: rgba(17, 24, 39, 0.7);
+}
 
-        .back-btn {
-            margin-top: 20px;
-            padding: 12px 20px;
-            background: #f1f5f9;
-            color: #475569;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+.field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
 
-        .back-btn:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-        }
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
 
-        .error-message {
-            color: #ef4444;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-        }
+input {
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 0 16px;
+    font: inherit;
+    transition: all 0.2s;
+    background: white;
+}
 
-        .loading {
-            color: #3b82f6;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-        }
+input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
 
-        @media (max-width: 768px) {
-            .login-container {
-                width: 90%;
-                padding: 30px;
-            }
-        }
-    </style>
+button {
+    margin-top: 8px;
+    width: 100%;
+    height: 48px;
+    border: 0;
+    border-radius: 14px;
+    font: inherit;
+    font-weight: 650;
+    font-size: 16px;
+    color: white;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 12px;
+    display: none;
+    text-align: center;
+}
+
+loading {
+    color: #3b82f6;
+    font-size: 14px;
+    margin-top: 12px;
+    display: none;
+    text-align: center;
+}
+</style>
 </head>
 <body>
-    <div class="login-page">
-        <div class="login-container">
-            <div class="login-icon">
-                <i class="fas fa-user-md"></i>
-            </div>
-            <h2 class="login-title">Doctor Login</h2>
-            <p class="login-subtitle">Enter your credentials to access the dashboard</p>
+<header class="header">
+    <a class="brand" href="{% url 'index' %}">rehabbo</a>
+    <a class="back-link" href="{% url 'index' %}">← Back Home</a>
+</header>
 
-            <div class="input-group">
-                <label class="input-label">Email</label>
-                <input type="email" class="input-field" id="doctorEmail" placeholder="Enter your email">
-            </div>
+<div class="bg" aria-hidden="true">
+    <div class="shape s1"></div>
+    <div class="shape s2"></div>
+    <div class="shape s3"></div>
+    <div class="shape s4"></div>
+</div>
 
-            <div class="input-group">
-                <label class="input-label">Password</label>
-                <input type="password" class="input-field" id="doctorPassword" placeholder="Enter your password">
-            </div>
+<main class="content">
+    <section class="card">
+        <h1>Doctor Login</h1>
+        <p>Sign in to manage patients and rehab sessions.</p>
 
-            <div class="error-message" id="errorMessage"></div>
-            <div class="loading" id="loading">Logging in...</div>
-
-            <button class="login-btn" onclick="loginDoctor()">
-                <i class="fas fa-sign-in-alt"></i> Login to Dashboard
-            </button>
-
-            <button class="back-btn" onclick="window.location.href='{% url 'index' %}'">
-                <i class="fas fa-arrow-left"></i> Back to Main Menu
-            </button>
+        <div class="field">
+            <label>Email</label>
+            <input id="doctor_email" type="email" placeholder="doctor@rehabbo.com" />
         </div>
-    </div>
+        <div class="field">
+            <label>Password</label>
+            <input id="doctor_password" type="password" placeholder="Enter your password" />
+        </div>
 
-    <script src="{% static 'js/script.js' %}"></script>
-    <script>
-        document.getElementById('doctorPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginDoctor();
-            }
+        <div class="error-message" id="errorMessage"></div>
+        <div class="loading" id="loading">Logging in...</div>
+
+        <button onclick="loginDoctor()">
+            <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+        </button>
+    </section>
+</main>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script>
+async function loginDoctor() {
+    const email = document.getElementById('doctor_email').value.trim();
+    const password = document.getElementById('doctor_password').value.trim();
+    const errorEl = document.getElementById('errorMessage');
+    const loadingEl = document.getElementById('loading');
+    
+    if (!email || !password) {
+        errorEl.textContent = 'Please enter both email and password';
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    errorEl.style.display = 'none';
+    loadingEl.style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
         });
-    </script>
+        
+        const data = await response.json();
+        
+        if (data.success && data.user.role === 'doctor') {
+            localStorage.setItem('userType', 'doctor');
+            localStorage.setItem('doctorId', data.user.id);
+            localStorage.setItem('doctorName', data.user.name);
+            localStorage.setItem('doctorEmail', data.user.email);
+            localStorage.setItem('doctorPhone', data.user.phone || '');
+            window.location.href = '/doctor/';
+        } else {
+            errorEl.textContent = data.error || 'Invalid email or password';
+            errorEl.style.display = 'block';
+        }
+    } catch (error) {
+        errorEl.textContent = 'Connection error. Please try again.';
+        errorEl.style.display = 'block';
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+</script>
 </body>
 </html>
