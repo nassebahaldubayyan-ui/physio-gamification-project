@@ -139,7 +139,6 @@
             text-align: right;
         }
         
-        /* Main content with camera and analysis */
         .main-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -159,21 +158,30 @@
             width: 100%;
             max-width: 640px;
             margin: 0 auto;
+            background: #0f172a;
+            border-radius: 10px;
+            min-height: 480px;
+            overflow: hidden;
         }
         
-        video, canvas {
-            transform: scaleX(-1);
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
+        /* Hidden video element - positioned off-screen but still capturing */
+        .hidden-video {
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            width: 640px;
+            height: 480px;
+            visibility: visible;
+            transform: none;
         }
         
         canvas {
-            position: absolute;
-            left: 0;
-            top: 0;
+            #transform: scaleX(-1);
             width: 100%;
-            height: 100%;
+            height: auto;
+            border-radius: 10px;
+            display: block;
+            background: #0f172a;
         }
         
         .analysis-panel {
@@ -379,6 +387,11 @@
             color: #166534;
         }
         
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
         .button-group {
             display: flex;
             justify-content: center;
@@ -411,6 +424,16 @@
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .loading-text {
+            color: #94a3b8;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
     </style>
 </head>
@@ -518,8 +541,13 @@
             <!-- Camera Section -->
             <div class="camera-section">
                 <div class="video-wrapper">
-                    <video id="video" width="640" height="480" autoplay muted></video>
-                    <canvas id="canvas" width="640" height="480"></canvas>
+                    <!-- Hidden video element - positioned off-screen but still capturing -->
+                    <video id="video" class="hidden-video" width="640" height="480" autoplay muted playsinline></video>
+                    <!-- Canvas displays the processed frames with AI landmarks -->
+                    <canvas id="processedCanvas" width="640" height="480"></canvas>
+                    <div id="loadingText" class="loading-text" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading AI analysis...
+                    </div>
                 </div>
             </div>
             
@@ -528,7 +556,7 @@
                 <h3>
                     <i class="fas fa-robot"></i> 
                     AI Movement Analysis
-                    <span class="status-badge status-success" id="aiStatus">Active</span>
+                    <span class="status-badge status-success" id="aiStatus">Connecting...</span>
                 </h3>
                 
                 <!-- Injured Hand Info -->
@@ -633,8 +661,9 @@
         // GLOBAL VARIABLES
         // ============================================
         const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const processedCanvas = document.getElementById('processedCanvas');
+        const ctx = processedCanvas.getContext('2d');
+        const loadingText = document.getElementById('loadingText');
 
         let mediaRecorder;
         let recordedChunks = [];
@@ -643,6 +672,12 @@
         let seconds = 0;
         let currentMovementIndex = 0;
         let isRecording = false;
+        
+        // WebSocket variables
+        let ws;
+        let frameInterval;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
         
         const movements = [
             { id: 'move1', name: 'Grip Strength', duration: 15 },
@@ -660,6 +695,139 @@
             affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
 
         // ============================================
+        // WEBSOCKET FUNCTIONS
+        // ============================================
+        
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/pose-detection/`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('✅ WebSocket connected');
+                reconnectAttempts = 0;
+                document.getElementById('aiStatus').textContent = 'Active';
+                document.getElementById('aiStatus').className = 'status-badge status-success';
+                if (loadingText) loadingText.style.display = 'none';
+                showNotification('AI analysis connected!', 'success');
+                
+                // Send injured hand info
+                const injuredHand = localStorage.getItem('affectedHand') || 'right';
+                ws.send(JSON.stringify({
+                    'injured_hand': injuredHand,
+                    'patient_id': 25
+                }));
+                
+                startFrameCapture();
+            };
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'pose_data') {
+                    // Update angle displays
+                    document.getElementById('leftShoulderAngle').textContent = data.angles.left_shoulder;
+                    document.getElementById('leftElbowAngle').textContent = data.angles.left_elbow;
+                    document.getElementById('rightShoulderAngle').textContent = data.angles.right_shoulder;
+                    document.getElementById('rightElbowAngle').textContent = data.angles.right_elbow;
+                    
+                    // Update feedback
+                    document.getElementById('feedbackText').innerHTML = `
+                        <i class="fas fa-robot"></i> ${data.feedback}
+                    `;
+                    
+                    // Draw processed frame with landmarks on canvas - MIRRORED
+                    if (data.frame) {
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.clearRect(0, 0, processedCanvas.width, processedCanvas.height);
+                            // Mirror the image horizontally (mirror effect)
+                            ctx.save();
+                            ctx.translate(processedCanvas.width, 0);
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(img, 0, 0, processedCanvas.width, processedCanvas.height);
+                            ctx.restore();
+                        };
+                        img.src = `data:image/jpeg;base64,${data.frame}`;
+                    }
+                }
+            };
+            
+            ws.onclose = function() {
+                console.log('❌ WebSocket disconnected');
+                document.getElementById('aiStatus').textContent = 'Reconnecting...';
+                document.getElementById('aiStatus').className = 'status-badge status-warning';
+                showNotification('AI analysis disconnected. Reconnecting...', 'info');
+                stopFrameCapture();
+                
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 3000);
+                } else {
+                    document.getElementById('aiStatus').textContent = 'Offline';
+                    document.getElementById('aiStatus').className = 'status-badge status-warning';
+                    showNotification('AI analysis offline. Refresh page to reconnect.', 'error');
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                showNotification('AI analysis connection error', 'error');
+            };
+        }
+        
+        function startFrameCapture() {
+            if (frameInterval) clearInterval(frameInterval);
+            
+            // Wait for video to have dimensions
+            if (video.videoWidth === 0) {
+                video.addEventListener('loadedmetadata', function() {
+                    frameInterval = setInterval(() => {
+                        if (ws && ws.readyState === WebSocket.OPEN && video.videoWidth > 0) {
+                            captureAndSendFrame();
+                        }
+                    }, 100);
+                });
+            } else {
+                frameInterval = setInterval(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN && video.videoWidth > 0) {
+                        captureAndSendFrame();
+                    }
+                }, 100);
+            }
+        }
+        
+        function stopFrameCapture() {
+            if (frameInterval) {
+                clearInterval(frameInterval);
+                frameInterval = null;
+            }
+        }
+        
+        function captureAndSendFrame() {
+            if (!video.videoWidth || !video.videoHeight) return;
+            
+            // Create temporary canvas to capture the current frame
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw the current video frame (original, no landmarks)
+            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Convert to base64 with lower quality for faster transmission
+            const frameData = tempCanvas.toDataURL('image/jpeg', 0.6);
+            
+            // Send to WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    frame: frameData
+                }));
+            }
+        }
+
+        // ============================================
         // CAMERA PERMISSION FUNCTION
         // ============================================
         
@@ -674,6 +842,30 @@
                     audio: false
                 });
                 
+                video.srcObject = videoStream;
+                
+                // Wait for video to be ready
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+                
+                // Show loading on canvas
+                if (loadingText) loadingText.style.display = 'block';
+                
+                // Draw initial loading message on canvas
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, processedCanvas.width, processedCanvas.height);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Starting camera and AI analysis...', processedCanvas.width/2, processedCanvas.height/2);
+                
+                // Connect WebSocket after camera is ready
+                connectWebSocket();
+                
                 // Hide permission box, show everything else
                 document.getElementById('permissionBox').style.display = 'none';
                 document.getElementById('instructionsBox').style.display = 'block';
@@ -684,11 +876,9 @@
                 document.getElementById('timer').style.display = 'block';
                 document.getElementById('controls').style.display = 'flex';
                 
-                video.srcObject = videoStream;
-                
             } catch (error) {
+                console.error('Camera error:', error);
                 alert('Camera access is required for assessment. Please allow camera access and try again.');
-                console.error(error);
             }
         }
 
@@ -745,21 +935,17 @@
                 seconds++;
                 updateTimerDisplay();
                 
-                // Update progress bar
                 const progress = (seconds / totalDuration) * 100;
                 document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
                 
-                // Update current movement based on time
                 const movementIndex = Math.floor(seconds / 15);
                 if (movementIndex < movements.length && movementIndex !== currentMovementIndex) {
                     currentMovementIndex = movementIndex;
                     updateCurrentMovement();
                 }
                 
-                // Update movement timers
                 updateMovementTimers();
                 
-                // Auto stop after all movements
                 if (seconds >= totalDuration) {
                     stopRecording();
                     showNotification('Assessment complete! You can now save the video.', 'success');
@@ -812,6 +998,8 @@
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             
+            stopFrameCapture();
+            
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
             }
@@ -819,6 +1007,11 @@
             video.srcObject = null;
             video.src = url;
             video.controls = true;
+            video.classList.remove('hidden-video');
+            video.style.position = 'relative';
+            video.style.top = '0';
+            video.style.left = '0';
+            processedCanvas.style.display = 'none';
             video.play();
             
             showNotification('Playing recording', 'info');
@@ -831,7 +1024,25 @@
                 videoStream.getTracks().forEach(track => track.stop());
             }
             
-            // Reinitialize camera
+            if (ws) {
+                ws.close();
+            }
+            stopFrameCapture();
+            
+            // Reset display
+            processedCanvas.style.display = 'block';
+            video.classList.add('hidden-video');
+            video.style.position = 'fixed';
+            
+            // Show loading
+            if (loadingText) loadingText.style.display = 'block';
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, processedCanvas.width, processedCanvas.height);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Restarting camera...', processedCanvas.width/2, processedCanvas.height/2);
+            
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
                     width: { ideal: 640 },
@@ -845,13 +1056,14 @@
                 video.src = '';
                 video.controls = false;
                 
+                connectWebSocket();
+                
                 document.getElementById('playBtn').disabled = true;
                 document.getElementById('saveBtn').disabled = true;
                 document.getElementById('retakeBtn').disabled = true;
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
                 
-                // Reset timers
                 movements.forEach(movement => {
                     document.getElementById(`${movement.id}Timer`).textContent = '0s / 15s';
                     document.getElementById(movement.id).classList.remove('active');
@@ -876,13 +1088,10 @@
                 return;
             }
             
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            
             try {
                 document.getElementById('saveBtn').disabled = true;
                 document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
                 
-                // Simulate API call - in production, replace with actual Django endpoint
                 setTimeout(() => {
                     showNotification('✅ Assessment video saved successfully!', 'success');
                     localStorage.setItem('hasAssessmentVideo', 'true');
@@ -905,6 +1114,10 @@
 
         function goBack() {
             if (confirm('Are you sure? Your recording will not be saved.')) {
+                if (ws) {
+                    ws.close();
+                }
+                stopFrameCapture();
                 if (videoStream) {
                     videoStream.getTracks().forEach(track => track.stop());
                 }
@@ -912,7 +1125,6 @@
             }
         }
 
-        // Helper function for notifications
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
             notification.textContent = message;
@@ -944,8 +1156,11 @@
             }, 3000);
         }
 
-        // Clean up on page unload
         window.addEventListener('beforeunload', function() {
+            if (ws) {
+                ws.close();
+            }
+            stopFrameCapture();
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
             }
