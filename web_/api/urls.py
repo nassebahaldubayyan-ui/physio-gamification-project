@@ -44,6 +44,8 @@ urlpatterns = [
     path('games/catching-objects/', views.game_catching_objects, name='game_catching_objects'),
     path('games/matching/', views.game_matching, name='game_matching'),
     
+    path('games/chicken/', views.game_chicken, name='game_chicken'),
+    
     # New pages
     path('about-us/', views.about_us, name='about_us'),
     path('contact-us/', views.contact_us, name='contact_us'),

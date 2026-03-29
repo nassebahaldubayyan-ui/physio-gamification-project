@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game</title>
+</head>
+<body>
+
+<h1>Therapeutic Game</h1>
+
+<iframe id="unityFrame"
+        src="/static/index.html"
+        width="100%"
+        height="600">
+</iframe>
+
+<video id="video" autoplay playsinline style="position:absolute; top:0; left:0; width:200px;"></video>
+ 
+
+<!-- <video id="camera" autoplay playsinline style="display:none;"></video>
+<canvas id="canvas"></canvas> -->
+
+
+
+
+<script type="module">
+import {
+  PoseLandmarker,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+const video = document.getElementById("video");
+
+// open camera
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    video.srcObject = stream;
+});
+
+// load mediapipe model
+const vision = await FilesetResolver.forVisionTasks(
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+);
+
+const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+  baseOptions: {
+    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task"
+  },
+  runningMode: "VIDEO",
+  numPoses: 1
+});
+
+let lastTime = -1;
+
+function detect() {
+    const now = performance.now();
+
+    if (video.readyState >= 2) {
+        const result = poseLandmarker.detectForVideo(video, now);
+
+        if (result.landmarks.length > 0) {
+            let lm = result.landmarks[0];
+
+            // 👇 THIS = SAME AS YOUR PYTHON
+            let handX = 1 - lm[16].x;
+
+            let min_hand = 0.4;
+            let max_hand = 0.75;
+
+            handX = (handX - min_hand) / (max_hand - min_hand);
+            handX = Math.max(0, Math.min(1, handX));
+
+            // 🚀 SEND TO UNITY
+            sendToUnity(handX);
+        }
+    }
+
+    requestAnimationFrame(detect);
+}
+
+detect();
+
+// send to Unity
+function sendToUnity(handX) {
+    const iframe = document.getElementById("unityFrame");
+
+    iframe.contentWindow.postMessage({
+        type: "hand",
+        value: handX
+    }, "*");
+}
+</script>
+
+<video id="video" autoplay playsinline style="display:none;"></video>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest"></script>
+
+<script>
+let unityInstance;
+
+// get unity instance
+window.addEventListener("message", function(e) {
+    if (e.data === "unityReady") {
+        unityInstance = document.querySelector("iframe").contentWindow;
+    }
+});
+</script>
+<script type="module" src="/static/js/hand.js"></script>
+
+<script>
+const video = document.getElementById("video");
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    video.srcObject = stream;
+});
+
+// fake AI (replace later with MediaPipe)
+function detectHand() {
+    let handX = Math.random(); // replace with real AI
+
+    // send to Unity
+    const iframe = document.getElementById("unityFrame");
+    iframe.contentWindow.postMessage({
+        type: "hand",
+        value: handX
+    }, "*");
+
+    // send to backend
+    sendData(handX);
+
+    requestAnimationFrame(detectHand);
+}
+
+detectHand();
+</script>
+
+</body>
+</html>

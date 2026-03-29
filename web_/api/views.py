@@ -102,6 +102,10 @@ def game_matching(request):
     return render(request, 'games/game-matching.html')
 
 
+def game_chicken(request):
+    return render(request, 'games/chicken.html')
+
+
 # ========== APIs ==========
 
 @csrf_exempt
