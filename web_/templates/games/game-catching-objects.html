@@ -7,344 +7,138 @@
     <title>Catching Objects - Therapeutic Game</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        body {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        body { 
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            padding: 20px; 
         }
-        
-        .game-container {
-            max-width: 1000px;
-            width: 100%;
+
+        .game-container { 
+            max-width: 1000px; 
+            width: 100%; 
         }
-        
-        .game-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 30px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: white;
+
+        .game-header { 
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); 
+            border-radius: 20px; 
+            padding: 20px 30px; 
+            margin-bottom: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 2px solid rgba(255, 255, 255, 0.2); 
+            color: white; 
         }
-        
-        .game-title h2 {
-            font-size: 28px;
-            margin-bottom: 5px;
-            color: #60a5fa;
-            text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
-        }
-        
-        .game-title p {
-            color: #a0aec0;
-            font-size: 16px;
-        }
-        
-        .game-stats {
-            display: flex;
-            gap: 25px;
-        }
-        
-        .stat {
-            text-align: center;
-        }
-        
-        .stat-label {
-            color: #a0aec0;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #60a5fa;
-        }
-        
+
+        .game-title h2 { font-size: 24px; color: #60a5fa; }
+
+        /* 🛠️ FIXED: Game Screen Container */
         .game-screen {
-            background: #0f3460;
-            border-radius: 30px;
-            padding: 40px;
-            margin-bottom: 25px;
-            border: 3px solid #60a5fa;
-            box-shadow: 0 20px 40px rgba(96, 165, 250, 0.3);
-            position: relative;
-            overflow: hidden;
-            min-height: 450px;
-        }
-        
-        .rotation-game {
-            position: relative;
-            height: 350px;
-            background: linear-gradient(180deg, #87CEEB, #4682B4);
+            background: #000;
             border-radius: 20px;
-            overflow: hidden;
-        }
-        
-        .falling-object {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: #ff6347;
-            border-radius: 50%;
-            animation: fallObject 2s linear infinite;
-            box-shadow: 0 0 15px rgba(255, 99, 71, 0.5);
-        }
-        
-        .falling-object::before {
-            content: '⚪';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 20px;
-        }
-        
-        @keyframes fallObject {
-            from { top: -40px; }
-            to { top: 100%; }
-        }
-        
-        .rotating-basket {
-            position: absolute;
-            bottom: 20px;
-            width: 100px;
-            height: 60px;
-            background: #8b4513;
-            border-radius: 0 0 30px 30px;
-            transition: transform 0.1s ease, left 0.1s ease;
-            transform-origin: center center;
-            border: 3px solid #654321;
-        }
-        
-        .rotating-basket::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            width: 70px;
-            height: 10px;
-            background: #a0522d;
-            border-radius: 5px 5px 0 0;
-        }
-        
-        .rotating-basket::after {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 25px;
-            width: 50px;
-            height: 25px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 50%;
-        }
-        
-        .rotation-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            border: 1px solid #60a5fa;
-        }
-        
-        .therapy-info {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-        
-        .therapy-info h3 {
-            color: #60a5fa;
             margin-bottom: 20px;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .muscle-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .muscle-group {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-        }
-        
-        .muscle-group h4 {
-            color: #60a5fa;
-            margin-bottom: 12px;
-            font-size: 16px;
-            border-bottom: 1px solid rgba(96, 165, 250, 0.3);
-            padding-bottom: 8px;
-        }
-        
-        .muscle-list {
-            list-style: none;
-        }
-        
-        .muscle-list li {
-            color: #a0aec0;
-            font-size: 14px;
-            margin-bottom: 8px;
-            padding-left: 20px;
+            border: 3px solid #60a5fa;
             position: relative;
-        }
-        
-        .muscle-list li::before {
-            content: '🔄';
-            position: absolute;
-            left: 0;
-            font-size: 12px;
-        }
-        
-        .benefits-list {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        
-        .benefit-item {
-            background: rgba(96, 165, 250, 0.1);
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            color: #60a5fa;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid rgba(96, 165, 250, 0.3);
-        }
-        
-        .score-board {
+            overflow: hidden;
+            /* Using aspect-ratio ensures the game doesn't "cut off" */
+            width: 100%;
+            aspect-ratio: 16 / 9; 
+            max-height: 550px; 
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50px;
-            padding: 15px 25px;
-            margin-bottom: 25px;
-        }
-        
-        .score {
-            font-size: 32px;
-            font-weight: 700;
-            color: #60a5fa;
-        }
-        
-        .score-label {
-            color: white;
-            font-size: 16px;
-        }
-        
-        .rotation-angle {
-            font-size: 24px;
-            color: #60a5fa;
-            font-family: monospace;
-        }
-        
-        .game-controls {
-            display: flex;
-            gap: 15px;
             justify-content: center;
-            margin-top: 25px;
+            align-items: center;
         }
-        
-        .btn-game {
-            padding: 15px 40px;
+
+        #unityFrame {
+            width: 100%;
+            height: 100%;
             border: none;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+
+        /* 📷 AI Overlay */
+        #handCanvas {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 160px; /* Small PIP (Picture-in-Picture) style */
+            height: 120px;
             border: 2px solid #60a5fa;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            z-index: 10;
+            pointer-events: none;
+            transform: scaleX(-1);
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(96, 165, 250, 0.4);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(96, 165, 250, 0.2);
-            transform: translateY(-5px);
-        }
-        
-        .btn-back {
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: rgba(255, 255, 255, 0.1);
+
+        /* Stats Board */
+        .score-board { 
+            display: flex; 
+            justify-content: space-around; 
+            background: rgba(0,0,0,0.4); 
+            border-radius: 50px; 
+            padding: 15px; 
+            margin-bottom: 20px; 
             color: white;
-            border: 2px solid #60a5fa;
-            border-radius: 50px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        
-        .btn-back:hover {
-            background: rgba(96, 165, 250, 0.2);
-            transform: translateY(-3px);
+
+        .score-label { color: #a0aec0; font-size: 14px; margin-right: 8px; }
+        .score-value { color: #60a5fa; font-weight: bold; font-size: 20px; }
+
+        /* 📋 Restored Instructions & Muscle Info */
+        .therapy-info { 
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); 
+            border-radius: 20px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            border: 2px solid rgba(255, 255, 255, 0.2); 
+            color: white; 
         }
-        
-        @media (max-width: 768px) {
-            .muscle-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .benefits-list {
-                grid-template-columns: 1fr;
-            }
-            
-            .game-controls {
-                flex-direction: column;
-            }
+
+        .muscle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .muscle-group { background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 15px; }
+        .muscle-group h4 { color: #60a5fa; margin-bottom: 10px; border-bottom: 1px solid rgba(96, 165, 250, 0.3); }
+        .muscle-list { list-style: none; font-size: 14px; color: #a0aec0; }
+        .muscle-list li { margin-bottom: 5px; padding-left: 20px; position: relative; }
+        .muscle-list li::before { content: '🔄'; position: absolute; left: 0; font-size: 10px; }
+
+        .benefits-list { 
+            margin-top: 15px; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 10px; 
         }
+        .benefit-item { 
+            background: rgba(96, 165, 250, 0.1); 
+            border-radius: 8px; 
+            padding: 10px; 
+            text-align: center; 
+            color: #60a5fa; 
+            font-size: 13px; 
+            border: 1px solid rgba(96, 165, 250, 0.3); 
+        }
+
+        .btn-back { 
+            padding: 12px 25px; 
+            background: rgba(255, 255, 255, 0.1); 
+            color: white; 
+            border: 2px solid #60a5fa; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        .btn-back:hover { background: rgba(96, 165, 250, 0.2); }
     </style>
 </head>
 <body>
+
     <div class="game-container">
         <div class="game-header">
             <div class="game-title">
@@ -353,44 +147,25 @@
             </div>
             <div class="game-stats">
                 <div class="stat">
-                    <div class="stat-label">Patient</div>
-                    <div class="stat-value" id="patientName">Ali</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-label">Level</div>
-                    <div class="stat-value" id="patientLevel">5</div>
+                    <span class="score-label">Patient:</span>
+                    <span class="score-value" id="patientName">Ali</span>
                 </div>
             </div>
         </div>
 
         <div class="game-screen">
-            <div class="rotation-game" id="rotationGame">
-                <div class="falling-object" style="left: 30%;"></div>
-                <div class="falling-object" style="left: 60%;"></div>
-                <div class="rotating-basket" id="rotatingBasket" style="left: 50%; transform: rotate(0deg);"></div>
-                <div class="rotation-indicator" id="rotationIndicator">
-                    External Rotation: 0°
-                </div>
-            </div>
+            <iframe id="unityFrame" src="/static/index.html" allow="camera; microphone"></iframe>
+            <video id="video" autoplay playsinline style="display:none"></video>
+            <canvas id="handCanvas" width="640" height="480"></canvas>
         </div>
 
         <div class="score-board">
-            <div>
-                <span class="score-label">Score:</span>
-                <span class="score" id="score">0</span>
-            </div>
-            <div>
-                <span class="score-label">Caught:</span>
-                <span class="score" id="caughtCount">0</span>
-            </div>
-            <div>
-                <span class="score-label">Rotation:</span>
-                <span class="rotation-angle" id="rotationDisplay">0°</span>
-            </div>
+            <div><span class="score-label">Current Score:</span><span class="score-value" id="score">0</span></div>
+            <div><span class="score-label">Rotation Angle:</span><span class="score-value" id="rotationDisplay">0°</span></div>
         </div>
 
         <div class="therapy-info">
-            <h3>💪 Muscles Targeted</h3>
+            <h3>💪 Muscles Targeted & Goals</h3>
             <div class="muscle-grid">
                 <div class="muscle-group">
                     <h4>External Rotators</h4>
@@ -420,153 +195,31 @@
             </div>
         </div>
 
-        <div class="game-controls">
-            <button class="btn-game btn-primary" onclick="startGame()">
-                <span>▶️</span> Start Game
-            </button>
-            <button class="btn-game btn-secondary" onclick="pauseGame()">
-                <span>⏸️</span> Pause
-            </button>
-        </div>
-
         <button class="btn-back" onclick="window.location.href='{% url 'patient_dashboard' %}'">
-            <span>←</span> Back to Dashboard
+            ← Back to Dashboard
         </button>
     </div>
 
-    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let score = 0;
-        let caught = 0;
-        let gameActive = false;
-        let gameInterval;
-        let currentRotation = 0;
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const patientName = localStorage.getItem('patientName') || 'Ali';
-            const patientLevel = localStorage.getItem('patientLevel') || '5';
-            
-            document.getElementById('patientName').textContent = patientName;
-            document.getElementById('patientLevel').textContent = patientLevel;
-            
-            document.addEventListener('mousemove', function(e) {
-                if (!gameActive) return;
-                
-                const gameScreen = document.querySelector('.game-screen');
-                const rect = gameScreen.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const relativeX = Math.max(10, Math.min(90, (x / rect.width) * 100));
-                
-                const basket = document.getElementById('rotatingBasket');
-                
-                const rotation = (relativeX - 50) * 0.8;
-                currentRotation = Math.round(rotation);
-                
-                basket.style.left = relativeX + '%';
-                basket.style.transform = `rotate(${rotation}deg)`;
-                
-                document.getElementById('rotationDisplay').textContent = rotation + '°';
-                document.getElementById('rotationIndicator').textContent = `External Rotation: ${rotation}°`;
-            });
-            
-            setupCollisionDetection();
-        });
-        
-        function setupCollisionDetection() {
-            gameInterval = setInterval(() => {
-                if (!gameActive) return;
-                
-                const objects = document.querySelectorAll('.falling-object');
-                const basket = document.getElementById('rotatingBasket');
-                
-                objects.forEach(obj => {
-                    const objRect = obj.getBoundingClientRect();
-                    const basketRect = basket.getBoundingClientRect();
-                    
-                    if (objRect.bottom >= basketRect.top && 
-                        objRect.left >= basketRect.left - 20 && 
-                        objRect.right <= basketRect.right + 20) {
-                        
-                        score += 15;
-                        caught++;
-                        obj.remove();
-                        updateScore();
-                        showNotification('✓ Caught! +15 points', 'success');
-                        
-                        if (document.querySelectorAll('.falling-object').length < 3) {
-                            addNewObject();
-                        }
-                    }
-                });
-            }, 100);
-        }
-        
-        function addNewObject() {
-            const gameArea = document.getElementById('rotationGame');
-            const newObj = document.createElement('div');
-            newObj.className = 'falling-object';
-            newObj.style.left = Math.random() * 70 + 15 + '%';
-            newObj.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
-            gameArea.appendChild(newObj);
-        }
-        
-        function updateScore() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('caughtCount').textContent = caught;
-        }
-        
-        function startGame() {
-            gameActive = true;
-            score = 0;
-            caught = 0;
-            updateScore();
-            
-            document.querySelectorAll('.falling-object').forEach(obj => obj.remove());
-            
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => addNewObject(), i * 500);
+        window.unityInstance = null;
+
+        // Catch Unity Ready Signal
+        window.addEventListener("message", (e) => {
+            if (e.data.type === "unityReady") {
+                const iframe = document.getElementById("unityFrame");
+                window.unityInstance = iframe.contentWindow.unityInstance;
+                console.log("✅ Unity linked successfully");
             }
-            
-            showNotification('Game started! Use external rotation to catch objects! 🔄');
-        }
-        
-        function pauseGame() {
-            gameActive = !gameActive;
-            showNotification(gameActive ? 'Game resumed' : 'Game paused');
-        }
-        
-        function endGame() {
-            gameActive = false;
-            clearInterval(gameInterval);
-            localStorage.setItem('lastSessionScore', score);
-            localStorage.setItem('lastSessionAccuracy', Math.round((caught/30)*100));
-            window.location.href = "{% url 'patient_result' %}?game=3";
-        }
-        
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            
-            const colors = {
-                success: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
-                error: 'linear-gradient(135deg, #f56565, #e53e3e)'
-            };
-            
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: ${colors[type] || colors.success};
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 2000);
+        });
+
+        // Use this function in your ai/hand.js to update the dashboard text
+        function updateDashboard(score, angle) {
+            document.getElementById('score').textContent = score;
+            document.getElementById('rotationDisplay').textContent = Math.round(angle) + '°';
         }
     </script>
+
+    <script type="module" src="{% static 'ai/hand.js' %}"></script>
+
 </body>
 </html>
