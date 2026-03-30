@@ -606,6 +606,16 @@
                             <span class="angle-unit">°</span>
                         </span>
                     </div>
+                    <div class="angle-item" style="border-top: 2px solid #e2e8f0; margin-top: 10px; padding-top: 15px;">
+                        <span class="angle-label">
+                            <i class="fas fa-hand-paper"></i> Hand Status
+                        </span>
+                        <span>
+                            <span id="handStateValue" style="font-size: 20px; font-weight: 800; text-transform: uppercase; color: #64748b;">
+                                Detecting...
+                            </span>
+                        </span>
+                    </div>
                 </div>
                 
                 <!-- Real-time Feedback -->
@@ -730,7 +740,18 @@
                     document.getElementById('leftElbowAngle').textContent = data.angles.left_elbow;
                     document.getElementById('rightShoulderAngle').textContent = data.angles.right_shoulder;
                     document.getElementById('rightElbowAngle').textContent = data.angles.right_elbow;
-                    
+                    // --- NEW: Update Hand State ---
+                    const handStateElem = document.getElementById('handStateValue');
+                    if (data.hand_state) {
+                        handStateElem.textContent = data.hand_state; // Expected values: "Open" or "Closed"
+                        
+                        // Dynamic Coloring for better visibility
+                        if (data.hand_state.toLowerCase() === 'open') {
+                            handStateElem.style.color = '#10b981'; // Success Green
+                        } else if (data.hand_state.toLowerCase() === 'closed') {
+                            handStateElem.style.color = '#ef4444'; // Danger Red
+                        }
+                    }
                     // Update feedback
                     document.getElementById('feedbackText').innerHTML = `
                         <i class="fas fa-robot"></i> ${data.feedback}

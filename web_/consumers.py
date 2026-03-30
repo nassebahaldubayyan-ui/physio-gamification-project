@@ -100,13 +100,14 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
                 )
                 
                 if result:
-                    processed_frame, angles, feedback, max_values = result
+                    processed_frame, angles, feedback, max_values, hand_state = result
                     await self.send(text_data=json.dumps({
                         'type': 'pose_data',
                         'angles': angles,
                         'feedback': feedback,
                         'frame': processed_frame,
-                        'max_values': max_values
+                        'max_values': max_values,
+                        'hand_state': hand_state
                     }))
             
             elif 'injured_hand' in data:
@@ -139,7 +140,7 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
             
             # Process hand detection
             hand_result = self.hand_landmarker.detect_for_video(mp_image, timestamp_ms)
-            self.process_hand(frame, hand_result, w, h)
+            hand_state = self.process_hand(frame, hand_result, w, h)
             
             # Process pose detection
             pose_result = self.pose_landmarker.detect_for_video(mp_image, timestamp_ms)
@@ -163,12 +164,12 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
                 feedback = self.generate_feedback(angles)
             
             # Draw max values
-            cv2.putText(frame, f"Max Shoulder: {int(self.max_shoulder)}", (20, h - 60),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-            cv2.putText(frame, f"Max Elbow: {int(self.max_elbow)}", (20, h - 30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-            cv2.putText(frame, f"Max Grip: {int(self.max_grip)}%", (20, h - 90),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            #cv2.putText(frame, f"Max Shoulder: {int(self.max_shoulder)}", (20, h - 60),
+            #           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            #cv2.putText(frame, f"Max Elbow: {int(self.max_elbow)}", (20, h - 30),
+            #           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            #cv2.putText(frame, f"Max Grip: {int(self.max_grip)}%", (20, h - 90),
+            #           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             
             # Encode back to base64
             _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
@@ -180,7 +181,7 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
                 'grip': self.max_grip
             }
             
-            return processed_frame, angles, feedback, max_values
+            return processed_frame, angles, feedback, max_values , hand_state
             
         except Exception as e:
             print(f"❌ Process error: {e}")
@@ -262,15 +263,21 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
                 open_percentage = int(((avg_angle - 60) / (180 - 60)) * 100)
                 open_percentage = max(0, min(100, open_percentage))
                 closed_percentage = 100 - open_percentage
+                if closed_percentage > 70:
+                    return "Closed"
+                elif closed_percentage < 30:
+                    return "Open"
+                else:
+                    return "Moving..." # Intermediate state
+        return "Not Detected"
+                #if closed_percentage > self.max_grip:
+                #    self.max_grip = closed_percentage
                 
-                if closed_percentage > self.max_grip:
-                    self.max_grip = closed_percentage
-                
-                text_x = 30 if self.injured_hand == 'left' else w - 200
-                cv2.putText(frame, f"Open: {open_percentage}%", (text_x, 120),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-                cv2.putText(frame, f"Closed: {closed_percentage}%", (text_x, 160),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                #text_x = 30 if self.injured_hand == 'left' else w - 200
+                #cv2.putText(frame, f"Open: {open_percentage}%", (text_x, 120),
+                #           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                #cv2.putText(frame, f"Closed: {closed_percentage}%", (text_x, 160),
+                #           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
     
     def process_left_side(self, frame, landmarks, w, h):
         """Process left side from your original code"""
@@ -289,10 +296,10 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
         if elbow_angle > self.max_elbow:
             self.max_elbow = elbow_angle
         
-        cv2.putText(frame, f"L Shoulder: {int(shoulder_angle)}", (20, 40),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-        cv2.putText(frame, f"L Elbow: {int(elbow_angle)}", (20, 70),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+        #cv2.putText(frame, f"L Shoulder: {int(shoulder_angle)}", (20, 40),
+        #           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+        #cv2.putText(frame, f"L Elbow: {int(elbow_angle)}", (20, 70),
+        #           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
         
         return {
             'left_shoulder': int(shoulder_angle),
@@ -318,10 +325,10 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
         if elbow_angle > self.max_elbow:
             self.max_elbow = elbow_angle
         
-        cv2.putText(frame, f"R Shoulder: {int(shoulder_angle)}", (w - 220, 40),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-        cv2.putText(frame, f"R Elbow: {int(elbow_angle)}", (w - 220, 70),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+        #cv2.putText(frame, f"R Shoulder: {int(shoulder_angle)}", (w - 220, 40),
+        #           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+        #cv2.putText(frame, f"R Elbow: {int(elbow_angle)}", (w - 220, 70),
+        #           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
         
         return {
             'left_shoulder': 0,
