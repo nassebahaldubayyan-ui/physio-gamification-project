@@ -115,11 +115,18 @@
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
               }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
+    loadingBar.style.display = "none";
+
+    window.unityInstance = unityInstance;
+
+    window.parent.postMessage({
+        type: "unityReady"
+    }, "*");
+
+    fullscreenButton.onclick = () => {
+        unityInstance.SetFullscreen(1);
+    };
+}).catch((message) => {
                 alert(message);
               });
             };
@@ -127,12 +134,5 @@
       document.body.appendChild(script);
 
     </script>
-    <script>
-window.addEventListener("message", function(event) {
-    if (event.data.type === "hand") {
-        unityInstance.SendMessage("Basket", "SetHandX", event.data.value.toString());
-    }
-});
-</script>
   </body>
 </html>
