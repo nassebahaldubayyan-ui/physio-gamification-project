@@ -1,6 +1,6 @@
 import sqlite3
 
-#NDB_PATH = "C:\\Users\\Dell\\physio-gamification-project-grad\\rehab.db"
+#NDB_PATH = "C:\Users\Dell\physio-gamification-project-grad\web_\rehabdatabase.db"
 SDB_PATH = "C:\\Users\\sh210\\aiphysio\\AI_model_for_physioGamification\\rehab.db"
 
 class DatabaseManager:
