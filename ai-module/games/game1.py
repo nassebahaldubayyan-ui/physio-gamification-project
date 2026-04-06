@@ -191,7 +191,8 @@ class CatchStarsTracker:
 if __name__ == "__main__":
     # Provide the path to your hand_landmarker.task model file
     # You can download it from MediaPipe or use the one from Unity package
-    MODEL_PATH = r"C:\Users\Dell\physio-gamification-project-grad\ai-module\hand_landmarker.task"   # change to actual path
+    #MODEL_PATH = r"C:\Users\Dell\physio-gamification-project-grad\ai-module\hand_landmarker.task"   # change to actual path
+    MODEL_PATH = r"C:\Users\Mulik\physio-gamification-project\ai-module\hand_landmarker.task"
     tracker = CatchStarsTracker(injured_hand="left", unity_ip="127.0.0.1",
                                 unity_port=5052, model_path=MODEL_PATH)
     tracker.run()

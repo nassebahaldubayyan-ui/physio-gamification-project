@@ -14,8 +14,10 @@ from assessment.initial_assessment import InitialAssessment
 from games.game_logic import CatchGame
 from games.game_session import GameSession
 
-POSE_MODEL_PATH = "pose_landmarker_full.task"
-HAND_MODEL_PATH = "hand_landmarker.task"
+#POSE_MODEL_PATH = "pose_landmarker_full.task"
+#HAND_MODEL_PATH = "hand_landmarker.task"
+POSE_MODEL_PATH = r"C:\Users\Mulik\physio-gamification-project\ai-module\pose_landmarker_full.task"
+HAND_MODEL_PATH = r"C:\Users\Mulik\physio-gamification-project\ai-module\hand_landmarker.task"
 
 BaseOptions = python.BaseOptions
 VisionRunningMode = vision.RunningMode

@@ -1,12 +1,13 @@
 import sqlite3
 
 #NDB_PATH = "C:\Users\Dell\physio-gamification-project-grad\web_\rehabdatabase.db"
-SDB_PATH = "C:\\Users\\sh210\\aiphysio\\AI_model_for_physioGamification\\rehab.db"
+#SDB_PATH = "C:\\Users\\sh210\\aiphysio\\AI_model_for_physioGamification\\rehab.db"
+MDB_PATH = r"C:\Users\Mulik\physio-gamification-project\web_\rehabdatabase.db"
 
 class DatabaseManager:
 
     def get_affected_arm(self, user_id):
-        conn = sqlite3.connect(SDB_PATH)
+        conn = sqlite3.connect(MDB_PATH)
         cursor = conn.cursor()
 
         cursor.execute("SELECT affected_arm FROM patients WHERE user_id = ?", (user_id,))
@@ -17,7 +18,7 @@ class DatabaseManager:
     # fetch injured hand from database for given user_id either "left" or "right" from patients table
 
     def get_stats(self, user_id):
-        conn = sqlite3.connect(SDB_PATH)
+        conn = sqlite3.connect(MDB_PATH)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -57,7 +58,7 @@ class DatabaseManager:
     # fetch strength for given user_id from database from patients table to be used as refrence
 
     def submit_game_session(self, user_id, shoulder_activation, shoulder_external_rotation, shoulder_internal_rotation, elbow_activation, wrist_activation, max_thumb, max_index, max_middle, max_ring, max_pinky):
-        conn = sqlite3.connect(SDB_PATH)
+        conn = sqlite3.connect(MDB_PATH)
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -94,7 +95,7 @@ class DatabaseManager:
     # submit game session data to database for given user_id in game_sessions table
 
     def update_strengths(self, user_id, shoulder_strength, shoulder_ext_rotation, shoulder_int_rotation, elbow_strength, wrist_strength, max_thumb, max_index, max_middle, max_ring, max_pinky):
-        conn = sqlite3.connect(SDB_PATH)
+        conn = sqlite3.connect(MDB_PATH)
         cursor = conn.cursor()
 
         cursor.execute("""
