@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Patient Profile - Rehabilitation System</title>
+    <title>Patient Profile - Rehabilitation System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
@@ -24,8 +24,8 @@
             padding: 20px;
         }
 
-        .edit-container {
-            max-width: 800px;
+        .profile-container {
+            max-width: 900px;
             width: 100%;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 30px;
@@ -35,7 +35,7 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        .edit-header {
+        .profile-header {
             display: flex;
             align-items: center;
             gap: 20px;
@@ -63,27 +63,134 @@
             transform: translateX(-5px);
         }
 
-        .edit-header h2 {
+        .profile-header h2 {
             color: #1e293b;
             font-size: 32px;
             font-weight: 700;
         }
 
+        /* Avatar Section */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+            border: 4px solid white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-upload, .btn-delete-avatar {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-delete-avatar {
+            background: #f1f5f9;
+            color: #dc2626;
+        }
+
+        .btn-delete-avatar:hover {
+            background: #fee2e2;
+            transform: translateY(-2px);
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-card h3 {
+            color: #1e293b;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h3 i {
+            color: #667eea;
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-label {
             display: block;
-            color: #1e293b;
+            color: #64748b;
+            font-size: 12px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
-            font-size: 14px;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 14px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
@@ -99,33 +206,21 @@
 
         .form-input:disabled {
             background: #f1f5f9;
-            color: #64748b;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
 
-        .form-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            background: white;
+        select.form-input:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
 
-        .form-select:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
+        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid #f1f5f9;
         }
@@ -139,6 +234,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-save {
@@ -160,185 +259,482 @@
             background: #e2e8f0;
             transform: translateY(-3px);
         }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 25px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .avatar-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .avatar-modal-content {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+            overflow: hidden;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
-    <div class="edit-container">
-        <div class="edit-header">
+    <div class="profile-container">
+        <div class="profile-header">
             <button class="back-btn" onclick="goBack()">←</button>
-            <h2>✏️ Edit Patient Profile</h2>
+            <h2><i class="fas fa-user-circle"></i> Edit Profile</h2>
         </div>
 
-        <form id="editForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-input" id="fullName">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Patient ID</label>
-                    <input type="text" class="form-input" id="patientId" disabled>
-                </div>
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+            <div class="avatar-large" id="avatarLarge">
+                <span id="avatarText">A</span>
             </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="email">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="tel" class="form-input" id="phone">
-                </div>
+            <div class="avatar-buttons">
+                <button class="btn-upload" onclick="showAvatarUploadModal()">
+                    <i class="fas fa-camera"></i> Upload Avatar
+                </button>
+                <button class="btn-delete-avatar" onclick="deleteAvatar()">
+                    <i class="fas fa-trash-alt"></i> Delete Avatar
+                </button>
             </div>
+        </div>
 
-            <div class="form-row">
+        <div class="info-grid">
+            <!-- Personal Information Card -->
+            <div class="info-card">
+                <h3><i class="fas fa-id-card"></i> Personal Information</h3>
                 <div class="form-group">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" class="form-input" id="dob">
+                    <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" class="form-input" id="fullNameInput" disabled>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Gender</label>
-                    <select class="form-select" id="gender">
+                    <label class="form-label"><i class="fas fa-id-card"></i> Patient ID</label>
+                    <input type="text" class="form-input" id="patientIdInput" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" class="form-input" id="emailInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-phone"></i> Phone</label>
+                    <input type="tel" class="form-input" id="phoneInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-calendar-alt"></i> Date of Birth</label>
+                    <input type="date" class="form-input" id="dobInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                    <select class="form-input" id="genderInput" disabled>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                     </select>
                 </div>
             </div>
 
-            <div class="form-row">
+            <!-- Medical Information Card -->
+            <div class="info-card">
+                <h3><i class="fas fa-hospital"></i> Medical Information</h3>
                 <div class="form-group">
-                    <label class="form-label">Medical Condition</label>
-                    <input type="text" class="form-input" id="condition">
+                    <label class="form-label"><i class="fas fa-stethoscope"></i> Medical Condition</label>
+                    <input type="text" class="form-input" id="conditionInput" disabled>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Affected Hand</label>
-                    <select class="form-select" id="affectedHand">
+                    <label class="form-label"><i class="fas fa-hand-paper"></i> Affected Hand</label>
+                    <select class="form-input" id="affectedHandInput" disabled>
                         <option value="right">Right Hand</option>
                         <option value="left">Left Hand</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Therapy Type</label>
-                    <input type="text" class="form-input" id="therapy">
+                    <label class="form-label"><i class="fas fa-chart-line"></i> Current Level</label>
+                    <input type="text" class="form-input" id="currentLevelInput" disabled>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Current Level</label>
-                    <input type="text" class="form-input" id="currentLevel">
+                    <label class="form-label"><i class="fas fa-map-marker-alt"></i> Address</label>
+                    <input type="text" class="form-input" id="addressInput">
                 </div>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label">Address</label>
-                <input type="text" class="form-input" id="address">
-            </div>
-
-            <div class="action-buttons">
-                <button type="button" class="btn-save" onclick="savePatientProfile()">💾 Save Changes</button>
-                <button type="button" class="btn-cancel" onclick="goBack()">↩️ Cancel</button>
-            </div>
-        </form>
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="button" class="btn-save" onclick="saveProfile()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button type="button" class="btn-cancel" onclick="cancelEdit()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
     </div>
 
-    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        const patientId = localStorage.getItem('patientId') || 'PT002';
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        let patientId = localStorage.getItem('patientId') || '7';
+        let patientData = {};
 
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
+            loadAvatar();
         });
 
+        // ============================================
+        // LOAD PATIENT DATA
+        // ============================================
         function loadPatientData() {
-            document.getElementById('patientId').value = patientId;
-
-            // Match exactly with your database records
-            if (patientId === 'PT004') {  // User ID 4
-                document.getElementById('fullName').value = 'Omar Hassan';
-                document.getElementById('email').value = 'omar@rehab.com';
-                document.getElementById('phone').value = '+966 50 333 3333';
-                document.getElementById('dob').value = '2017-11-05';
-                document.getElementById('gender').value = 'male';
-                document.getElementById('condition').value = 'Movement Disorder';
-                document.getElementById('affectedHand').value = 'left';
-                document.getElementById('therapy').value = 'Developmental Therapy';
-                document.getElementById('currentLevel').value = '1';
-                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
-            } else if (patientId === 'PT005') {  // User ID 5
-                document.getElementById('fullName').value = 'Sara Khaled';
-                document.getElementById('email').value = 'sara@rehab.com';
-                document.getElementById('phone').value = '+966 50 222 2222';
-                document.getElementById('dob').value = '2019-03-20';
-                document.getElementById('gender').value = 'female';
-                document.getElementById('condition').value = 'Arm Weakness';
-                document.getElementById('affectedHand').value = 'right';
-                document.getElementById('therapy').value = 'Occupational Therapy';
-                document.getElementById('currentLevel').value = '1';
-                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
-            } else if (patientId === 'PT006') {  // User ID 6
-                document.getElementById('fullName').value = 'Ali Ahmed';
-                document.getElementById('email').value = 'ali@rehab.com';
-                document.getElementById('phone').value = '+966 50 111 1111';
-                document.getElementById('dob').value = '2018-01-15';
-                document.getElementById('gender').value = 'male';
-                document.getElementById('condition').value = 'Motor Disability';
-                document.getElementById('affectedHand').value = 'left';
-                document.getElementById('therapy').value = 'Physical Therapy';
-                document.getElementById('currentLevel').value = '1';
-                document.getElementById('address').value = 'Riyadh, Saudi Arabia';
+            patientId = localStorage.getItem('patientId') || '7';
+            const patientName = localStorage.getItem('patientName') || 'Amal';
+            
+            if (patientId === '4') {
+                patientData = {
+                    fullName: 'Omar Hassan',
+                    patientId: 'PT004',
+                    email: 'omar@rehab.com',
+                    phone: '+966 50 333 3333',
+                    dob: '2017-11-05',
+                    gender: 'male',
+                    condition: 'Movement Disorder',
+                    affectedHand: 'left',
+                    currentLevel: '1',
+                    address: 'Riyadh, Saudi Arabia'
+                };
+            } else if (patientId === '5') {
+                patientData = {
+                    fullName: 'Sara Khaled',
+                    patientId: 'PT005',
+                    email: 'sara@rehab.com',
+                    phone: '+966 50 222 2222',
+                    dob: '2019-03-20',
+                    gender: 'female',
+                    condition: 'Arm Weakness',
+                    affectedHand: 'right',
+                    currentLevel: '1',
+                    address: 'Riyadh, Saudi Arabia'
+                };
+            } else if (patientId === '6') {
+                patientData = {
+                    fullName: 'Ali Ahmed',
+                    patientId: 'PT006',
+                    email: 'ali@rehab.com',
+                    phone: '+966 50 111 1111',
+                    dob: '2018-01-15',
+                    gender: 'male',
+                    condition: 'Motor Disability',
+                    affectedHand: 'left',
+                    currentLevel: '1',
+                    address: 'Riyadh, Saudi Arabia'
+                };
+            } else {
+                patientData = {
+                    fullName: patientName,
+                    patientId: 'PT00' + patientId,
+                    email: 'patient@rehab.com',
+                    phone: '+966 50 000 0000',
+                    dob: '2000-01-01',
+                    gender: 'male',
+                    condition: 'Patient',
+                    affectedHand: localStorage.getItem('affectedHand') || 'right',
+                    currentLevel: '1',
+                    address: 'Saudi Arabia'
+                };
             }
+            
+            updateFormValues();
         }
 
-        function savePatientProfile() {
-            const updatedName = document.getElementById('fullName').value.trim();
-            const updatedEmail = document.getElementById('email').value.trim();
-            const updatedPhone = document.getElementById('phone').value.trim();
-            const updatedCondition = document.getElementById('condition').value.trim();
-            const updatedAffectedHand = document.getElementById('affectedHand').value;
-            const updatedTherapy = document.getElementById('therapy').value.trim();
-            const updatedLevel = document.getElementById('currentLevel').value.trim();
+        function updateFormValues() {
+            document.getElementById('fullNameInput').value = patientData.fullName;
+            document.getElementById('patientIdInput').value = patientData.patientId;
+            document.getElementById('emailInput').value = patientData.email;
+            document.getElementById('phoneInput').value = patientData.phone;
+            document.getElementById('dobInput').value = patientData.dob;
+            document.getElementById('genderInput').value = patientData.gender;
+            document.getElementById('conditionInput').value = patientData.condition;
+            document.getElementById('affectedHandInput').value = patientData.affectedHand;
+            document.getElementById('currentLevelInput').value = patientData.currentLevel;
+            document.getElementById('addressInput').value = patientData.address;
+            
+            // Update avatar text
+            document.getElementById('avatarText').textContent = patientData.fullName.charAt(0).toUpperCase();
+        }
 
-            if (!updatedName || !updatedEmail || !updatedPhone) {
-                alert('Please fill in all required fields');
+        // ============================================
+        // SAVE PROFILE
+        // ============================================
+        function saveProfile() {
+            const updatedData = {
+                ...patientData,
+                email: document.getElementById('emailInput').value.trim(),
+                phone: document.getElementById('phoneInput').value.trim(),
+                dob: document.getElementById('dobInput').value,
+                address: document.getElementById('addressInput').value.trim()
+            };
+            
+            if (!updatedData.email || !updatedData.phone) {
+                showNotification('Please fill in email and phone fields', 'error');
                 return;
             }
-
-            localStorage.setItem('patientName', updatedName);
-            localStorage.setItem('patientCondition', updatedCondition);
-            localStorage.setItem('affectedHand', updatedAffectedHand);
-            localStorage.setItem('patientLevel', updatedLevel);
-
-            showNotification('Profile updated successfully!');
-
-            setTimeout(() => {
-                window.location.href = "{% url 'profile' %}";
-            }, 1500);
+            
+            patientData = updatedData;
+            
+            localStorage.setItem('patientName', updatedData.fullName);
+            localStorage.setItem('affectedHand', updatedData.affectedHand);
+            localStorage.setItem('patientLevel', updatedData.currentLevel);
+            localStorage.setItem('patientCondition', updatedData.condition);
+            
+            updateFormValues();
+            showNotification('Profile updated successfully!', 'success');
         }
 
+        function cancelEdit() {
+            loadPatientData();
+            showNotification('Changes cancelled', 'info');
+        }
+
+        // ============================================
+        // AVATAR FUNCTIONS
+        // ============================================
+        function loadAvatar() {
+            const savedAvatar = localStorage.getItem('userAvatar');
+            const avatarLarge = document.getElementById('avatarLarge');
+            const avatarText = document.getElementById('avatarText');
+            
+            if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
+                avatarLarge.innerHTML = `<img src="${savedAvatar}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                avatarLarge.innerHTML = `<span id="avatarText">${patientData.fullName.charAt(0).toUpperCase()}</span>`;
+            }
+        }
+
+        function saveAvatarToLocalStorage(imageData) {
+            localStorage.setItem('userAvatar', imageData);
+            sessionStorage.setItem('userAvatar', imageData);
+        }
+
+        function deleteAvatar() {
+            localStorage.removeItem('userAvatar');
+            sessionStorage.removeItem('userAvatar');
+            
+            const avatarLarge = document.getElementById('avatarLarge');
+            const firstLetter = patientData.fullName.charAt(0).toUpperCase();
+            avatarLarge.innerHTML = `<span id="avatarText">${firstLetter}</span>`;
+            
+            showNotification('Avatar deleted successfully!', 'success');
+        }
+
+        function showAvatarUploadModal() {
+            const modal = document.createElement('div');
+            modal.className = 'avatar-modal';
+            modal.innerHTML = `
+                <div class="avatar-modal-content">
+                    <h3 style="color: #1e293b; margin-bottom: 10px;">Upload Avatar</h3>
+                    <p style="color: #64748b; margin-bottom: 20px;">Choose a profile picture</p>
+                    <div class="avatar-preview" id="avatarPreview">
+                        <span id="previewText">${patientData.fullName.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/*" style="margin: 20px 0; width: 100%;">
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button id="saveAvatarBtn" style="flex:1; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Save</button>
+                        <button id="cancelAvatarBtn" style="flex:1; padding: 12px; background: #f1f5f9; color: #475569; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            const fileInput = modal.querySelector('#avatarUpload');
+            const previewDiv = modal.querySelector('#avatarPreview');
+            
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewDiv.innerHTML = `<img src="${event.target.result}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            modal.querySelector('#saveAvatarBtn').onclick = function() {
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        saveAvatarToLocalStorage(imageData);
+                        loadAvatar();
+                        showNotification('Avatar updated successfully!', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showNotification('Please select an image first', 'error');
+                }
+                modal.remove();
+            };
+            
+            modal.querySelector('#cancelAvatarBtn').onclick = function() {
+                modal.remove();
+            };
+            
+            modal.onclick = function(e) {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
         function goBack() {
-            window.location.href = "{% url 'profile' %}";
+            window.location.href = "{% url 'patient_dashboard' %}";
         }
 
-        function showNotification(message) {
+        function showNotification(message, type = 'info') {
+            const oldNotification = document.querySelector('.custom-notification');
+            if (oldNotification) oldNotification.remove();
+            
             const notification = document.createElement('div');
-            notification.textContent = message;
+            notification.className = 'custom-notification';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            
+            const colors = {
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            };
+            
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
                 padding: 15px 25px;
-                background: linear-gradient(135deg, #10b981, #059669);
+                border-radius: 12px;
+                background: ${colors[type] || colors.info};
                 color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
+                font-weight: 500;
+                z-index: 9999;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
                 animation: slideIn 0.3s ease;
+                max-width: 350px;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 15px;
+                cursor: pointer;
             `;
+            
+            notification.onclick = () => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            };
+            
             document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 4000);
         }
+
+        // Listen for storage changes
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'userAvatar') {
+                loadAvatar();
+            }
+        });
     </script>
 </body>
 </html>

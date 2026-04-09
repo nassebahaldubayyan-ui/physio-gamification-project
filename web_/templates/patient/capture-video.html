@@ -91,52 +91,57 @@
             font-size: 14px;
         }
         
-        .movements-grid {
+        /* Angles Grid - replaces movements grid */
+        .angles-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin: 30px 0;
         }
         
-        .movement-card {
+        .angle-card {
             background: white;
             border-radius: 16px;
             padding: 20px;
             border: 2px solid #e2e8f0;
             transition: all 0.3s;
+            text-align: center;
         }
         
-        .movement-card.active {
-            border-color: #10b981;
-            background: #f0fdf4;
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        .angle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
         
-        .movement-card h4 {
+        .angle-card h4 {
             color: #1e293b;
             font-size: 18px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
         
-        .movement-card h4 span {
-            font-size: 24px;
+        .angle-card h4 span {
+            font-size: 28px;
         }
         
-        .movement-card p {
+        .angle-card p {
             color: #64748b;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            margin-bottom: 15px;
         }
         
-        .movement-timer {
-            font-size: 14px;
+        .angle-value-large {
+            font-size: 36px;
+            font-weight: 800;
             color: #3b82f6;
-            font-weight: 600;
-            text-align: right;
+        }
+        
+        .angle-unit-large {
+            font-size: 16px;
+            color: #94a3b8;
         }
         
         .main-grid {
@@ -164,7 +169,6 @@
             overflow: hidden;
         }
         
-        /* Hidden video element - positioned off-screen but still capturing */
         .hidden-video {
             position: fixed;
             top: -1000px;
@@ -176,7 +180,6 @@
         }
         
         canvas {
-            #transform: scaleX(-1);
             width: 100%;
             height: auto;
             border-radius: 10px;
@@ -300,9 +303,9 @@
             font-weight: 700;
         }
         
-        .current-movement {
+        .current-status {
             text-align: center;
-            font-size: 20px;
+            font-size: 18px;
             color: #1e293b;
             background: white;
             padding: 15px;
@@ -406,13 +409,13 @@
                 grid-template-columns: 1fr;
             }
             
-            .movements-grid {
+            .angles-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 768px) {
-            .movements-grid {
+            .angles-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -439,9 +442,7 @@
 </head>
 <body>
     <div class="video-container">
-        <h2>📹 Initial Assessment Video</h2>
-        <p class="subtitle">Please perform each movement for 15 seconds</p>
-        
+        <h2>📹 Initial Assessment Video</h2>        
         <!-- Camera Permission Request -->
         <div class="instructions" id="permissionBox">
             <h3><i class="fas fa-camera"></i> Camera Access Required</h3>
@@ -480,59 +481,56 @@
             <ul>
                 <li>
                     <i class="fas fa-person"></i>
-                    Stand where the camera can see your full arm
+                    Stand where the camera can see your full body
                 </li>
                 <li>
                     <i class="fas fa-arrow-pointer"></i>
-                    Follow the highlighted movement for each exercise
+                    Perform various arm movements naturally
                 </li>
                 <li>
                     <i class="fas fa-spinner"></i>
-                    Perform each movement slowly and steadily
+                    Move slowly and steadily for accurate analysis
                 </li>
                 <li>
                     <i class="fas fa-clock"></i>
-                    The timer will show you how long to do each exercise
+                    The AI will track your joint angles in real-time
                 </li>
             </ul>
         </div>
         
-        <!-- Movements Grid -->
-        <div class="movements-grid" id="movementsGrid" style="display: none;">
-            <div class="movement-card" id="move1">
-                <h4>
-                    <span>🤚</span> Grip Strength
-                </h4>
-                <p>Open and close your hand repeatedly</p>
-                <div class="movement-timer" id="move1Timer">0s / 15s</div>
+        <!-- Angles Grid - Replaces old movements (4 angles displayed here) -->
+        <div class="angles-grid" id="anglesGrid" style="display: none;">
+            <div class="angle-card" id="leftShoulderCard">
+                <h4><span>🦾</span> Left Shoulder</h4>
+                <p>Shoulder elevation angle</p>
+                <div>
+                    <span class="angle-value-large" id="leftShoulderAngleDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
             </div>
-            <div class="movement-card" id="move2">
-                <h4>
-                    <span>🤚</span> Wrist Movement
-                </h4>
-                <p>Bend wrist up and down</p>
-                <div class="movement-timer" id="move2Timer">0s / 15s</div>
+            <div class="angle-card" id="leftElbowCard">
+                <h4><span>💪</span> Left Elbow</h4>
+                <p>Elbow flexion angle</p>
+                <div>
+                    <span class="angle-value-large" id="leftElbowAngleDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
             </div>
-            <div class="movement-card" id="move3">
-                <h4>
-                    <span>💪</span> Elbow Flexion
-                </h4>
-                <p>Bend and straighten elbow</p>
-                <div class="movement-timer" id="move3Timer">0s / 15s</div>
+            <div class="angle-card" id="rightShoulderCard">
+                <h4><span>🦾</span> Right Shoulder</h4>
+                <p>Shoulder elevation angle</p>
+                <div>
+                    <span class="angle-value-large" id="rightShoulderAngleDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
             </div>
-            <div class="movement-card" id="move4">
-                <h4>
-                    <span>🦾</span> Shoulder Elevation
-                </h4>
-                <p>Raise arm to the side</p>
-                <div class="movement-timer" id="move4Timer">0s / 15s</div>
-            </div>
-            <div class="movement-card" id="move5">
-                <h4>
-                    <span>🤚</span> External Rotation
-                </h4>
-                <p>Rotate arm outward</p>
-                <div class="movement-timer" id="move5Timer">0s / 15s</div>
+            <div class="angle-card" id="rightElbowCard">
+                <h4><span>💪</span> Right Elbow</h4>
+                <p>Elbow flexion angle</p>
+                <div>
+                    <span class="angle-value-large" id="rightElbowAngleDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
             </div>
         </div>
         
@@ -541,9 +539,7 @@
             <!-- Camera Section -->
             <div class="camera-section">
                 <div class="video-wrapper">
-                    <!-- Hidden video element - positioned off-screen but still capturing -->
                     <video id="video" class="hidden-video" width="640" height="480" autoplay muted playsinline></video>
-                    <!-- Canvas displays the processed frames with AI landmarks -->
                     <canvas id="processedCanvas" width="640" height="480"></canvas>
                     <div id="loadingText" class="loading-text" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i> Loading AI analysis...
@@ -568,45 +564,9 @@
                     </div>
                 </div>
                 
-                <!-- Angle Measurements -->
+                <!-- Simplified Angle Display (just hand status, angles removed from here) -->
                 <div class="angle-display">
                     <div class="angle-item">
-                        <span class="angle-label">
-                            <i class="fas fa-arrow-up"></i> Left Shoulder
-                        </span>
-                        <span>
-                            <span class="angle-value" id="leftShoulderAngle">0</span>
-                            <span class="angle-unit">°</span>
-                        </span>
-                    </div>
-                    <div class="angle-item">
-                        <span class="angle-label">
-                            <i class="fas fa-arrow-left"></i> Left Elbow
-                        </span>
-                        <span>
-                            <span class="angle-value" id="leftElbowAngle">0</span>
-                            <span class="angle-unit">°</span>
-                        </span>
-                    </div>
-                    <div class="angle-item">
-                        <span class="angle-label">
-                            <i class="fas fa-arrow-up"></i> Right Shoulder
-                        </span>
-                        <span>
-                            <span class="angle-value" id="rightShoulderAngle">0</span>
-                            <span class="angle-unit">°</span>
-                        </span>
-                    </div>
-                    <div class="angle-item">
-                        <span class="angle-label">
-                            <i class="fas fa-arrow-left"></i> Right Elbow
-                        </span>
-                        <span>
-                            <span class="angle-value" id="rightElbowAngle">0</span>
-                            <span class="angle-unit">°</span>
-                        </span>
-                    </div>
-                    <div class="angle-item" style="border-top: 2px solid #e2e8f0; margin-top: 10px; padding-top: 15px;">
                         <span class="angle-label">
                             <i class="fas fa-hand-paper"></i> Hand Status
                         </span>
@@ -628,13 +588,13 @@
             </div>
         </div>
         
-        <!-- Progress Bar -->
+        <!-- Progress Bar (shows recording progress) -->
         <div class="progress-bar" id="progressBar" style="display: none;">
             <div class="progress-fill" id="progressFill"></div>
         </div>
         
-        <!-- Current Movement Display -->
-        <div class="current-movement" id="currentMovement" style="display: none;">Ready to start</div>
+        <!-- Current Status -->
+        <div class="current-status" id="currentStatus" style="display: none;">Ready to start recording</div>
         
         <!-- Timer -->
         <div class="timer" id="timer" style="display: none;">00:00</div>
@@ -646,9 +606,6 @@
             </button>
             <button class="btn-stop" onclick="stopRecording()" id="stopBtn" disabled>
                 <i class="fas fa-square"></i> Stop
-            </button>
-            <button class="btn-play" onclick="playRecording()" id="playBtn" disabled>
-                <i class="fas fa-play"></i> Play
             </button>
             <button class="btn-save" onclick="saveVideo()" id="saveBtn" disabled>
                 <i class="fas fa-save"></i> Save Assessment
@@ -680,7 +637,6 @@
         let videoStream;
         let timerInterval;
         let seconds = 0;
-        let currentMovementIndex = 0;
         let isRecording = false;
         
         // WebSocket variables
@@ -688,16 +644,6 @@
         let frameInterval;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
-        
-        const movements = [
-            { id: 'move1', name: 'Grip Strength', duration: 15 },
-            { id: 'move2', name: 'Wrist Movement', duration: 15 },
-            { id: 'move3', name: 'Elbow Flexion', duration: 15 },
-            { id: 'move4', name: 'Shoulder Elevation', duration: 15 },
-            { id: 'move5', name: 'External Rotation', duration: 15 }
-        ];
-        
-        const totalDuration = movements.length * movements[0].duration;
 
         // Get affected hand from localStorage
         const affectedHand = localStorage.getItem('affectedHand') || 'right';
@@ -722,7 +668,6 @@
                 if (loadingText) loadingText.style.display = 'none';
                 showNotification('AI analysis connected!', 'success');
                 
-                // Send injured hand info
                 const injuredHand = localStorage.getItem('affectedHand') || 'right';
                 ws.send(JSON.stringify({
                     'injured_hand': injuredHand,
@@ -735,34 +680,35 @@
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'pose_data') {
-                    // Update angle displays
-                    document.getElementById('leftShoulderAngle').textContent = data.angles.left_shoulder;
-                    document.getElementById('leftElbowAngle').textContent = data.angles.left_elbow;
-                    document.getElementById('rightShoulderAngle').textContent = data.angles.right_shoulder;
-                    document.getElementById('rightElbowAngle').textContent = data.angles.right_elbow;
-                    // --- NEW: Update Hand State ---
+                    // Update angle displays in the angles grid (the 4 cards)
+                    document.getElementById('leftShoulderAngleDisplay').textContent = data.angles.left_shoulder;
+                    document.getElementById('leftElbowAngleDisplay').textContent = data.angles.left_elbow;
+                    document.getElementById('rightShoulderAngleDisplay').textContent = data.angles.right_shoulder;
+                    document.getElementById('rightElbowAngleDisplay').textContent = data.angles.right_elbow;
+                    
+                    // Update Hand State
                     const handStateElem = document.getElementById('handStateValue');
                     if (data.hand_state) {
-                        handStateElem.textContent = data.hand_state; // Expected values: "Open" or "Closed"
-                        
-                        // Dynamic Coloring for better visibility
+                        handStateElem.textContent = data.hand_state;
                         if (data.hand_state.toLowerCase() === 'open') {
-                            handStateElem.style.color = '#10b981'; // Success Green
+                            handStateElem.style.color = '#10b981';
                         } else if (data.hand_state.toLowerCase() === 'closed') {
-                            handStateElem.style.color = '#ef4444'; // Danger Red
+                            handStateElem.style.color = '#ef4444';
+                        } else {
+                            handStateElem.style.color = '#64748b';
                         }
                     }
+                    
                     // Update feedback
                     document.getElementById('feedbackText').innerHTML = `
                         <i class="fas fa-robot"></i> ${data.feedback}
                     `;
                     
-                    // Draw processed frame with landmarks on canvas - MIRRORED
+                    // Draw processed frame
                     if (data.frame) {
                         const img = new Image();
                         img.onload = function() {
                             ctx.clearRect(0, 0, processedCanvas.width, processedCanvas.height);
-                            // Mirror the image horizontally (mirror effect)
                             ctx.save();
                             ctx.translate(processedCanvas.width, 0);
                             ctx.scale(-1, 1);
@@ -800,7 +746,6 @@
         function startFrameCapture() {
             if (frameInterval) clearInterval(frameInterval);
             
-            // Wait for video to have dimensions
             if (video.videoWidth === 0) {
                 video.addEventListener('loadedmetadata', function() {
                     frameInterval = setInterval(() => {
@@ -828,19 +773,14 @@
         function captureAndSendFrame() {
             if (!video.videoWidth || !video.videoHeight) return;
             
-            // Create temporary canvas to capture the current frame
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = video.videoWidth;
             tempCanvas.height = video.videoHeight;
             const tempCtx = tempCanvas.getContext('2d');
             
-            // Draw the current video frame (original, no landmarks)
             tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-            
-            // Convert to base64 with lower quality for faster transmission
             const frameData = tempCanvas.toDataURL('image/jpeg', 0.6);
             
-            // Send to WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     frame: frameData
@@ -865,7 +805,6 @@
                 
                 video.srcObject = videoStream;
                 
-                // Wait for video to be ready
                 await new Promise((resolve) => {
                     video.onloadedmetadata = () => {
                         video.play();
@@ -873,10 +812,8 @@
                     };
                 });
                 
-                // Show loading on canvas
                 if (loadingText) loadingText.style.display = 'block';
                 
-                // Draw initial loading message on canvas
                 ctx.fillStyle = '#0f172a';
                 ctx.fillRect(0, 0, processedCanvas.width, processedCanvas.height);
                 ctx.fillStyle = '#94a3b8';
@@ -884,16 +821,14 @@
                 ctx.textAlign = 'center';
                 ctx.fillText('Starting camera and AI analysis...', processedCanvas.width/2, processedCanvas.height/2);
                 
-                // Connect WebSocket after camera is ready
                 connectWebSocket();
                 
-                // Hide permission box, show everything else
                 document.getElementById('permissionBox').style.display = 'none';
                 document.getElementById('instructionsBox').style.display = 'block';
-                document.getElementById('movementsGrid').style.display = 'grid';
+                document.getElementById('anglesGrid').style.display = 'grid';
                 document.getElementById('mainGrid').style.display = 'grid';
                 document.getElementById('progressBar').style.display = 'block';
-                document.getElementById('currentMovement').style.display = 'block';
+                document.getElementById('currentStatus').style.display = 'block';
                 document.getElementById('timer').style.display = 'block';
                 document.getElementById('controls').style.display = 'flex';
                 
@@ -909,6 +844,9 @@
         
         function startRecording() {
             recordedChunks = [];
+            seconds = 0;
+            updateTimerDisplay();
+            
             mediaRecorder = new MediaRecorder(videoStream);
             
             mediaRecorder.ondataavailable = (event) => {
@@ -918,21 +856,27 @@
             };
             
             mediaRecorder.onstop = () => {
-                document.getElementById('playBtn').disabled = false;
                 document.getElementById('saveBtn').disabled = false;
                 document.getElementById('retakeBtn').disabled = false;
             };
             
             mediaRecorder.start();
             isRecording = true;
-            startTimer();
-            startMovementGuide();
+            
+            // Start timer
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+                
+                const progress = Math.min((seconds / 60) * 100, 100);
+                document.getElementById('progressFill').style.width = progress + '%';
+            }, 1000);
             
             document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
-            document.getElementById('currentMovement').textContent = 'Starting with: Grip Strength';
+            document.getElementById('currentStatus').textContent = '🔴 Recording in progress...';
             
-            showNotification('Recording started - Follow the movements!', 'info');
+            showNotification('Recording started - AI is tracking your movements!', 'info');
         }
 
         function stopRecording() {
@@ -943,35 +887,10 @@
                 
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
-                document.getElementById('currentMovement').textContent = 'Recording stopped';
+                document.getElementById('currentStatus').textContent = 'Recording stopped - You can review or save';
                 
                 showNotification('Recording stopped', 'info');
             }
-        }
-
-        function startTimer() {
-            seconds = 0;
-            updateTimerDisplay();
-            timerInterval = setInterval(() => {
-                seconds++;
-                updateTimerDisplay();
-                
-                const progress = (seconds / totalDuration) * 100;
-                document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
-                
-                const movementIndex = Math.floor(seconds / 15);
-                if (movementIndex < movements.length && movementIndex !== currentMovementIndex) {
-                    currentMovementIndex = movementIndex;
-                    updateCurrentMovement();
-                }
-                
-                updateMovementTimers();
-                
-                if (seconds >= totalDuration) {
-                    stopRecording();
-                    showNotification('Assessment complete! You can now save the video.', 'success');
-                }
-            }, 1000);
         }
 
         function updateTimerDisplay() {
@@ -979,35 +898,6 @@
             const secs = seconds % 60;
             document.getElementById('timer').textContent = 
                 `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function updateCurrentMovement() {
-            if (currentMovementIndex < movements.length) {
-                const movement = movements[currentMovementIndex];
-                document.getElementById('currentMovement').textContent = `Now: ${movement.name}`;
-            }
-        }
-
-        function updateMovementTimers() {
-            movements.forEach((movement, index) => {
-                const timerEl = document.getElementById(`${movement.id}Timer`);
-                if (timerEl) {
-                    const elapsedInMovement = Math.max(0, Math.min(15, seconds - (index * 15)));
-                    timerEl.textContent = `${elapsedInMovement}s / 15s`;
-                    
-                    const card = document.getElementById(movement.id);
-                    if (index === currentMovementIndex) {
-                        card.classList.add('active');
-                    } else {
-                        card.classList.remove('active');
-                    }
-                }
-            });
-        }
-
-        function startMovementGuide() {
-            currentMovementIndex = 0;
-            updateCurrentMovement();
         }
 
         function playRecording() {
@@ -1050,12 +940,10 @@
             }
             stopFrameCapture();
             
-            // Reset display
             processedCanvas.style.display = 'block';
             video.classList.add('hidden-video');
             video.style.position = 'fixed';
             
-            // Show loading
             if (loadingText) loadingText.style.display = 'block';
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, processedCanvas.width, processedCanvas.height);
@@ -1085,16 +973,18 @@
                 document.getElementById('recordBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
                 
-                movements.forEach(movement => {
-                    document.getElementById(`${movement.id}Timer`).textContent = '0s / 15s';
-                    document.getElementById(movement.id).classList.remove('active');
-                });
-                
                 seconds = 0;
                 updateTimerDisplay();
-                currentMovementIndex = 0;
                 document.getElementById('progressFill').style.width = '0%';
-                document.getElementById('currentMovement').textContent = 'Ready to start';
+                document.getElementById('currentStatus').textContent = 'Ready to start recording';
+                
+                // Reset angle displays
+                document.getElementById('leftShoulderAngleDisplay').textContent = '0';
+                document.getElementById('leftElbowAngleDisplay').textContent = '0';
+                document.getElementById('rightShoulderAngleDisplay').textContent = '0';
+                document.getElementById('rightElbowAngleDisplay').textContent = '0';
+                document.getElementById('handStateValue').textContent = 'Detecting...';
+                document.getElementById('handStateValue').style.color = '#64748b';
                 
                 showNotification('Camera reset - Ready to record again', 'info');
             }).catch(error => {
@@ -1113,6 +1003,7 @@
                 document.getElementById('saveBtn').disabled = true;
                 document.getElementById('saveBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
                 
+                // Simulate upload
                 setTimeout(() => {
                     showNotification('✅ Assessment video saved successfully!', 'success');
                     localStorage.setItem('hasAssessmentVideo', 'true');

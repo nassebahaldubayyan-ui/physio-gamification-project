@@ -5,8 +5,11 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 from django.db import models
+from django.conf import settings
 from .models import Users, Messages, Patients, Doctors
 import json
+
+# NOTE: send_mail is imported INSIDE the function to avoid circular imports
 
 # ========== HTML PAGES ==========
 
@@ -31,25 +34,7 @@ def select_patient(request):
 
 # Patient Pages
 def patient_dashboard(request):
-    # Get patient ID from session (set during login)
-    patient_id = request.session.get('patient_id')
-    
-    if not patient_id:
-        return redirect('gamer_login')
-    
-    try:
-        patient = Users.objects.get(id=patient_id, role='patient')
-        try:
-            patient_profile = Patients.objects.get(user_id=patient.id)
-        except Patients.DoesNotExist:
-            patient_profile = None
-    except Users.DoesNotExist:
-        return redirect('gamer_login')
-    
-    return render(request, 'patient/patient.html', {
-        'patient': patient,
-        'patient_profile': patient_profile
-    })
+    return render(request, 'patient/patient.html')
 
 def patient_chat(request):
     return render(request, 'patient/patient-chat.html')
@@ -101,10 +86,14 @@ def game_catching_objects(request):
 def game_matching(request):
     return render(request, 'games/game-matching.html')
 
+# Static Pages
+def about_us(request):
+    """About Us page"""
+    return render(request, 'about-us.html')
 
-def game_chicken(request):
-    return render(request, 'games/chicken.html')
-
+def contact_us(request):
+    """Contact Us page"""
+    return render(request, 'contact-us.html')
 
 # ========== APIs ==========
 
@@ -119,13 +108,6 @@ def api_login(request):
             try:
                 user = Users.objects.get(email=email, is_active=True)
                 if check_password(password, user.password):
-                    # Store user info in session
-                    request.session['user_id'] = user.id
-                    request.session['user_type'] = user.role
-                    
-                    if user.role == 'patient':
-                        request.session['patient_id'] = user.id
-                    
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
@@ -265,18 +247,15 @@ def api_get_conversations(request):
             key = f"{partner_type}_{partner_id}"
             
             if key not in conversations:
-                if partner_type == 'doctor':
-                    try:
-                        user = Users.objects.get(id=partner_id, role='doctor')
+                try:
+                    if partner_type == 'doctor':
+                        user = Users.objects.get(id=partner_id)
                         partner_name = user.name
-                    except:
-                        partner_name = f"Doctor {partner_id}"
-                else:
-                    try:
-                        user = Users.objects.get(id=partner_id, role='patient')
+                    else:
+                        user = Users.objects.get(id=partner_id)
                         partner_name = user.name
-                    except:
-                        partner_name = f"Patient {partner_id}"
+                except Users.DoesNotExist:
+                    partner_name = f"{partner_type.capitalize()} {partner_id}"
                 
                 conversations[key] = {
                     'partner_id': partner_id,
@@ -361,14 +340,12 @@ def api_update_assessment_status(request):
         if not patient_id:
             return JsonResponse({"error": "patient_id required"}, status=400)
         
-        # Update patient profile
         try:
             patient_profile = Patients.objects.get(user_id=patient_id)
             patient_profile.has_assessment_video = 1 if has_video else 0
             patient_profile.assessment_date = timezone.now().isoformat()
             patient_profile.save()
         except Patients.DoesNotExist:
-            # Create patient profile if doesn't exist
             patient_profile = Patients.objects.create(
                 user_id=patient_id,
                 patient_id=f"PT{patient_id}",
@@ -390,14 +367,65 @@ def api_update_assessment_status(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def send_contact_message(request):
+    """Send contact form message to email"""
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '')
+        email = data.get('email', '')
+        subject = data.get('subject', 'No subject')
+        message = data.get('message', '')
+        
+        if not name or not email or not message:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please fill in all required fields'
+            }, status=400)
+        
+        email_subject = f"Contact Form: {subject}"
+        email_body = f"""
+You received a new message from PhysioPlay contact form:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 SENDER INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name: {name}
+Email: {email}
+Subject: {subject}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 MESSAGE:
+{message}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sent from PhysioPlay website contact form
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        """
+        
+        # Import send_mail INSIDE the function to avoid circular import issues
+        from django.core.mail import send_mail
+        
+        send_mail(
+            subject=email_subject,
+            message=email_body,
+            from_email='physioplay.support@gmail.com',
+            recipient_list=['physioplay.support@gmail.com'],
+            fail_silently=False,
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Your message has been sent successfully! We will get back to you soon.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f"Failed to send message: {str(e)}"
+        }, status=500)
+
+
 def api_test(request):
     return JsonResponse({"message": "Django backend working"})
-
-
-def about_us(request):
-    """About Us page"""
-    return render(request, 'about-us.html')
-
-def contact_us(request):
-    """Contact Us page"""
-    return render(request, 'contact-us.html')

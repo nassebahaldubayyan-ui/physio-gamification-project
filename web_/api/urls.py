@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/messages/', views.api_get_messages),
     path('api/send-message/', views.api_send_message),
     path('api/conversations/', views.api_get_conversations),
+    path('api/update-assessment-status/', views.api_update_assessment_status),
+    path('api/send-contact/', views.send_contact_message),
     
     # ========== HTML PAGES ==========
     # Main Pages
@@ -19,6 +21,10 @@ urlpatterns = [
     path('settings/', views.settings, name='settings'),
     path('select-patient/', views.select_patient, name='select_patient'),
     
+    # Static Pages
+    path('about-us/', views.about_us, name='about_us'),
+    path('contact-us/', views.contact_us, name='contact_us'),
+    
     # Patient Pages
     path('patient/', views.patient_dashboard, name='patient_dashboard'),
     path('patient/chat/', views.patient_chat, name='patient_chat'),
@@ -27,8 +33,6 @@ urlpatterns = [
     path('patient/edit/', views.edit_patient_profile, name='edit_patient_profile'),
     path('patient/capture-video/', views.capture_video, name='capture_video'),
     path('patient/physio-assessment/', views.physio_assessment, name='physio_assessment'),
-    
-    # Patient Progress Page - ADD THIS
     path('patient-progress/', views.patient_progress, name='patient_progress'),
     
     # Doctor Pages
@@ -43,10 +47,4 @@ urlpatterns = [
     path('games/catching-stars/', views.game_catching_stars, name='game_catching_stars'),
     path('games/catching-objects/', views.game_catching_objects, name='game_catching_objects'),
     path('games/matching/', views.game_matching, name='game_matching'),
-    
-    path('games/chicken/', views.game_chicken, name='game_chicken'),
-    
-    # New pages
-    path('about-us/', views.about_us, name='about_us'),
-    path('contact-us/', views.contact_us, name='contact_us'),
 ]

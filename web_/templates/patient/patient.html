@@ -58,6 +58,13 @@
             font-weight: bold;
             border: 3px solid white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            overflow: hidden;
+        }
+
+        .patient-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .patient-details h2 {
@@ -115,51 +122,6 @@
         .profile-btn:hover, .settings-btn:hover {
             background: #e2e8f0;
             transform: scale(1.1);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-        }
-
-        .stat-content h3 {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-content .stat-value {
-            color: #1e293b;
-            font-size: 24px;
-            font-weight: 700;
         }
 
         .section-title {
@@ -453,9 +415,6 @@
         }
 
         @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
             .games-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -466,9 +425,6 @@
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
             }
             .games-grid {
                 grid-template-columns: 1fr;
@@ -505,38 +461,6 @@
                 <button class="settings-btn" onclick="window.location.href='{% url 'settings' %}'" title="Settings">
                     <i class="fas fa-cog"></i>
                 </button>
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-bullseye"></i></div>
-                <div class="stat-content">
-                    <h3>Accuracy</h3>
-                    <div class="stat-value" id="patientAccuracy">0%</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
-                <div class="stat-content">
-                    <h3>Shoulder Strength</h3>
-                    <div class="stat-value" id="shoulderStrength">0%</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-rotate"></i></div>
-                <div class="stat-content">
-                    <h3>External Rotation</h3>
-                    <div class="stat-value" id="externalRotation">0%</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-content">
-                    <h3>Sessions</h3>
-                    <div class="stat-value" id="totalSessions">0</div>
-                </div>
             </div>
         </div>
 
@@ -633,7 +557,27 @@
         });
 
         // ============================================
-        // LOAD PATIENT DATA
+        // LOAD AVATAR ON DASHBOARD
+        // ============================================
+        function loadAvatarOnDashboard() {
+            const savedAvatar = localStorage.getItem('userAvatar');
+            const patientAvatar = document.getElementById('patientAvatar');
+            const avatarText = document.getElementById('avatarText');
+            const patientNameForAvatar = localStorage.getItem('patientName') || 'Amal';
+            
+            if (patientAvatar) {
+                if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
+                    patientAvatar.innerHTML = `<img src="${savedAvatar}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                } else {
+                    patientAvatar.innerHTML = `<span id="avatarText">${patientNameForAvatar.charAt(0).toUpperCase()}</span>`;
+                    const newAvatarText = document.getElementById('avatarText');
+                    if (newAvatarText) newAvatarText.style.display = 'block';
+                }
+            }
+        }
+
+        // ============================================
+        // LOAD PATIENT DATA (Statistics cards removed)
         // ============================================
         function loadPatientData() {
             // Get data from localStorage
@@ -642,13 +586,16 @@
             affectedHand = localStorage.getItem('affectedHand') || 'right';
             
             // Update UI with patient info
-            document.getElementById('patientName').textContent = patientName;
-            document.getElementById('patientId').textContent = patientId;
-            document.getElementById('avatarText').textContent = patientName.charAt(0).toUpperCase();
+            const patientNameEl = document.getElementById('patientName');
+            const patientIdEl = document.getElementById('patientId');
+            const affectedHandBadge = document.getElementById('affectedHandBadge');
+            const patientConditionEl = document.getElementById('patientCondition');
+            
+            if (patientNameEl) patientNameEl.textContent = patientName;
+            if (patientIdEl) patientIdEl.textContent = patientId;
             
             // Set affected hand badge
             const handText = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
-            const affectedHandBadge = document.getElementById('affectedHandBadge');
             if (affectedHandBadge) {
                 affectedHandBadge.textContent = handText;
             }
@@ -657,61 +604,55 @@
             hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
             assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
             
-            // For new patient - all data is 0
+            // Set patient condition (without statistics)
             if (!hasVideo && !assessmentCompleted) {
-                // New patient - show zeros
-                document.getElementById('patientCondition').textContent = 'New Patient';
-                document.getElementById('patientAccuracy').textContent = '0%';
-                document.getElementById('shoulderStrength').textContent = '0%';
-                document.getElementById('externalRotation').textContent = '0%';
-                document.getElementById('totalSessions').textContent = '0';
-                document.getElementById('game1Progress').textContent = '0%';
-                document.getElementById('game2Progress').textContent = '0%';
-                document.getElementById('game3Progress').textContent = '0%';
-            } 
-            // For existing patients
-            else if (patientId === '4') {
-                document.getElementById('patientCondition').textContent = 'Movement Disorder';
-                document.getElementById('patientAccuracy').textContent = '82%';
-                document.getElementById('shoulderStrength').textContent = '82%';
-                document.getElementById('externalRotation').textContent = '75%';
-                document.getElementById('totalSessions').textContent = '12';
-                document.getElementById('game1Progress').textContent = '82%';
-                document.getElementById('game2Progress').textContent = '82%';
-                document.getElementById('game3Progress').textContent = '82%';
+                if (patientConditionEl) patientConditionEl.textContent = 'New Patient';
+            } else if (patientId === '4') {
+                if (patientConditionEl) patientConditionEl.textContent = 'Movement Disorder';
             } else if (patientId === '5') {
-                document.getElementById('patientCondition').textContent = 'Arm Weakness';
-                document.getElementById('patientAccuracy').textContent = '79%';
-                document.getElementById('shoulderStrength').textContent = '79%';
-                document.getElementById('externalRotation').textContent = '72%';
-                document.getElementById('totalSessions').textContent = '10';
-                document.getElementById('game1Progress').textContent = '79%';
-                document.getElementById('game2Progress').textContent = '79%';
-                document.getElementById('game3Progress').textContent = '79%';
+                if (patientConditionEl) patientConditionEl.textContent = 'Arm Weakness';
             } else if (patientId === '6') {
-                document.getElementById('patientCondition').textContent = 'Motor Disability';
-                document.getElementById('patientAccuracy').textContent = '81%';
-                document.getElementById('shoulderStrength').textContent = '81%';
-                document.getElementById('externalRotation').textContent = '73%';
-                document.getElementById('totalSessions').textContent = '15';
-                document.getElementById('game1Progress').textContent = '81%';
-                document.getElementById('game2Progress').textContent = '81%';
-                document.getElementById('game3Progress').textContent = '81%';
+                if (patientConditionEl) patientConditionEl.textContent = 'Motor Disability';
             } else {
-                // Default for any other patient ID
-                document.getElementById('patientCondition').textContent = 'Patient';
-                document.getElementById('patientAccuracy').textContent = '0%';
-                document.getElementById('shoulderStrength').textContent = '0%';
-                document.getElementById('externalRotation').textContent = '0%';
-                document.getElementById('totalSessions').textContent = '0';
-                document.getElementById('game1Progress').textContent = '0%';
-                document.getElementById('game2Progress').textContent = '0%';
-                document.getElementById('game3Progress').textContent = '0%';
+                if (patientConditionEl) patientConditionEl.textContent = 'Patient';
             }
             
+            // Update game progress only (statistics were removed)
+            const game1Progress = document.getElementById('game1Progress');
+            const game2Progress = document.getElementById('game2Progress');
+            const game3Progress = document.getElementById('game3Progress');
+            
+            if (!hasVideo && !assessmentCompleted) {
+                if (game1Progress) game1Progress.textContent = '0%';
+                if (game2Progress) game2Progress.textContent = '0%';
+                if (game3Progress) game3Progress.textContent = '0%';
+            } else if (patientId === '4') {
+                if (game1Progress) game1Progress.textContent = '82%';
+                if (game2Progress) game2Progress.textContent = '82%';
+                if (game3Progress) game3Progress.textContent = '82%';
+            } else if (patientId === '5') {
+                if (game1Progress) game1Progress.textContent = '79%';
+                if (game2Progress) game2Progress.textContent = '79%';
+                if (game3Progress) game3Progress.textContent = '79%';
+            } else if (patientId === '6') {
+                if (game1Progress) game1Progress.textContent = '81%';
+                if (game2Progress) game2Progress.textContent = '81%';
+                if (game3Progress) game3Progress.textContent = '81%';
+            } else {
+                if (game1Progress) game1Progress.textContent = '0%';
+                if (game2Progress) game2Progress.textContent = '0%';
+                if (game3Progress) game3Progress.textContent = '0%';
+            }
+            
+            // Load avatar from localStorage
+            loadAvatarOnDashboard();
+            
             // Hide loading, show dashboard
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+            const loadingEl = document.getElementById('loading');
+            const dashboardEl = document.getElementById('dashboard');
+            
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (dashboardEl) dashboardEl.style.display = 'block';
         }
 
         // ============================================
