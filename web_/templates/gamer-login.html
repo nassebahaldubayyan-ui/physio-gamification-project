@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gamer Login - rehabbo</title>
+<title>Gamer Login - PhysioPlay</title>
 <style>
 :root {
     --header-height: 52px;
@@ -40,15 +40,26 @@ body {
     border-bottom: 1px solid rgba(17, 24, 39, 0.08);
 }
 
+/* Logo styling - matching index page */
 .brand {
     font-size: 20px;
     font-weight: 800;
     letter-spacing: 0.02em;
-    text-transform: lowercase;
+    text-decoration: none;
+}
+
+.brand .physio {
     background: linear-gradient(135deg, #667eea, #764ba2);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-decoration: none;
+    background-clip: text;
+}
+
+.brand .play {
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .back-link {
@@ -189,7 +200,9 @@ button:hover {
 </head>
 <body>
 <header class="header">
-    <a class="brand" href="{% url 'index' %}">rehabbo</a>
+    <a class="brand" href="{% url 'index' %}">
+        <span class="physio">Physio</span><span class="play">Play</span>
+    </a>
     <a class="back-link" href="{% url 'index' %}">← Back Home</a>
 </header>
 
@@ -207,7 +220,7 @@ button:hover {
 
         <div class="field">
             <label>Email</label>
-            <input id="gamer_email" type="email" placeholder="player@rehabbo.com" />
+            <input id="gamer_email" type="email" placeholder="player@PhysioPlay.com" />
         </div>
         <div class="field">
             <label>Password</label>

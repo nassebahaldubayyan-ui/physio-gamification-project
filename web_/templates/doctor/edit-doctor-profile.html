@@ -15,144 +15,24 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .dashboard-layout {
-            display: flex;
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            background: #f8fafc;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-            color: white;
-            padding: 30px 20px;
             display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .doctor-info {
-            text-align: center;
-            padding-bottom: 30px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .avatar {
-            width: 100px;
-            height: 100px;
-            background: transparent;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            border: 4px solid #60a5fa;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 60px;
-            color: #60a5fa;
-        }
-
-        .doctor-info h4 {
-            font-size: 22px;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .doctor-info p {
-            color: #cbd5e1;
-            font-size: 14px;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            flex: 1;
-        }
-
-        /* تنسيق عناصر القائمة */
-        .sidebar li {
-            padding: 15px 20px;
-            margin: 8px 0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 16px;
-            font-weight: 500;
-            color: white;
-        }
-
-        /* تنسيق الأيقونات */
-        .sidebar li i {
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
-            color: white;
-        }
-
-        .sidebar li.active {
-            background: rgba(255, 255, 255, 0.15);
-            border-left: 4px solid #60a5fa;
-            font-weight: 600;
-        }
-
-        .sidebar li.active i {
-            color: white;
-        }
-
-        .sidebar li:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-bottom p {
-            padding: 12px 20px;
-            margin: 5px 0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 15px;
-            color: white;
-        }
-
-        .sidebar-bottom p i {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-            color: white;
-        }
-
-        .sidebar-bottom p:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background: #f8fafc;
+            padding: 20px;
         }
 
         .edit-container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 30px;
             padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .edit-header {
@@ -189,21 +69,126 @@
             font-weight: 700;
         }
 
+        /* Avatar Section */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+            border: 4px solid #60a5fa;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-upload, .btn-delete-avatar {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-delete-avatar {
+            background: #f1f5f9;
+            color: #dc2626;
+        }
+
+        .btn-delete-avatar:hover {
+            background: #fee2e2;
+            transform: translateY(-2px);
+        }
+
+        /* Info Grid - Same as Edit Patient Profile */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-card h3 {
+            color: #1e293b;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h3 i {
+            color: #667eea;
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-label {
             display: block;
-            color: #1e293b;
+            color: #64748b;
+            font-size: 12px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
-            font-size: 14px;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 14px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
@@ -212,26 +197,26 @@
         }
 
         .form-input:focus {
-            border-color: #3b82f6;
+            border-color: #667eea;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .form-input:disabled {
             background: #f1f5f9;
-            color: #64748b;
+            color: #94a3b8;
+            cursor: not-allowed;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .full-width {
+            grid-column: span 2;
         }
 
+        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid #f1f5f9;
         }
@@ -252,7 +237,7 @@
         }
 
         .btn-save {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
         }
 
@@ -263,196 +248,463 @@
 
         .btn-save:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
         }
 
         .btn-cancel:hover {
             background: #e2e8f0;
             transform: translateY(-3px);
         }
+
+        /* Modal Styles */
+        .avatar-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .avatar-modal-content {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .avatar-modal-content h3 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .avatar-modal-content p {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            border: 4px solid #60a5fa;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+            overflow: hidden;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-modal-save, .btn-modal-cancel {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-save {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-modal-cancel {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-modal-save:hover, .btn-modal-cancel:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Notification */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .edit-container {
+                padding: 25px;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .edit-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="doctor-info">
-                <div class="avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h4 id="doctorName">Dr. Ahmad</h4>
-                <p id="doctorInfo">Physiotherapy • #3</p>
+    <div class="edit-container">
+        <div class="edit-header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h2><i class="fas fa-user-circle"></i> Edit Doctor Profile</h2>
+        </div>
+
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+            <div class="avatar-large" id="avatarLarge">
+                <i class="fas fa-user-circle"></i>
             </div>
-            
-            <ul>
-                <li onclick="window.location.href='{% url 'doctor_dashboard' %}'">
-                    <i class="fas fa-home"></i> Home
-                </li>
-                <li onclick="window.location.href='{% url 'doctor_patients' %}'">
-                    <i class="fas fa-users"></i> Patients List
-                </li>
-                <li onclick="window.location.href='{% url 'doctor_performance' %}'">
-                    <i class="fas fa-chart-line"></i> Patients Performance
-                </li>
-                <li onclick="window.location.href='{% url 'doctor_messages' %}'">
-                    <i class="fas fa-envelope"></i> Messages
-                </li>
-                <li class="active" onclick="window.location.href='{% url 'profile' %}'">
-                    <i class="fas fa-user"></i> Edit Profile
-                </li>
-            </ul>
-            
-            <div class="sidebar-bottom">
-                <p onclick="window.location.href='{% url 'settings' %}'">
-                    <i class="fas fa-cog"></i> Settings
-                </p>
-                <p onclick="logoutDoctor()">
-                    <i class="fas fa-sign-out-alt"></i> Log Out
-                </p>
+            <div class="avatar-buttons">
+                <button class="btn-upload" onclick="showAvatarUploadModal()">
+                    <i class="fas fa-camera"></i> Upload Avatar
+                </button>
+                <button class="btn-delete-avatar" onclick="deleteAvatar()">
+                    <i class="fas fa-trash-alt"></i> Delete Avatar
+                </button>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="edit-container">
-                <div class="edit-header">
-                    <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
-                    <h2><i class="fas fa-edit"></i> Edit Doctor Profile</h2>
+        <div class="info-grid">
+            <!-- Personal Information Card -->
+            <div class="info-card">
+                <h3><i class="fas fa-id-card"></i> Personal Information</h3>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" class="form-input" id="fullName">
                 </div>
-
-                <form id="editForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
-                            <input type="text" class="form-input" id="fullName" value="Dr. Ahmad">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-id-card"></i> Doctor ID</label>
-                            <input type="text" class="form-input" id="doctorId" value="3" disabled>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
-                            <input type="email" class="form-input" id="email" value="dr.ahmad@clinic.com">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-phone"></i> Phone</label>
-                            <input type="tel" class="form-input" id="phone" value="0500000000">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-stethoscope"></i> Specialty</label>
-                            <input type="text" class="form-input" id="specialty" value="Physiotherapy">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-certificate"></i> License Number</label>
-                            <input type="text" class="form-input" id="license" value="LIC12345">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-hospital"></i> Hospital</label>
-                            <input type="text" class="form-input" id="hospital" value="Central Hospital">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-briefcase"></i> Experience (years)</label>
-                            <input type="number" class="form-input" id="experience" value="10">
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button type="button" class="btn-save" onclick="saveDoctorProfile()">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                        <button type="button" class="btn-cancel" onclick="goBack()">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </form>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-id-card"></i> Doctor ID</label>
+                    <input type="text" class="form-input" id="doctorId" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" class="form-input" id="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-phone"></i> Phone</label>
+                    <input type="tel" class="form-input" id="phone">
+                </div>
             </div>
+
+            <!-- Professional Information Card -->
+            <div class="info-card">
+                <h3><i class="fas fa-stethoscope"></i> Professional Information</h3>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-stethoscope"></i> Specialty</label>
+                    <input type="text" class="form-input" id="specialty">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-certificate"></i> License Number</label>
+                    <input type="text" class="form-input" id="license" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-hospital"></i> Hospital</label>
+                    <input type="text" class="form-input" id="hospital">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-briefcase"></i> Experience (years)</label>
+                    <input type="number" class="form-input" id="experience">
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="button" class="btn-save" onclick="saveDoctorProfile()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button type="button" class="btn-cancel" onclick="goBack()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
         </div>
     </div>
 
-    <script src="{% static 'js/script.js' %}"></script>
     <script>
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+        let doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
+        let doctorId = localStorage.getItem('doctorId') || '3';
+        let doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            loadDoctorInfo();
             loadDoctorData();
+            loadAvatar();
         });
 
-        function loadDoctorInfo() {
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || '3';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-
-            document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
-        }
-
+        // ============================================
+        // LOAD DOCTOR DATA
+        // ============================================
         function loadDoctorData() {
             document.getElementById('fullName').value = localStorage.getItem('doctorName') || 'Dr. Ahmad';
             document.getElementById('doctorId').value = localStorage.getItem('doctorId') || '3';
             document.getElementById('email').value = localStorage.getItem('doctorEmail') || 'dr.ahmad@clinic.com';
             document.getElementById('phone').value = localStorage.getItem('doctorPhone') || '0500000000';
             document.getElementById('specialty').value = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
+            document.getElementById('license').value = localStorage.getItem('doctorLicense') || 'LIC12345';
+            document.getElementById('hospital').value = localStorage.getItem('doctorHospital') || 'Central Hospital';
+            document.getElementById('experience').value = localStorage.getItem('doctorExperience') || '10';
         }
 
+        // ============================================
+        // SAVE DOCTOR PROFILE
+        // ============================================
         function saveDoctorProfile() {
             const updatedData = {
                 name: document.getElementById('fullName').value,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
-                specialty: document.getElementById('specialty').value
+                specialty: document.getElementById('specialty').value,
+                license: document.getElementById('license').value,
+                hospital: document.getElementById('hospital').value,
+                experience: document.getElementById('experience').value
             };
+
+            if (!updatedData.name || !updatedData.email || !updatedData.phone) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
 
             localStorage.setItem('doctorName', updatedData.name);
             localStorage.setItem('doctorEmail', updatedData.email);
             localStorage.setItem('doctorPhone', updatedData.phone);
             localStorage.setItem('doctorSpecialty', updatedData.specialty);
+            localStorage.setItem('doctorHospital', updatedData.hospital);
+            localStorage.setItem('doctorExperience', updatedData.experience);
 
-            showNotification('Profile updated successfully!');
+            showNotification('Profile updated successfully!', 'success');
 
-            setTimeout(() => window.location.href = "{% url 'profile' %}", 1500);
+            setTimeout(() => {
+                window.location.href = "{% url 'profile' %}";
+            }, 1500);
         }
 
-        function goBack() {
-            window.location.href = "{% url 'profile' %}";
+        // ============================================
+        // AVATAR FUNCTIONS
+        // ============================================
+        function loadAvatar() {
+            const savedAvatar = localStorage.getItem('doctorAvatar');
+            const avatarLarge = document.getElementById('avatarLarge');
+
+            if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
+                avatarLarge.innerHTML = `<img src="${savedAvatar}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                avatarLarge.innerHTML = `<i class="fas fa-user-circle"></i>`;
+            }
         }
 
-        function showNotification(message) {
+        function saveAvatarToLocalStorage(imageData) {
+            localStorage.setItem('doctorAvatar', imageData);
+            sessionStorage.setItem('doctorAvatar', imageData);
+        }
+
+        function deleteAvatar() {
+            localStorage.removeItem('doctorAvatar');
+            sessionStorage.removeItem('doctorAvatar');
+            
+            const avatarLarge = document.getElementById('avatarLarge');
+            avatarLarge.innerHTML = `<i class="fas fa-user-circle"></i>`;
+            
+            showNotification('Avatar deleted successfully!', 'success');
+        }
+
+        function showAvatarUploadModal() {
+            const modal = document.createElement('div');
+            modal.className = 'avatar-modal';
+            
+            modal.innerHTML = `
+                <div class="avatar-modal-content">
+                    <h3><i class="fas fa-camera"></i> Upload Avatar</h3>
+                    <p>Choose a profile picture for your account</p>
+                    <div class="avatar-preview" id="avatarPreview">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/*" style="margin: 20px 0; width: 100%;">
+                    <div class="avatar-modal-buttons">
+                        <button id="saveAvatarBtn" class="btn-modal-save">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button id="cancelAvatarBtn" class="btn-modal-cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            const fileInput = modal.querySelector('#avatarUpload');
+            const previewDiv = modal.querySelector('#avatarPreview');
+            
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewDiv.innerHTML = `<img src="${event.target.result}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            modal.querySelector('#saveAvatarBtn').onclick = function() {
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        saveAvatarToLocalStorage(imageData);
+                        loadAvatar();
+                        showNotification('Avatar updated successfully!', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    showNotification('Please select an image first', 'error');
+                }
+                modal.remove();
+            };
+            
+            modal.querySelector('#cancelAvatarBtn').onclick = function() {
+                modal.remove();
+            };
+            
+            modal.onclick = function(e) {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        // ============================================
+        // NOTIFICATION SYSTEM
+        // ============================================
+        function showNotification(message, type = 'info') {
+            const oldNotification = document.querySelector('.custom-notification');
+            if (oldNotification) oldNotification.remove();
+            
             const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            notification.className = 'custom-notification';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            
+            const colors = {
+                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            };
+            
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
                 right: 20px;
                 padding: 15px 25px;
-                background: linear-gradient(135deg, #10b981, #059669);
+                border-radius: 12px;
+                background: ${colors[type] || colors.info};
                 color: white;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
+                font-weight: 500;
+                z-index: 9999;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
                 animation: slideIn 0.3s ease;
+                max-width: 350px;
+                text-align: center;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
+                font-size: 15px;
+                cursor: pointer;
             `;
+            
+            notification.onclick = () => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            };
+            
             document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 4000);
         }
 
-        function logoutDoctor() {
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.clear();
-                window.location.href = "{% url 'index' %}";
-            }
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function goBack() {
+            window.location.href = "{% url 'profile' %}";
         }
+
+        // Listen for storage changes
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'doctorAvatar') {
+                loadAvatar();
+            }
+        });
     </script>
 </body>
 </html>
