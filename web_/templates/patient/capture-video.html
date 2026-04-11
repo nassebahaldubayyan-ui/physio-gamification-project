@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Initial Assessment Video - Rehabilitation System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
@@ -39,13 +39,6 @@
             font-size: 32px;
             margin-bottom: 10px;
             text-align: center;
-        }
-        
-        .subtitle {
-            color: #64748b;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 18px;
         }
         
         .instructions {
@@ -91,7 +84,11 @@
             font-size: 14px;
         }
         
+<<<<<<< HEAD
         .movements-grid {
+=======
+        .angles-grid {
+>>>>>>> 4588b26 (edit voice)
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
@@ -122,6 +119,7 @@
             gap: 8px;
         }
         
+<<<<<<< HEAD
         .movement-card h4 span {
             font-size: 24px;
         }
@@ -134,6 +132,11 @@
         
         .movement-timer {
             font-size: 14px;
+=======
+        .angle-value-large {
+            font-size: 36px;
+            font-weight: 800;
+>>>>>>> 4588b26 (edit voice)
             color: #3b82f6;
             font-weight: 600;
             text-align: right;
@@ -171,8 +174,6 @@
             left: -1000px;
             width: 640px;
             height: 480px;
-            visibility: visible;
-            transform: none;
         }
         
         canvas {
@@ -194,68 +195,6 @@
             gap: 20px;
         }
         
-        .analysis-panel h3 {
-            color: #1e293b;
-            font-size: 22px;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .angle-display {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .angle-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .angle-item:last-child {
-            border-bottom: none;
-        }
-        
-        .angle-label {
-            color: #64748b;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .angle-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #3b82f6;
-        }
-        
-        .angle-unit {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-left: 5px;
-        }
-        
-        .feedback-box {
-            background: #f0fdf4;
-            border-left: 4px solid #10b981;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .feedback-text {
-            color: #166534;
-            font-weight: 500;
-            font-size: 16px;
-        }
-        
         .hand-info {
             background: #eff6ff;
             border-left: 4px solid #3b82f6;
@@ -273,6 +212,19 @@
             border-radius: 20px;
             font-weight: 600;
             font-size: 14px;
+        }
+        
+        .feedback-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .feedback-text {
+            color: #166534;
+            font-weight: 500;
+            font-size: 16px;
         }
         
         .progress-bar {
@@ -300,15 +252,34 @@
             font-weight: 700;
         }
         
+<<<<<<< HEAD
         .current-movement {
+=======
+        /* Current Status - مكان عرض التعليمات الحالية */
+        .current-status {
+>>>>>>> 4588b26 (edit voice)
             text-align: center;
             font-size: 20px;
             color: #1e293b;
-            background: white;
-            padding: 15px;
-            border-radius: 50px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 18px 25px;
+            border-radius: 60px;
             margin: 20px 0;
-            border: 2px solid #3b82f6;
+            border: 2px solid #f59e0b;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
+        }
+        
+        /* مؤقت بجانب التعليمات */
+        .instruction-timer-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-family: monospace;
+            margin-left: 15px;
         }
         
         .controls {
@@ -319,7 +290,7 @@
             flex-wrap: wrap;
         }
         
-        .btn-record, .btn-stop, .btn-play, .btn-save, .btn-retake, .btn-back {
+        .btn-record, .btn-stop, .btn-save, .btn-retake, .btn-back {
             padding: 12px 30px;
             border: none;
             border-radius: 50px;
@@ -332,46 +303,15 @@
             gap: 8px;
         }
         
-        .btn-record {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
+        .btn-record { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-stop { background: #f1f5f9; color: #475569; }
+        .btn-save { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-retake { background: #f1f5f9; color: #475569; }
+        .btn-back { background: #f1f5f9; color: #475569; }
         
-        .btn-stop {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-play {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-        }
-        
-        .btn-save {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        .btn-retake {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-back {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-record:hover, .btn-stop:hover, .btn-play:hover, 
-        .btn-save:hover, .btn-retake:hover, .btn-back:hover {
+        .btn-record:hover, .btn-stop:hover, .btn-save:hover, .btn-retake:hover, .btn-back:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        .btn-record:disabled, .btn-stop:disabled, .btn-save:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
         }
         
         .status-badge {
@@ -382,25 +322,17 @@
             font-weight: 600;
         }
         
-        .status-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
+        .status-success { background: #dcfce7; color: #166534; }
+        .status-warning { background: #fef3c7; color: #92400e; }
         
         .button-group {
             display: flex;
             justify-content: center;
-            align-items: center;
             margin-top: 20px;
-            flex-wrap: wrap;
             gap: 15px;
         }
         
+<<<<<<< HEAD
         @media (max-width: 1024px) {
             .main-grid {
                 grid-template-columns: 1fr;
@@ -426,6 +358,8 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
+=======
+>>>>>>> 4588b26 (edit voice)
         .loading-text {
             color: #94a3b8;
             text-align: center;
@@ -435,49 +369,46 @@
             transform: translate(-50%, -50%);
             z-index: 10;
         }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .angles-grid { grid-template-columns: 1fr; }
+            .main-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="video-container">
         <h2>📹 Initial Assessment Video</h2>
+<<<<<<< HEAD
         <p class="subtitle">Please perform each movement for 15 seconds</p>
         
         <!-- Camera Permission Request -->
+=======
+        
+        <!-- Camera Permission Box -->
+>>>>>>> 4588b26 (edit voice)
         <div class="instructions" id="permissionBox">
             <h3><i class="fas fa-camera"></i> Camera Access Required</h3>
             <ul>
-                <li>
-                    <i class="fas fa-check"></i>
-                    We need access to your camera to record the assessment
-                </li>
-                <li>
-                    <i class="fas fa-shield-alt"></i>
-                    Your video is private and only used for therapy tracking
-                </li>
+                <li><i class="fas fa-check"></i> We need access to your camera to record the assessment</li>
+                <li><i class="fas fa-shield-alt"></i> Your video is private and only used for therapy tracking</li>
             </ul>
             <div style="display: flex; gap: 15px; margin-top: 20px; justify-content: center;">
-                <button onclick="requestCameraPermission()" style="
-                    padding: 12px 30px;
-                    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-                    color: white;
-                    border: none;
-                    border-radius: 10px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                ">
+                <button onclick="requestCameraPermission()" style="padding: 12px 30px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
                     <i class="fas fa-video"></i> Allow Camera
                 </button>
             </div>
         </div>
-
-        <!-- Instructions (shown after permission) -->
+        
         <div class="instructions" id="instructionsBox" style="display: none;">
             <h3><i class="fas fa-list-check"></i> Instructions:</h3>
             <ul>
+<<<<<<< HEAD
                 <li>
                     <i class="fas fa-person"></i>
                     Stand where the camera can see your full arm
@@ -534,25 +465,34 @@
                 <p>Rotate arm outward</p>
                 <div class="movement-timer" id="move5Timer">0s / 15s</div>
             </div>
+=======
+                <li><i class="fas fa-person"></i> Stand where the camera can see your full body</li>
+                <li><i class="fas fa-arrow-pointer"></i> Perform various arm movements naturally</li>
+                <li><i class="fas fa-spinner"></i> Move slowly and steadily for accurate analysis</li>
+                <li><i class="fas fa-clock"></i> The AI will track your joint angles in real-time</li>
+            </ul>
         </div>
         
-        <!-- Main Content Grid - Camera + Analysis -->
+        <div class="angles-grid" id="anglesGrid" style="display: none;">
+            <div class="angle-card"><h4><span>🦾</span> Left Shoulder</h4><div><span class="angle-value-large" id="leftShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>💪</span> Left Elbow</h4><div><span class="angle-value-large" id="leftElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>🦾</span> Right Shoulder</h4><div><span class="angle-value-large" id="rightShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>💪</span> Right Elbow</h4><div><span class="angle-value-large" id="rightElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+>>>>>>> 4588b26 (edit voice)
+        </div>
+        
         <div class="main-grid" id="mainGrid" style="display: none;">
-            <!-- Camera Section -->
             <div class="camera-section">
                 <div class="video-wrapper">
                     <!-- Hidden video element - positioned off-screen but still capturing -->
                     <video id="video" class="hidden-video" width="640" height="480" autoplay muted playsinline></video>
                     <!-- Canvas displays the processed frames with AI landmarks -->
                     <canvas id="processedCanvas" width="640" height="480"></canvas>
-                    <div id="loadingText" class="loading-text" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i> Loading AI analysis...
-                    </div>
+                    <div id="loadingText" class="loading-text" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Loading AI analysis...</div>
                 </div>
             </div>
-            
-            <!-- Analysis Panel -->
             <div class="analysis-panel">
+<<<<<<< HEAD
                 <h3>
                     <i class="fas fa-robot"></i> 
                     AI Movement Analysis
@@ -625,12 +565,22 @@
         
         <!-- Current Movement Display -->
         <div class="current-movement" id="currentMovement" style="display: none;">Ready to start</div>
+=======
+                <h3><i class="fas fa-robot"></i> AI Movement Analysis <span class="status-badge status-success" id="aiStatus">Connecting...</span></h3>
+                <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
+                <div class="feedback-box"><div class="feedback-text" id="feedbackText"><i class="fas fa-info-circle"></i> Position yourself in front of the camera</div></div>
+            </div>
+        </div>
         
-        <!-- Timer -->
+        <div class="progress-bar" id="progressBar" style="display: none;"><div class="progress-fill" id="progressFill"></div></div>
+        
+        <!-- Current Status - سيتم عرض التعليمات الحالية هنا -->
+        <div class="current-status" id="currentStatus" style="display: none;">✅ Ready to start recording<br>Press "Start Recording" to begin</div>
+>>>>>>> 4588b26 (edit voice)
+        
         <div class="timer" id="timer" style="display: none;">00:00</div>
-        
-        <!-- Controls -->
         <div class="controls" id="controls" style="display: none;">
+<<<<<<< HEAD
             <button class="btn-record" onclick="startRecording()" id="recordBtn">
                 <i class="fas fa-circle"></i> Start Recording
             </button>
@@ -653,16 +603,172 @@
             <button class="btn-back" onclick="goBack()">
                 <span>←</span> Back to Dashboard
             </button>
+=======
+            <button class="btn-record" onclick="startRecording()" id="recordBtn"><i class="fas fa-circle"></i> Start Recording</button>
+            <button class="btn-stop" onclick="stopRecording()" id="stopBtn" disabled><i class="fas fa-square"></i> Stop</button>
+            <button class="btn-save" onclick="saveVideo()" id="saveBtn" disabled><i class="fas fa-save"></i> Save Assessment</button>
+            <button class="btn-retake" onclick="retakeVideo()" id="retakeBtn" disabled><i class="fas fa-redo"></i> Retake</button>
+>>>>>>> 4588b26 (edit voice)
         </div>
+        <div class="button-group"><button class="btn-back" onclick="goBack()"><span>←</span> Back to Dashboard</button></div>
     </div>
 
     <script>
         // ============================================
-        // GLOBAL VARIABLES
+        // VOICE INSTRUCTIONS SYSTEM - تزامن تام بين الصوت والمؤقت
+        // ============================================
+        let voiceGuideActive = false;
+        let currentInstructionIdx = 0;
+        let speechUtter = null;
+        let speechSynth = window.speechSynthesis;
+        
+        // التعليمات بالضبط كما طلبت
+        const instructionSteps = [
+            { text: "Take 3 steps back", duration: 7 },
+            { text: "Stand still", duration: 5 },
+            { text: "Move your arm up and down", duration: 5 },
+            { text: "Open and close your fist", duration: 5 },
+            { text: "Move your wrist in circles", duration: 5 },
+            { text: "Open and close your elbow", duration: 5 },
+            { text: "Pretend you carry a cup in your hand and move it from left to right", duration: 5 }
+        ];
+        
+        // تحديث النص المعروض تحت الفيديو
+        function updateStatusDisplay(stepIndex, currentNumber, totalDuration) {
+            const statusDiv = document.getElementById('currentStatus');
+            const step = instructionSteps[stepIndex];
+            if (statusDiv && step) {
+                statusDiv.innerHTML = `
+                    <i class="fas fa-volume-up" style="margin-right: 10px;"></i>
+                    📢 ${step.text}
+                    <span class="instruction-timer-badge">${currentNumber} sec</span>
+                    <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">
+                        <i class="fas fa-hourglass-half"></i> ${currentNumber} seconds remaining...
+                    </div>
+                `;
+            }
+        }
+        
+        // نطق النص
+        function speakText(text, callback) {
+            if (!voiceGuideActive) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            utterance.pitch = 1;
+            utterance.onend = () => { if (callback) callback(); };
+            utterance.onerror = () => { if (callback) callback(); };
+            speechUtter = utterance;
+            speechSynth.speak(utterance);
+        }
+        
+        // نطق رقم واحد وتحديث العرض بعده
+        function speakNumberAndUpdate(number, stepIndex, onComplete) {
+            if (!voiceGuideActive) return;
+            
+            // تحديث العرض أولاً
+            updateStatusDisplay(stepIndex, number, instructionSteps[stepIndex].duration);
+            
+            // نطق الرقم
+            const utterance = new SpeechSynthesisUtterance(number.toString());
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            utterance.pitch = 1;
+            utterance.onend = () => {
+                if (onComplete) onComplete();
+            };
+            utterance.onerror = () => {
+                if (onComplete) onComplete();
+            };
+            speechSynth.speak(utterance);
+        }
+        
+        // العد التنازلي بالتسلسل - كل رقم ينطق بعد انتهاء الرقم السابق
+        function countdownSequential(stepIndex, currentNumber, onComplete) {
+            if (!voiceGuideActive) return;
+            
+            if (currentNumber < 1) {
+                if (onComplete) onComplete();
+                return;
+            }
+            
+            speakNumberAndUpdate(currentNumber, stepIndex, function() {
+                // تأخير بسيط 100ms بين الأرقام لضمان وضوح الصوت
+                setTimeout(() => {
+                    countdownSequential(stepIndex, currentNumber - 1, onComplete);
+                }, 150);
+            });
+        }
+        
+        // بدء التمرين الحالي
+        function startExercise(index, onExerciseComplete) {
+            if (!voiceGuideActive) return;
+            if (index >= instructionSteps.length) {
+                if (onExerciseComplete) onExerciseComplete();
+                return;
+            }
+            
+            const step = instructionSteps[index];
+            const duration = step.duration;
+            
+            // عرض التعليمات مع الوقت الكامل أولاً
+            updateStatusDisplay(index, duration, duration);
+            
+            // قراءة التعليمات أولاً
+            speakText(step.text, function() {
+                // بعد الانتهاء من قراءة التعليمات، نبدأ العد التنازلي
+                if (voiceGuideActive) {
+                    countdownSequential(index, duration, function() {
+                        // بعد انتهاء العد التنازلي، ننتقل للتمرين التالي
+                        if (voiceGuideActive) {
+                            startExercise(index + 1, onExerciseComplete);
+                        }
+                    });
+                }
+            });
+        }
+        
+        function completeAllExercises() {
+            voiceGuideActive = false;
+            if (speechUtter) speechSynth.cancel();
+            document.getElementById('currentStatus').innerHTML = `
+                <i class="fas fa-trophy" style="margin-right: 10px;"></i>
+                🎉 Assessment Complete! Great job! 🎉
+                <div style="font-size: 14px; margin-top: 5px;">You can now stop recording and save your video.</div>
+            `;
+            showNotification('✅ All exercises completed! Great job!', 'success');
+        }
+        
+        // بدء نظام التعليمات الصوتية
+        function startVoiceGuide() {
+            if (voiceGuideActive) return;
+            voiceGuideActive = true;
+            
+            // نطق الترحيب
+            speakText("Welcome to your physiotherapy assessment. You will complete 7 exercises. Let's begin.", function() {
+                if (voiceGuideActive) {
+                    startExercise(0, function() {
+                        completeAllExercises();
+                    });
+                }
+            });
+            showNotification('Voice guide started - Follow the instructions', 'success');
+        }
+        
+        function stopVoiceGuide() {
+            voiceGuideActive = false;
+            if (speechUtter) {
+                speechSynth.cancel();
+            }
+        }
+        
+        // ============================================
+        // CAMERA & WEBSOCKET
         // ============================================
         const video = document.getElementById('video');
         const processedCanvas = document.getElementById('processedCanvas');
         const ctx = processedCanvas.getContext('2d');
+<<<<<<< HEAD
         const loadingText = document.getElementById('loadingText');
 
         let mediaRecorder;
@@ -690,27 +796,25 @@
         const totalDuration = movements.length * movements[0].duration;
 
         // Get affected hand from localStorage
+=======
+        let mediaRecorder, recordedChunks = [], videoStream, timerInterval, seconds = 0, isRecording = false;
+        let ws, frameInterval, reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+>>>>>>> 4588b26 (edit voice)
         const affectedHand = localStorage.getItem('affectedHand') || 'right';
-        document.getElementById('handBadge').textContent = 
-            affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
-
-        // ============================================
-        // WEBSOCKET FUNCTIONS
-        // ============================================
+        document.getElementById('handBadge').textContent = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
         
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws/pose-detection/`;
-            
             ws = new WebSocket(wsUrl);
-            
-            ws.onopen = function() {
-                console.log('✅ WebSocket connected');
+            ws.onopen = () => {
                 reconnectAttempts = 0;
                 document.getElementById('aiStatus').textContent = 'Active';
                 document.getElementById('aiStatus').className = 'status-badge status-success';
-                if (loadingText) loadingText.style.display = 'none';
+                if(loadingText) loadingText.style.display = 'none';
                 showNotification('AI analysis connected!', 'success');
+<<<<<<< HEAD
                 
                 // Send injured hand info
                 const injuredHand = localStorage.getItem('affectedHand') || 'right';
@@ -719,10 +823,14 @@
                     'patient_id': 25
                 }));
                 
+=======
+                ws.send(JSON.stringify({ injured_hand: affectedHand, patient_id: 25 }));
+>>>>>>> 4588b26 (edit voice)
                 startFrameCapture();
             };
-            ws.onmessage = function(event) {
+            ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+<<<<<<< HEAD
                 
                 if (data.type === 'pose_data') {
                     // Update angle displays
@@ -748,34 +856,25 @@
                             ctx.drawImage(img, 0, 0, processedCanvas.width, processedCanvas.height);
                             ctx.restore();
                         };
+=======
+                if(data.type === 'pose_data') {
+                    document.getElementById('leftShoulderAngleDisplay').textContent = data.angles.left_shoulder;
+                    document.getElementById('leftElbowAngleDisplay').textContent = data.angles.left_elbow;
+                    document.getElementById('rightShoulderAngleDisplay').textContent = data.angles.right_shoulder;
+                    document.getElementById('rightElbowAngleDisplay').textContent = data.angles.right_elbow;
+                    document.getElementById('feedbackText').innerHTML = `<i class="fas fa-robot"></i> ${data.feedback}`;
+                    if(data.frame) {
+                        const img = new Image();
+                        img.onload = () => { ctx.clearRect(0,0,processedCanvas.width,processedCanvas.height); ctx.save(); ctx.translate(processedCanvas.width,0); ctx.scale(-1,1); ctx.drawImage(img,0,0,processedCanvas.width,processedCanvas.height); ctx.restore(); };
+>>>>>>> 4588b26 (edit voice)
                         img.src = `data:image/jpeg;base64,${data.frame}`;
                     }
                 }
             };
-            
-            ws.onclose = function() {
-                console.log('❌ WebSocket disconnected');
-                document.getElementById('aiStatus').textContent = 'Reconnecting...';
-                document.getElementById('aiStatus').className = 'status-badge status-warning';
-                showNotification('AI analysis disconnected. Reconnecting...', 'info');
-                stopFrameCapture();
-                
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    setTimeout(connectWebSocket, 3000);
-                } else {
-                    document.getElementById('aiStatus').textContent = 'Offline';
-                    document.getElementById('aiStatus').className = 'status-badge status-warning';
-                    showNotification('AI analysis offline. Refresh page to reconnect.', 'error');
-                }
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-                showNotification('AI analysis connection error', 'error');
-            };
+            ws.onclose = () => { if(reconnectAttempts < maxReconnectAttempts) { reconnectAttempts++; setTimeout(connectWebSocket, 3000); } };
         }
         
+<<<<<<< HEAD
         function startFrameCapture() {
             if (frameInterval) clearInterval(frameInterval);
             
@@ -830,19 +929,17 @@
         // ============================================
         // CAMERA PERMISSION FUNCTION
         // ============================================
+=======
+        function startFrameCapture() { if(frameInterval) clearInterval(frameInterval); frameInterval = setInterval(() => { if(ws && ws.readyState === WebSocket.OPEN && video.videoWidth) captureAndSendFrame(); }, 100); }
+        function stopFrameCapture() { if(frameInterval) clearInterval(frameInterval); frameInterval = null; }
+        function captureAndSendFrame() { if(!video.videoWidth) return; const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; const tempCtx = canvas.getContext('2d'); tempCtx.drawImage(video,0,0); ws.send(JSON.stringify({ frame: canvas.toDataURL('image/jpeg',0.6) })); }
+>>>>>>> 4588b26 (edit voice)
         
         async function requestCameraPermission() {
             try {
-                videoStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        facingMode: 'user'
-                    },
-                    audio: false
-                });
-                
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
                 video.srcObject = videoStream;
+<<<<<<< HEAD
                 
                 // Wait for video to be ready
                 await new Promise((resolve) => {
@@ -867,6 +964,11 @@
                 connectWebSocket();
                 
                 // Hide permission box, show everything else
+=======
+                await new Promise(resolve => { video.onloadedmetadata = () => { video.play(); resolve(); }; });
+                if(loadingText) loadingText.style.display = 'block';
+                connectWebSocket();
+>>>>>>> 4588b26 (edit voice)
                 document.getElementById('permissionBox').style.display = 'none';
                 document.getElementById('instructionsBox').style.display = 'block';
                 document.getElementById('movementsGrid').style.display = 'grid';
@@ -875,26 +977,28 @@
                 document.getElementById('currentMovement').style.display = 'block';
                 document.getElementById('timer').style.display = 'block';
                 document.getElementById('controls').style.display = 'flex';
-                
-            } catch (error) {
-                console.error('Camera error:', error);
-                alert('Camera access is required for assessment. Please allow camera access and try again.');
-            }
+            } catch(error) { alert('Camera access required.'); }
         }
-
-        // ============================================
-        // RECORDING FUNCTIONS
-        // ============================================
         
         function startRecording() {
+<<<<<<< HEAD
             recordedChunks = [];
-            mediaRecorder = new MediaRecorder(videoStream);
+=======
+            recordedChunks = []; 
+            seconds = 0; 
+            updateTimerDisplay();
             
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    recordedChunks.push(event.data);
-                }
+            // بدء التعليمات الصوتية فور الضغط على Start Recording
+            startVoiceGuide();
+            
+>>>>>>> 4588b26 (edit voice)
+            mediaRecorder = new MediaRecorder(videoStream);
+            mediaRecorder.ondataavailable = e => { if(e.data.size) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => { 
+                document.getElementById('saveBtn').disabled = false; 
+                document.getElementById('retakeBtn').disabled = false; 
             };
+<<<<<<< HEAD
             
             mediaRecorder.onstop = () => {
                 document.getElementById('playBtn').disabled = false;
@@ -906,9 +1010,20 @@
             isRecording = true;
             startTimer();
             startMovementGuide();
+=======
+            mediaRecorder.start(); 
+            isRecording = true;
             
-            document.getElementById('recordBtn').disabled = true;
+            timerInterval = setInterval(() => { 
+                seconds++; 
+                updateTimerDisplay(); 
+                document.getElementById('progressFill').style.width = Math.min((seconds/60)*100,100)+'%'; 
+            }, 1000);
+>>>>>>> 4588b26 (edit voice)
+            
+            document.getElementById('recordBtn').disabled = true; 
             document.getElementById('stopBtn').disabled = false;
+<<<<<<< HEAD
             document.getElementById('currentMovement').textContent = 'Starting with: Grip Strength';
             
             showNotification('Recording started - Follow the movements!', 'info');
@@ -925,8 +1040,21 @@
                 document.getElementById('currentMovement').textContent = 'Recording stopped';
                 
                 showNotification('Recording stopped', 'info');
-            }
+=======
         }
+        
+        function stopRecording() { 
+            if(mediaRecorder && isRecording) { 
+                mediaRecorder.stop(); 
+                isRecording = false; 
+                clearInterval(timerInterval); 
+                document.getElementById('recordBtn').disabled = false; 
+                document.getElementById('stopBtn').disabled = true; 
+>>>>>>> 4588b26 (edit voice)
+            }
+            stopVoiceGuide();
+        }
+<<<<<<< HEAD
 
         function startTimer() {
             seconds = 0;
@@ -1017,17 +1145,18 @@
             showNotification('Playing recording', 'info');
         }
 
+=======
+        
+        function updateTimerDisplay() { const mins = Math.floor(seconds/60); const secs = seconds%60; document.getElementById('timer').textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; }
+        
+>>>>>>> 4588b26 (edit voice)
         function retakeVideo() {
-            recordedChunks = [];
-            
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            
-            if (ws) {
-                ws.close();
-            }
+            stopVoiceGuide();
+            recordedChunks = []; 
+            if(videoStream) videoStream.getTracks().forEach(t => t.stop()); 
+            if(ws) ws.close(); 
             stopFrameCapture();
+<<<<<<< HEAD
             
             // Reset display
             processedCanvas.style.display = 'block';
@@ -1110,61 +1239,45 @@
                 document.getElementById('saveBtn').disabled = false;
                 document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i> Save Assessment';
             }
+=======
+            navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false }).then(stream => { 
+                videoStream = stream; 
+                video.srcObject = stream; 
+                connectWebSocket(); 
+                document.getElementById('saveBtn').disabled = true; 
+                document.getElementById('retakeBtn').disabled = true; 
+                document.getElementById('recordBtn').disabled = false; 
+                document.getElementById('stopBtn').disabled = true; 
+                seconds = 0; 
+                updateTimerDisplay(); 
+                document.getElementById('progressFill').style.width = '0%'; 
+                document.getElementById('currentStatus').innerHTML = '✅ Ready to start recording<br>Press "Start Recording" to begin';
+                showNotification('Camera reset - Click Start Recording to begin', 'info'); 
+            });
         }
-
-        function goBack() {
-            if (confirm('Are you sure? Your recording will not be saved.')) {
-                if (ws) {
-                    ws.close();
-                }
-                stopFrameCapture();
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.stop());
-                }
-                window.location.href = "{% url 'patient_dashboard' %}";
-            }
+        
+        async function saveVideo() { 
+            if(!recordedChunks.length) { showNotification('No recording', 'error'); return; } 
+            showNotification('✅ Assessment video saved!', 'success'); 
+            localStorage.setItem('hasAssessmentVideo','true'); 
+            localStorage.setItem('assessmentCompleted','true'); 
+            setTimeout(()=>{ window.location.href = "{% url 'patient_dashboard' %}"; }, 1500); 
+>>>>>>> 4588b26 (edit voice)
         }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            notification.textContent = message;
-            
-            const colors = {
-                success: 'linear-gradient(135deg, #10b981, #059669)',
-                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
-            };
-            
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                border-radius: 8px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                font-weight: 500;
-                z-index: 1000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                animation: slideIn 0.3s ease;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+        
+        function goBack() { 
+            if(confirm('Are you sure?')) window.location.href = "{% url 'patient_dashboard' %}"; 
         }
-
-        window.addEventListener('beforeunload', function() {
-            if (ws) {
-                ws.close();
-            }
-            stopFrameCapture();
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-        });
+        
+        function showNotification(msg,type) { 
+            const div = document.createElement('div'); 
+            div.textContent = msg; 
+            div.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;background:${type==='success'?'#10b981':type==='error'?'#ef4444':'#3b82f6'};color:white;z-index:9999;animation:slideInRight 0.3s;`; 
+            document.body.appendChild(div); 
+            setTimeout(()=>div.remove(),3000); 
+        }
+        
+        window.addEventListener('beforeunload',()=>{ if(ws) ws.close(); stopFrameCapture(); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); });
     </script>
 </body>
 </html>
