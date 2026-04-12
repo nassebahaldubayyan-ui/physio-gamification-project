@@ -4,15 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - StarRed
-  - StarBlue
   - StarYellow
-  - BagRed
-  - BagBlue
-  - BagYellow
   - Bag
-  - Global Resource
   - Hand
+  - Star
   layers:
   - Default
   - TransparentFX

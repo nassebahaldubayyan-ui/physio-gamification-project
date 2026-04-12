@@ -2,12 +2,10 @@ using UnityEngine;
 
 public class SpawnStars : MonoBehaviour
 {
-    public GameObject redStarPrefab;
-    public GameObject blueStarPrefab;
     public GameObject yellowStarPrefab;
 
-    public float spawnInterval = 3f; // ﬂ· 3 ÀÊ«‰Ì ‰Ã„… ÃœÌœ…
-    public float starLifeTime = 10f; //  Œ ›Ì »⁄œ 10 ÀÊ«‰Ì
+    public float spawnInterval = 2f;
+    public float starLifeTime = 10f; 
 
     public Vector2 minPos = new Vector2(-7f, 2f);
     public Vector2 maxPos = new Vector2(7f, 5f);
@@ -17,19 +15,16 @@ public class SpawnStars : MonoBehaviour
         InvokeRepeating("SpawnRandomStar", 1f, spawnInterval);
     }
 
-    void SpawnRandomStar()
+    public void SpawnRandomStar()
     {
-        // «Œ — ·Ê‰ ⁄‘Ê«∆Ì „ Ê«›ﬁ „⁄ «·‘‰ÿ
         int color = Random.Range(0, 3);
-        GameObject starPrefab = redStarPrefab;
-        if (color == 1) starPrefab = blueStarPrefab;
-        else if (color == 2) starPrefab = yellowStarPrefab;
+        GameObject starPrefab = yellowStarPrefab;
 
-        // «Œ — „ﬂ«‰ ⁄‘Ê«∆Ì »«·”„«¡
+        
         float x = Random.Range(minPos.x, maxPos.x);
         float y = Random.Range(minPos.y, maxPos.y);
 
         GameObject star = Instantiate(starPrefab, new Vector3(x, y, 0), Quaternion.identity);
-        Destroy(star, starLifeTime); //  Œ ›Ì »⁄œ starLifeTime ÀÊ«‰Ì
+        Destroy(star, starLifeTime); 
     }
 }
