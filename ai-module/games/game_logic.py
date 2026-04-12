@@ -33,6 +33,9 @@ class CatchGame:
         # رينج الكوع الافتراضي (يمكن استبداله من DB عند بدء الجلسة)
         self.elbow_min = elbow_min if elbow_min is not None else 60.0
         self.elbow_max = elbow_max if elbow_max is not None else 160.0
+        
+        self.internal_rom = 60.0
+        self.external_rom = 60.0
 
         # حساسية منع التعويض
         self.shoulder_move_threshold = shoulder_move_threshold

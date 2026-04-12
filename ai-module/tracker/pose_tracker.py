@@ -1,6 +1,11 @@
 import time
 import numpy as np
 import cv2
+
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.angle_math import AngleMath
 
 class PoseTracker:

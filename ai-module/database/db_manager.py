@@ -10,7 +10,7 @@ class DatabaseManager:
         conn = sqlite3.connect(MDB_PATH)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT affected_arm FROM patients WHERE user_id = ?", (user_id,))
+        cursor.execute("SELECT affected_hand FROM patients WHERE user_id = ?", (user_id,))
         result = cursor.fetchone()
         conn.close()
 
