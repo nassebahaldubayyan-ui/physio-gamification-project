@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Catching Falling Object - Rehab Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a472a;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+        #unity-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .notification-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+            pointer-events: none;
+        }
+        .notification {
+            background: rgba(0,0,0,0.85);
+            padding: 12px 18px;
+            border-radius: 10px;
+            border-left: 4px solid #ff4444;
+            color: #ff8888;
+            font-weight: bold;
+            animation: slideIn 0.3s ease;
+            pointer-events: auto;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .stats-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #0f0;
+            z-index: 101;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+        .game-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffdd88;
+            z-index: 101;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+        .start-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2e3b2e, #1a2a1a);
+            padding: 30px 50px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 200;
+            border: 2px solid #ffcc44;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            pointer-events: auto;
+        }
+        .end-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2e3b2e, #1a2a1a);
+            padding: 35px 50px;
+            border-radius: 35px;
+            text-align: center;
+            z-index: 200;
+            border: 2px solid #ffcc44;
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            pointer-events: auto;
+            min-width: 420px;
+            max-width: 85vw;
+            display: flex;            
+            flex-direction: column;   
+            align-items: center;     
+            gap: 15px; 
+        }
+        .start-panel h1 { 
+            color: #ffdd88; 
+            margin-bottom: 25px; 
+            font-size: 32px;
+        }
+        .start-panel button {
+            background: #ffaa22;
+            border: none;
+            padding: 14px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #1a3a1a;
+            transition: all 0.2s ease;
+        }
+        .start-panel button:hover {
+            background: #ffcc44;
+            transform: scale(1.03);
+        }
+        .end-panel h2 { 
+            color: #ffdd88; 
+            margin-bottom: 20px; 
+            font-size: 36px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .end-panel .final-score { 
+            font-size: 52px; 
+            color: #ffaa44; 
+            margin: 10px 0 20px 0; 
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .accuracy-data {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin: 15px 0;
+            text-align: left;
+            border: 1px solid rgba(255,204,68,0.3);
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+        }
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            color: #ffdd88;
+            font-weight: bold;
+        }
+        .data-value {
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .data-value span {
+            color: #ffaa44;
+        }
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .end-panel button {
+            background: #ffaa22;
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #1a3a1a;
+            transition: all 0.2s ease;
+            min-width: 140px;
+        }
+        .end-panel button:hover {
+            background: #ffcc44;
+            transform: scale(1.02);
+        }
+        .end-panel { display: none; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+
+<canvas id="unity-canvas"></canvas>
+
+<div class="ui-overlay">
+    <div class="game-info">
+        🍎 SCORE: <span id="scoreValue">0</span> &nbsp;| ⏱️ TIME: <span id="timerValue">60</span>s
+    </div>
+    <div class="notification-panel" id="notificationPanel"></div>
+    <div class="stats-panel" id="statsPanel">
+        🖐️ HAND: <span id="handX">--</span>% | 🎯 <span id="handStatus">WAITING</span><br>
+        📐 ELBOW: <span id="elbowAngle">--</span>°
+    </div>
+</div>
+
+<div class="start-panel" id="startPanel">
+    <h1>🍎 CATCHING FALLING OBJECT 🧺</h1>
+    <button id="startBtn">▶️ START GAME</button>
+</div>
+
+<div class="end-panel" id="endPanel">
+    <h2>🎮 GAME OVER 🎮</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="accuracy-data">
+        <div class="data-row">
+            <span class="data-label">👤 User ID</span>
+            <span class="data-value"><span id="userId">1</span></span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">🎯 Final Score</span>
+            <span class="data-value"><span id="finalScoreDetail">0</span></span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">📐 Avg Elbow Angle</span>
+            <span class="data-value"><span id="avgElbow">--</span>°</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">🖐️ Hand Stability</span>
+            <span class="data-value"><span id="handStability">--</span>%</span>
+        </div>
+    </div>
+    <div class="button-group">
+        <button id="restartBtn">🔄 PLAY AGAIN</button>
+        <button id="exitBtn">🚪 EXIT TO GAMES</button>
+    </div>
+</div>
+
+<script src="Build/apple_build.loader.js"></script>
+<script>
+    // ============================================================
+    // ANGLE MATH
+    // ============================================================
+    const AngleMath = {
+        calculateAngle(p1, p2, p3) {
+            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z||0) - (p2.z||0) };
+            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z||0) - (p2.z||0) };
+            const dot = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+            const mag1 = Math.hypot(v1.x, v1.y, v1.z);
+            const mag2 = Math.hypot(v2.x, v2.y, v2.z);
+            const rad = Math.acos(Math.min(1, Math.max(-1, dot/(mag1*mag2))));
+            return rad * 180 / Math.PI;
+        }
+    };
+
+    // ============================================================
+    // POSE TRACKER
+    // ============================================================
+    class PoseTracker {
+        constructor() {
+            this.current = { elbow: 0 };
+            this.elbowHistory = [];
+        }
+        process(landmarks, side="left") {
+            if(!landmarks) return false;
+            const shoulderId = side==="left"?11:12, elbowId=side==="left"?13:14, wristId=side==="left"?15:16;
+            const shoulder=landmarks[shoulderId], elbow=landmarks[elbowId], wrist=landmarks[wristId];
+            if(!shoulder||!elbow||!wrist) return false;
+            this.current.elbow = AngleMath.calculateAngle(shoulder, elbow, wrist);
+            this.elbowHistory.push(this.current.elbow);
+            if (this.elbowHistory.length > 500) this.elbowHistory.shift();
+            return true;
+        }
+        getAverageElbow() {
+            if (this.elbowHistory.length === 0) return 0;
+            const sum = this.elbowHistory.reduce((a, b) => a + b, 0);
+            return Math.round(sum / this.elbowHistory.length);
+        }
+    }
+
+    // ============================================================
+    // متغيرات اللعبة
+    // ============================================================
+    let unityInstance = null;
+    let gameActive = false;
+    let gameTime = 60;
+    let gameScore = 0;
+    let timerInterval = null;
+    let mediaPipeActive = false;
+    let hands = null, camera = null;
+    let lastNotificationTime = 0;
+    let poseTracker = null;
+    let handStabilityHistory = [];
+
+    function updateUI() {
+        document.getElementById('scoreValue').innerText = gameScore;
+        document.getElementById('timerValue').innerText = Math.ceil(gameTime);
+    }
+    
+    function showNotification(msg) {
+        let panel = document.getElementById('notificationPanel');
+        let div = document.createElement('div');
+        div.className = 'notification';
+        div.innerText = msg;
+        panel.appendChild(div);
+        setTimeout(() => div.remove(), 2500);
+    }
+    
+    function updateStatsDisplay(handX, elbowAngle, isInside) {
+        document.getElementById('handX').innerText = Math.round(handX * 100);
+        document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
+        document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
+        document.getElementById('elbowAngle').innerText = Math.round(elbowAngle || 0);
+        
+        handStabilityHistory.push(isInside ? 1 : 0);
+        if (handStabilityHistory.length > 300) handStabilityHistory.shift();
+    }
+    
+    function getHandStability() {
+        if (handStabilityHistory.length === 0) return 100;
+        const stability = (handStabilityHistory.filter(v => v === 1).length / handStabilityHistory.length) * 100;
+        return Math.round(stability);
+    }
+    
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (gameActive && gameTime > 0) {
+                gameTime -= 1;
+                updateUI();
+                if (gameTime <= 0 && unityInstance) {
+                    clearInterval(timerInterval);
+                    unityInstance.sendMessage('GameManager', 'ForceEndGame');
+                }
+            }
+        }, 1000);
+    }
+    
+    async function initMediaPipe() {
+        let video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.appendChild(video);
+        
+        hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults(results => {
+            if (!mediaPipeActive || !gameActive) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                let wrist = results.multiHandLandmarks[0][0];
+                let handX = wrist.x;
+                let isInside = (handX > 0.05 && handX < 0.95);
+                
+                if (!isInside && (Date.now() - lastNotificationTime > 3000)) {
+                    showNotification("⚠️ Please return your hand to the center!");
+                    lastNotificationTime = Date.now();
+                }
+                
+                const poseLandmarks = [];
+                for(let i = 0; i < 33; i++) poseLandmarks.push({x:0.5, y:0.5, z:0});
+                poseLandmarks[11] = { x: wrist.x - 0.12, y: wrist.y - 0.25, z: 0 };
+                poseLandmarks[12] = { x: wrist.x + 0.12, y: wrist.y - 0.25, z: 0 };
+                poseLandmarks[13] = { x: wrist.x - 0.07, y: wrist.y - 0.12, z: 0 };
+                poseLandmarks[14] = { x: wrist.x + 0.07, y: wrist.y - 0.12, z: 0 };
+                
+                if (poseTracker) poseTracker.process(poseLandmarks, "left");
+                
+                updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
+                
+                // عكس اتجاه حركة السلة
+                let invertedHandX = 1 - handX;
+                
+                if (unityInstance) {
+                    unityInstance.sendMessage('Basket', 'SetHandPosition', invertedHandX.toString());
+                }
+            }
+        });
+        
+        camera = new Camera(video, {
+            onFrame: async () => {
+                if (mediaPipeActive && hands) await hands.send({ image: video });
+            },
+            width: 640,
+            height: 480
+        });
+        await camera.start();
+        mediaPipeActive = true;
+        console.log("MediaPipe started");
+    }
+    
+    function stopMediaPipe() {
+        mediaPipeActive = false;
+        if (camera) camera.stop();
+    }
+    
+    // دوال استقبال البيانات من Unity
+    window.UpdateScoreFromUnity = function(score) {
+        gameScore = score;
+        updateUI();
+        console.log("Score updated:", gameScore);
+    };
+    
+    window.UpdateTimerFromUnity = function(timer) {
+        gameTime = timer;
+        updateUI();
+        console.log("Timer updated:", gameTime);
+    };
+    
+    window.EndGameFromUnity = function(score) {
+        console.log("Game ended from Unity, final score:", score);
+        gameActive = false;
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
+        const stability = getHandStability();
+        
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('finalScoreDetail').innerText = score;
+        document.getElementById('avgElbow').innerText = avgElbow;
+        document.getElementById('handStability').innerText = stability;
+        
+        document.getElementById('endPanel').style.display = 'flex';
+        if (camera) camera.stop();
+        mediaPipeActive = false;
+    };
+    
+    function startGame() {
+        if (!unityInstance) {
+            showNotification("⏳ Loading game, please wait...");
+            setTimeout(startGame, 500);
+            return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+                
+                document.getElementById('startPanel').style.display = 'none';
+                document.getElementById('endPanel').style.display = 'none';
+                
+                gameActive = true;
+                gameTime = 60;
+                gameScore = 0;
+                updateUI();
+                
+                poseTracker = new PoseTracker();
+                handStabilityHistory = [];
+                
+                unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
+                unityInstance.sendMessage('Basket', 'StartMove');
+                
+                startTimer();
+                if (!mediaPipeActive) initMediaPipe();
+            })
+            .catch(err => {
+                console.error("Camera error:", err);
+                showNotification("❌ Please allow camera access");
+            });
+    }
+    
+    function exitToGames() {
+        window.location.href = "/games/";
+    }
+    
+    // ============================================================
+    // تحميل Unity
+    // ============================================================
+    var canvas = document.querySelector("#unity-canvas");
+    
+    function waitForUnity() {
+        if (typeof createUnityInstance === 'undefined') {
+            setTimeout(waitForUnity, 100);
+            return;
+        }
+        
+        createUnityInstance(canvas, {
+            dataUrl: "Build/apple_build.data",
+            frameworkUrl: "Build/apple_build.framework.js",
+            codeUrl: "Build/apple_build.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "CatchingFallingObjects",
+            productVersion: "0.1",
+        }).then((instance) => {
+            if (typeof instance.sendMessage === 'function') {
+                unityInstance = instance;
+                console.log("sendMessage found directly on instance");
+            } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                unityInstance = {
+                    sendMessage: function(obj, method, value) {
+                        instance.Module.SendMessage(obj, method, value);
+                    }
+                };
+                console.log("sendMessage found in Module.SendMessage");
+            } else {
+                console.error("sendMessage not found", instance);
+                showNotification("❌ Unity loaded but sendMessage missing");
+                return;
+            }
+            
+            window.unityInstance = unityInstance;
+            console.log("✅ Unity ready");
+            showNotification("✅ Game ready! Click START.");
+        }).catch((err) => {
+            console.error("Unity failed:", err);
+            showNotification("❌ Failed to load game");
+        });
+    }
+    
+    waitForUnity();
+    
+    document.getElementById('startBtn').onclick = function() {
+        console.log("Start button clicked");
+        startGame();
+    };
+    
+    document.getElementById('restartBtn').onclick = function() {
+        document.getElementById('endPanel').style.display = 'none';
+        startGame();
+    };
+    
+    document.getElementById('exitBtn').onclick = function() {
+        exitToGames();
+    };
+    
+    console.log("Ready");
+</script>
+</body>
+</html>

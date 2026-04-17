@@ -47,4 +47,6 @@ urlpatterns = [
     path('games/catching-stars/', views.game_catching_stars, name='game_catching_stars'),
     path('games/catching-objects/', views.game_catching_objects, name='game_catching_objects'),
     path('games/matching/', views.game_matching, name='game_matching'),
+    
+    path('game/', views.apple_game, name='game')
 ]

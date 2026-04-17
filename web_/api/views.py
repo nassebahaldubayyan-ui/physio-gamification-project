@@ -429,3 +429,6 @@ Sent from PhysioPlay website contact form
 
 def api_test(request):
     return JsonResponse({"message": "Django backend working"})
+
+def apple_game(request):
+    return render(request, 'game.html')
