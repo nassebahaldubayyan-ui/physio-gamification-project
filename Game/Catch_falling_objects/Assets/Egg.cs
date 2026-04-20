@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class Egg : MonoBehaviour
 {
-    public float fallSpeed = 3f;
+    public float fallSpeed = 1f;
 
     void Update()
     {
         transform.Translate(Vector2.down * fallSpeed * Time.deltaTime);
 
-        if (transform.position.y < -6f)
+        if (transform.position.y < -10f)
         {
             Destroy(gameObject);
         }

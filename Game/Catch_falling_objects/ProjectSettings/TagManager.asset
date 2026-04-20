@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Basket
   - Egg
+  - apple
   layers:
   - Default
   - TransparentFX
