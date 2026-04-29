@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Star Catcher Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #unity-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #1a1a2e;
+        }
+        
+        .game-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            padding: 12px 25px;
+            border-radius: 40px;
+            color: #ffdd88;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: monospace;
+            z-index: 100;
+            border: 1px solid #ffcc44;
+            pointer-events: none;
+        }
+        
+        .stats-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 18px;
+            border-radius: 12px;
+            color: #88ff88;
+            font-family: monospace;
+            font-size: 13px;
+            z-index: 100;
+            border: 1px solid #ffcc44;
+            pointer-events: none;
+        }
+        
+        .stats-panel div {
+            margin: 3px 0;
+        }
+        
+        .start-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            padding: 40px 60px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 200;
+            border: 2px solid #e94560;
+            box-shadow: 0 0 40px rgba(233,69,96,0.3);
+            cursor: pointer;
+        }
+        
+        .start-panel h1 {
+            color: #ffdd88;
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        
+        .start-panel button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .start-panel button:hover {
+            transform: scale(1.05);
+            background: #ff6b6b;
+        }
+        
+        .end-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            padding: 40px 60px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 200;
+            border: 2px solid #e94560;
+            box-shadow: 0 0 40px rgba(233,69,96,0.3);
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 350px;
+        }
+        
+        .end-panel h2 {
+            color: #ffdd88;
+            font-size: 36px;
+        }
+        
+        .final-score {
+            font-size: 64px;
+            color: #e94560;
+            font-weight: bold;
+        }
+        
+        .end-panel button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        
+        .end-panel button:hover {
+            background: #ff6b6b;
+        }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+
+<canvas id="unity-canvas"></canvas>
+
+<div class="game-header">
+    ⭐ <span id="scoreValue">0</span> &nbsp;| ⏱️ <span id="timerValue">60</span>s
+</div>
+
+<div class="stats-panel">
+    <div>🖐️ HAND: <span id="handX">--</span>%</div>
+    <div>✊ GRIP: <span id="gripStatus">NO</span></div>
+    <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
+</div>
+
+<div class="start-panel" id="startPanel">
+    <h1>⭐ STAR CATCHER ⭐</h1>
+    <button id="startBtn">🚀 START GAME</button>
+</div>
+
+<div class="end-panel" id="endPanel">
+    <h2>🎮 GAME OVER 🎮</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div>
+        <button id="restartBtn">🔄 PLAY AGAIN</button>
+    </div>
+</div>
+
+<!-- Unity Loader - use absolute path from static folder -->
+<script src="/static/Star_build/Build/star_build.loader.js"></script>
+
+<script>
+    let unityInstance = null;
+    let gameActive = false;
+    let currentScore = 0;
+    let timeLeft = 60;
+    let timerInterval = null;
+    
+    let mediaPipeActive = false;
+    let hands = null;
+    let camera = null;
+    let isGripping = false;
+    let handX = 0.5;
+    let handZ = 0.5;
+    let elbowHistory = [];
+    
+    function updateUI() {
+        document.getElementById('scoreValue').innerText = currentScore;
+        document.getElementById('timerValue').innerText = Math.ceil(timeLeft);
+    }
+    
+    function updateStats(handPercent, elbow, grip) {
+        document.getElementById('handX').innerText = Math.round(handPercent * 100);
+        document.getElementById('elbowAngle').innerText = Math.round(elbow || 0);
+        document.getElementById('gripStatus').innerHTML = grip ? 'YES' : 'NO';
+        document.getElementById('gripStatus').style.color = grip ? '#88ff88' : '#ff8888';
+    }
+    
+    function calculateElbowAngle(wrist, indexTip) {
+        const shoulder = { x: wrist.x - 0.12, y: wrist.y - 0.2 };
+        const v1 = { x: shoulder.x - wrist.x, y: shoulder.y - wrist.y };
+        const v2 = { x: indexTip.x - wrist.x, y: indexTip.y - wrist.y };
+        const dot = v1.x * v2.x + v1.y * v2.y;
+        const mag1 = Math.hypot(v1.x, v1.y);
+        const mag2 = Math.hypot(v2.x, v2.y);
+        const rad = Math.acos(Math.min(1, Math.max(-1, dot / (mag1 * mag2))));
+        return rad * 180 / Math.PI;
+    }
+    
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (gameActive && timeLeft > 0) {
+                timeLeft--;
+                updateUI();
+                if (timeLeft <= 0) {
+                    if (unityInstance) {
+                        unityInstance.sendMessage('GameManager', 'EndGame');
+                    }
+                }
+            }
+        }, 1000);
+    }
+    
+    async function initMediaPipe() {
+        const video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.appendChild(video);
+        
+        hands = new Hands({
+            locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults((results) => {
+            if (!mediaPipeActive || !gameActive || !unityInstance) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const wrist = landmarks[0];
+                const indexTip = landmarks[8];
+                const thumbTip = landmarks[4];
+                
+                handX = wrist.x;
+                handZ = 1 - wrist.y;
+                
+                unityInstance.sendMessage('Basket', 'UpdateHandPosition', `${handX},${handZ}`);
+                
+                const gripDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+                const grippingNow = gripDist < 0.05;
+                
+                const elbowAngle = calculateElbowAngle(wrist, indexTip);
+                elbowHistory.push(elbowAngle);
+                if (elbowHistory.length > 300) elbowHistory.shift();
+                
+                if (grippingNow && !isGripping) {
+                    unityInstance.sendMessage('Basket', 'OnGripStart');
+                } else if (!grippingNow && isGripping) {
+                    unityInstance.sendMessage('Basket', 'OnGripEnd');
+                }
+                
+                isGripping = grippingNow;
+                updateStats(handX, elbowAngle, isGripping);
+            }
+        });
+        
+        camera = new Camera(video, {
+            onFrame: async () => {
+                if (mediaPipeActive && hands) {
+                    await hands.send({ image: video });
+                }
+            },
+            width: 640,
+            height: 480
+        });
+        
+        await camera.start();
+        mediaPipeActive = true;
+        console.log("MediaPipe started");
+    }
+    
+    function stopMediaPipe() {
+        mediaPipeActive = false;
+        if (camera) camera.stop();
+    }
+    
+    function startGame() {
+        if (!unityInstance) {
+            setTimeout(startGame, 500);
+            return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+                
+                currentScore = 0;
+                timeLeft = 60;
+                elbowHistory = [];
+                updateUI();
+                
+                document.getElementById('startPanel').style.display = 'none';
+                document.getElementById('endPanel').style.display = 'none';
+                
+                gameActive = true;
+                
+                unityInstance.sendMessage('GameManager', 'StartGame');
+                startTimer();
+                
+                if (!mediaPipeActive) {
+                    initMediaPipe();
+                } else {
+                    mediaPipeActive = true;
+                }
+                
+                console.log("Game started!");
+            })
+            .catch(err => {
+                console.error("Camera error:", err);
+                alert("Camera access denied. Please allow camera access.");
+            });
+    }
+    
+    function endGame(finalScore) {
+        gameActive = false;
+        
+        if (timerInterval) clearInterval(timerInterval);
+        stopMediaPipe();
+        
+        document.getElementById('finalScore').innerHTML = finalScore;
+        document.getElementById('endPanel').style.display = 'flex';
+        
+        console.log("Game ended! Score:", finalScore);
+    }
+    
+    window.SendMessageToBrowser = function(message) {
+        console.log("From Unity:", message);
+        
+        if (message === "GAME_STARTED") {
+            console.log("Unity game started");
+        }
+        else if (message.startsWith("SCORE_UPDATE:")) {
+            currentScore = parseInt(message.split(":")[1]);
+            updateUI();
+        }
+        else if (message.startsWith("GAME_ENDED:")) {
+            const finalScore = parseInt(message.split(":")[1]);
+            endGame(finalScore);
+        }
+    };
+    
+    const canvas = document.querySelector("#unity-canvas");
+    
+    function loadUnity() {
+        if (typeof createUnityInstance === 'undefined') {
+            setTimeout(loadUnity, 100);
+            return;
+        }
+        
+        createUnityInstance(canvas, {
+            dataUrl: "/static/Star_build/Build/star_build.data",
+            frameworkUrl: "/static/Star_build/Build/star_build.framework.js",
+            codeUrl: "/static/Star_build/Build/star_build.wasm",
+            streamingAssetsUrl: "/static/Star_build/StreamingAssets",
+            companyName: "RehabGames",
+            productName: "StarCatcher",
+            productVersion: "1.0"
+        }).then((instance) => {
+            if (typeof instance.sendMessage === 'function') {
+                unityInstance = instance;
+            } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                unityInstance = {
+                    sendMessage: (obj, method, val) => instance.Module.SendMessage(obj, method, val)
+                };
+            } else {
+                alert("Failed to load game");
+                return;
+            }
+            
+            window.unityInstance = unityInstance;
+            console.log("Unity loaded successfully!");
+        }).catch((err) => {
+            console.error("Unity load error:", err);
+            alert("Failed to load game: " + err.message);
+        });
+    }
+    
+    loadUnity();
+    
+    document.getElementById('startBtn').onclick = startGame;
+    document.getElementById('restartBtn').onclick = () => {
+        document.getElementById('endPanel').style.display = 'none';
+        startGame();
+    };
+    
+    console.log("Star Catcher Ready!");
+</script>
+</body>
+</html>

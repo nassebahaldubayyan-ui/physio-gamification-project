@@ -438,8 +438,8 @@
         
         const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
         const stability = getHandStability();
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('user_id') || '1';
+        const userId = 1;
+        
         document.getElementById('finalScore').innerText = score;
         document.getElementById('finalScoreDetail').innerText = score;
         document.getElementById('avgElbow').innerText = avgElbow;
@@ -449,27 +449,25 @@
         if (camera) camera.stop();
         mediaPipeActive = false;
     
-   fetch('/api/save-game-result/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        user_id: userId,          // الرابط الحقيقي (من الموقع أو من الرابط)
-        level: gameLevel,
-        score: score,
-        objects_caught: score,
-        accuracy: handStability,
-        avg_elbow: avgElbow,
-        avg_hand_stability: handStability
-    })
-}).then(response => response.json())
-  .then(data => {
-      if (data.success) {
-          console.log("تم حفظ النتيجة");
-    window.location.href = `/patient/`;
-}
-          
-      
-  });}
+        fetch('/api/save-game-result/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                level: 1,
+                score: score,
+                objects_caught: score,
+                accuracy: stability,
+                avg_elbow: avgElbow,
+                hand_stability: stability
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  console.log("تم حفظ النتيجة");
+              }
+          });
+    }
     
     function startGame() {
         if (!unityInstance) {
@@ -506,37 +504,19 @@
     }
     
     function exitToGames() {
-        window.location.href = "/games/";
+        window.location.href = "/patient/";
     }
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
     
     // ============================================================
     // تحميل Unity
     // ============================================================
     var canvas = document.querySelector("#unity-canvas");
-    // استخراج المستوى من الرابط
-    const urlParams = new URLSearchParams(window.location.search);
-    const gameLevel = __LEVEL__;
-
-    const userId = __USER_ID__;
+    const userId = 1;
+    const gameLevel = 1;
+    
     console.log("user id", userId);
     console.log("game level", gameLevel);
-
-   
+    
     function waitForUnity() {
         if (typeof createUnityInstance === 'undefined') {
             setTimeout(waitForUnity, 100);
@@ -570,13 +550,10 @@
             window.unityInstance = unityInstance;
             console.log("✅ Unity ready");
             showNotification("✅ Game ready! Click START.");
-            unityInstance.sendMessage('GameManager', 'SetLevel', gameLevel);
         }).catch((err) => {
             console.error("Unity failed:", err);
             showNotification("❌ Failed to load game");
-
         });
-
     }
     
     waitForUnity();
@@ -587,8 +564,7 @@
     };
     
     document.getElementById('restartBtn').onclick = function() {
-        document.getElementById('endPanel').style.display = 'none';
-        startGame();
+        window.location.reload();
     };
     
     document.getElementById('exitBtn').onclick = function() {

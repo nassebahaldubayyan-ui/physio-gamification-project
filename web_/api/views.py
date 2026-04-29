@@ -85,8 +85,18 @@ def edit_doctor_profile(request):
 
 # Game Pages
 def game_catching_stars(request):
-    return render(request, 'games/game-catching-stars.html')
-
+    
+    user_id = request.user.id
+    level = request.GET.get('level', '1')
+    
+    file_path = os.path.join('static', 'Star_build', 'index.html')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    html_content = html_content.replace('__USER_ID__', str(user_id) if user_id else '1')
+    html_content = html_content.replace('__LEVEL__', str(level))
+    
+    return HttpResponse(html_content)
 
 
 def game_catching_objects(request):
