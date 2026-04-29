@@ -48,5 +48,6 @@ urlpatterns = [
     path('games/catching-objects/', views.game_catching_objects, name='game_catching_objects'),
     path('games/matching/', views.game_matching, name='game_matching'),
     
-    path('game/', views.apple_game, name='game')
+    path('game/', views.apple_game, name='game'),
+    path('api/save-game-result/', views.api_save_game_result, name='save_game_result'),
 ]

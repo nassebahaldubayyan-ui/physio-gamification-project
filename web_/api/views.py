@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
-from .models import Users, Messages, Patients, Doctors
+from django.shortcuts import redirect
+from .models import Users, Messages, Patients, Doctors, GameSessions
 import json
+import os
 
 # NOTE: send_mail is imported INSIDE the function to avoid circular imports
 
@@ -34,7 +36,12 @@ def select_patient(request):
 
 # Patient Pages
 def patient_dashboard(request):
-    return render(request, 'patient/patient.html')
+    patient = Patients.objects.first()
+    level = patient.current_level or 1
+
+    return render(request, 'patient/patient.html', {
+        'level': level
+    })
 
 def patient_chat(request):
     return render(request, 'patient/patient-chat.html')
@@ -80,8 +87,23 @@ def edit_doctor_profile(request):
 def game_catching_stars(request):
     return render(request, 'games/game-catching-stars.html')
 
+
+
 def game_catching_objects(request):
-    return render(request, 'games/game-catching-objects.html')
+
+    
+    user_id = request.user.id
+    level = request.GET.get('level', '1')
+    
+    file_path = os.path.join('static', 'apple_build', 'index.html')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    html_content = html_content.replace('__USER_ID__', str(user_id) if user_id else '1')
+    html_content = html_content.replace('__LEVEL__', str(level))
+    
+    return HttpResponse(html_content)
+    
 
 def game_matching(request):
     return render(request, 'games/game-matching.html')
@@ -388,6 +410,7 @@ def send_contact_message(request):
         email_body = f"""
 You received a new message from PhysioPlay contact form:
 
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📝 SENDER INFORMATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -432,3 +455,43 @@ def api_test(request):
 
 def apple_game(request):
     return render(request, 'game.html')
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def api_save_game_result(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        score = data.get('score')
+        level = int(data.get('level', 1))
+
+        # خلنا نفترض مريض واحد فقط (مؤقتًا)
+        patient = Patients.objects.first()
+
+        # حفظ الجلسة
+        GameSessions.objects.create(
+            patient=patient,
+            game_type='catching_objects',
+            level=level,
+            score=score,
+            duration=60,
+            objects_caught=score,
+            accuracy=data.get('accuracy', 0),
+            completed=1,
+            session_date=timezone.now().isoformat()
+        )
+
+        # الترقية
+        if level == 1 and score >= 30:
+            patient.current_level = 2
+        elif level == 2 and score >= 45:
+            patient.current_level = 3
+
+        patient.save()
+
+        return JsonResponse({
+            "success": True,
+            "new_level": patient.current_level
+        })

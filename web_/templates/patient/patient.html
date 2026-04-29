@@ -537,6 +537,7 @@
     <div class="loading" id="loading">Loading patient data...</div>
 
     <script>
+        const currentLevel = {{ level}};
         // ============================================
         // GLOBAL VARIABLES
         // ============================================
@@ -860,8 +861,9 @@
             } else if (gameNumber === 2) {
                 window.location.href = "{% url 'game_matching' %}";
             } else if (gameNumber === 3) {
-                window.location.href = "{% url 'game_catching_objects' %}";
-            }
+                window.location.href = `/games/catching-objects/?level=${currentLevel}`;
+    
+           }
         }
 
         // ============================================

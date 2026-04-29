@@ -255,7 +255,7 @@
     </div>
 </div>
 
-<script src="Build/apple_build.loader.js"></script>
+<script src="/static/apple_build/Build/apple_build.loader.js"></script>
 <script>
     // ============================================================
     // ANGLE MATH
@@ -310,7 +310,7 @@
     let lastNotificationTime = 0;
     let poseTracker = null;
     let handStabilityHistory = [];
-
+    
     function updateUI() {
         document.getElementById('scoreValue').innerText = gameScore;
         document.getElementById('timerValue').innerText = Math.ceil(gameTime);
@@ -438,7 +438,8 @@
         
         const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
         const stability = getHandStability();
-        
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id') || '1';
         document.getElementById('finalScore').innerText = score;
         document.getElementById('finalScoreDetail').innerText = score;
         document.getElementById('avgElbow').innerText = avgElbow;
@@ -447,7 +448,28 @@
         document.getElementById('endPanel').style.display = 'flex';
         if (camera) camera.stop();
         mediaPipeActive = false;
-    };
+    
+   fetch('/api/save-game-result/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        user_id: userId,          // الرابط الحقيقي (من الموقع أو من الرابط)
+        level: gameLevel,
+        score: score,
+        objects_caught: score,
+        accuracy: handStability,
+        avg_elbow: avgElbow,
+        avg_hand_stability: handStability
+    })
+}).then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          console.log("تم حفظ النتيجة");
+    window.location.href = `/patient/`;
+}
+          
+      
+  });}
     
     function startGame() {
         if (!unityInstance) {
@@ -486,12 +508,35 @@
     function exitToGames() {
         window.location.href = "/games/";
     }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     
     // ============================================================
     // تحميل Unity
     // ============================================================
     var canvas = document.querySelector("#unity-canvas");
-    
+    // استخراج المستوى من الرابط
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameLevel = __LEVEL__;
+
+    const userId = __USER_ID__;
+    console.log("user id", userId);
+    console.log("game level", gameLevel);
+
+   
     function waitForUnity() {
         if (typeof createUnityInstance === 'undefined') {
             setTimeout(waitForUnity, 100);
@@ -499,9 +544,9 @@
         }
         
         createUnityInstance(canvas, {
-            dataUrl: "Build/apple_build.data",
-            frameworkUrl: "Build/apple_build.framework.js",
-            codeUrl: "Build/apple_build.wasm",
+            dataUrl: "/static/apple_build/Build/apple_build.data",
+            frameworkUrl: "/static/apple_build/Build/apple_build.framework.js",
+            codeUrl: "/static/apple_build/Build/apple_build.wasm",
             streamingAssetsUrl: "StreamingAssets",
             companyName: "DefaultCompany",
             productName: "CatchingFallingObjects",
@@ -522,14 +567,16 @@
                 showNotification("❌ Unity loaded but sendMessage missing");
                 return;
             }
-            
             window.unityInstance = unityInstance;
             console.log("✅ Unity ready");
             showNotification("✅ Game ready! Click START.");
+            unityInstance.sendMessage('GameManager', 'SetLevel', gameLevel);
         }).catch((err) => {
             console.error("Unity failed:", err);
             showNotification("❌ Failed to load game");
+
         });
+
     }
     
     waitForUnity();
