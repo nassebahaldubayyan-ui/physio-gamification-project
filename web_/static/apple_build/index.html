@@ -206,6 +206,7 @@
         .end-panel { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
 <body>
@@ -220,6 +221,7 @@
     <div class="stats-panel" id="statsPanel">
         🖐️ HAND: <span id="handX">--</span>% | 🎯 <span id="handStatus">WAITING</span><br>
         📐 ELBOW: <span id="elbowAngle">--</span>°
+        🌀 EXT ROT: <span id="extRot">--</span>° | 🌀 INT ROT: <span id="intRot">--</span>°
     </div>
 </div>
 
@@ -247,6 +249,15 @@
         <div class="data-row">
             <span class="data-label">🖐️ Hand Stability</span>
             <span class="data-value"><span id="handStability">--</span>%</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">🌀 Max External Rotation</span>
+            <span class="data-value"><span id="maxExt">--</span>°</span>
+        </div>
+
+        <div class="data-row">
+            <span class="data-label">🌀 Max Internal Rotation</span>
+            <span class="data-value"><span id="maxInt">--</span>°</span>
         </div>
     </div>
     <div class="button-group">
@@ -310,7 +321,10 @@
     let lastNotificationTime = 0;
     let poseTracker = null;
     let handStabilityHistory = [];
-
+    let pose = null;
+    let maxExternalRotation = 0;
+    let maxInternalRotation = 0;
+  
     function updateUI() {
         document.getElementById('scoreValue').innerText = gameScore;
         document.getElementById('timerValue').innerText = Math.ceil(gameTime);
@@ -325,14 +339,24 @@
         setTimeout(() => div.remove(), 2500);
     }
     
-    function updateStatsDisplay(handX, elbowAngle, isInside) {
-        document.getElementById('handX').innerText = Math.round(handX * 100);
-        document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
-        document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
-        document.getElementById('elbowAngle').innerText = Math.round(elbowAngle || 0);
-        
-        handStabilityHistory.push(isInside ? 1 : 0);
-        if (handStabilityHistory.length > 300) handStabilityHistory.shift();
+    function updateStatsDisplay(handX, elbowAngle, isInside, ext, int) {
+        const handEl = document.getElementById('handX');
+        const statusEl = document.getElementById('handStatus');
+        const elbowEl = document.getElementById('elbowAngle');
+        const extEl = document.getElementById('extRot');
+        const intEl = document.getElementById('intRot');
+
+        if (handEl) handEl.innerText = Math.round(handX * 100);
+
+        if (statusEl) {
+            statusEl.innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
+            statusEl.style.color = isInside ? '#0f0' : '#ff8888';
+        }
+
+        if (elbowEl) elbowEl.innerText = Math.round(elbowAngle || 0);
+
+        if (extEl) extEl.innerText = Math.round(ext || 0);
+        if (intEl) intEl.innerText = Math.round(int || 0);
     }
     
     function getHandStability() {
@@ -359,7 +383,8 @@
         let video = document.createElement('video');
         video.style.display = 'none';
         document.body.appendChild(video);
-        
+
+        // HANDS (for control)
         hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
         hands.setOptions({
             maxNumHands: 1,
@@ -367,52 +392,121 @@
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
-        
+
+        // POSE (for rehab tracking)
+        pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        // =========================
+        // HAND RESULTS (CONTROL)
+        // =========================
         hands.onResults(results => {
             if (!mediaPipeActive || !gameActive) return;
-            
+
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 let wrist = results.multiHandLandmarks[0][0];
                 let handX = wrist.x;
+
                 let isInside = (handX > 0.05 && handX < 0.95);
-                
+
                 if (!isInside && (Date.now() - lastNotificationTime > 3000)) {
                     showNotification("⚠️ Please return your hand to the center!");
                     lastNotificationTime = Date.now();
                 }
-                
-                const poseLandmarks = [];
-                for(let i = 0; i < 33; i++) poseLandmarks.push({x:0.5, y:0.5, z:0});
-                poseLandmarks[11] = { x: wrist.x - 0.12, y: wrist.y - 0.25, z: 0 };
-                poseLandmarks[12] = { x: wrist.x + 0.12, y: wrist.y - 0.25, z: 0 };
-                poseLandmarks[13] = { x: wrist.x - 0.07, y: wrist.y - 0.12, z: 0 };
-                poseLandmarks[14] = { x: wrist.x + 0.07, y: wrist.y - 0.12, z: 0 };
-                
-                if (poseTracker) poseTracker.process(poseLandmarks, "left");
-                
-                updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
-                
-                // عكس اتجاه حركة السلة
+
+                updateStatsDisplay(
+                    handX,
+                    poseTracker?.current?.elbow || 0,
+                    isInside,
+                    maxExternalRotation,
+                    maxInternalRotation
+                );
+
                 let invertedHandX = 1 - handX;
-                
+
                 if (unityInstance) {
                     unityInstance.sendMessage('Basket', 'SetHandPosition', invertedHandX.toString());
                 }
             }
         });
-        
+
+        // =========================
+        // POSE RESULTS (SCORING)
+        // =========================
+        pose.onResults(results => {
+            if (!mediaPipeActive || !gameActive) return;
+
+            if (results.poseLandmarks) {
+                const lm = results.poseLandmarks;
+
+                const shoulder = lm[11]; // left
+                const elbow = lm[13];
+                const wrist = lm[15];
+
+                if (shoulder && elbow && wrist) {
+
+                    // ✅ Real elbow angle (fixes your stats panel)
+                    if (poseTracker) poseTracker.process(lm, "left");
+
+                    // ✅ Shoulder rotation
+                    let rotation = calculateShoulderRotation(shoulder, elbow, wrist);
+
+                    let external = rotation < 0 ? Math.abs(rotation) : 0;
+                    let internal = rotation > 0 ? Math.abs(rotation) : 0;
+
+                    maxExternalRotation = Math.max(maxExternalRotation, external);
+                    maxInternalRotation = Math.max(maxInternalRotation, internal);
+                    // Debug (optional)
+                    // console.log("Ext:", external, "Int:", internal);
+                }
+            }
+        });
+
+        // =========================
+        // CAMERA LOOP
+        // =========================
         camera = new Camera(video, {
             onFrame: async () => {
-                if (mediaPipeActive && hands) await hands.send({ image: video });
+                if (mediaPipeActive) {
+                    if (hands) await hands.send({ image: video });
+                    if (pose) await pose.send({ image: video });
+                }
             },
             width: 640,
             height: 480
         });
+
         await camera.start();
         mediaPipeActive = true;
-        console.log("MediaPipe started");
+
+        console.log("MediaPipe (Hands + Pose) started");
     }
     
+    function calculateShoulderRotation(shoulder, elbow, wrist) {
+        const v1 = {
+            x: elbow.x - shoulder.x,
+            y: elbow.y - shoulder.y,
+            z: (elbow.z || 0) - (shoulder.z || 0)
+        };
+
+        const v2 = {
+            x: wrist.x - elbow.x,
+            y: wrist.y - elbow.y,
+            z: (wrist.z || 0) - (elbow.z || 0)
+        };
+
+        const cross = v1.x * v2.y - v1.y * v2.x;
+        const dot = v1.x * v2.x + v1.y * v2.y;
+
+        let angle = Math.atan2(cross, dot) * 180 / Math.PI;
+        return angle;
+    }
+
     function stopMediaPipe() {
         mediaPipeActive = false;
         if (camera) camera.stop();
@@ -433,6 +527,8 @@
     
     window.EndGameFromUnity = function(score) {
         console.log("Game ended from Unity, final score:", score);
+        console.log("Max External:", maxExternalRotation);
+        console.log("Max Internal:", maxInternalRotation);
         gameActive = false;
         if (timerInterval) clearInterval(timerInterval);
         
@@ -443,6 +539,8 @@
         document.getElementById('finalScoreDetail').innerText = score;
         document.getElementById('avgElbow').innerText = avgElbow;
         document.getElementById('handStability').innerText = stability;
+        document.getElementById('maxExt').innerText = maxExternalRotation;
+        document.getElementById('maxInt').innerText = maxInternalRotation;
         
         document.getElementById('endPanel').style.display = 'flex';
         if (camera) camera.stop();
@@ -450,6 +548,8 @@
     };
     
     function startGame() {
+        maxExternalRotation = 0;
+        maxInternalRotation = 0;
         if (!unityInstance) {
             showNotification("⏳ Loading game, please wait...");
             setTimeout(startGame, 500);
