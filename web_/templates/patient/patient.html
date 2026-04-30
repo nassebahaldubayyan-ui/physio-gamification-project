@@ -861,7 +861,7 @@
             } else if (gameNumber === 2) {
                 window.location.href = "{% url 'game_matching' %}";
             } else if (gameNumber === 3) {
-                window.location.href = `/games/catching-objects/?level=${currentLevel}`;
+                window.location.href = "/games/catching-objects/?user_id={{ request.session.user_id }}&level=1";
     
            }
         }

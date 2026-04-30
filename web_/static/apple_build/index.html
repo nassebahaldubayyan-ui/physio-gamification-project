@@ -233,10 +233,6 @@
     <div class="final-score" id="finalScore">0</div>
     <div class="accuracy-data">
         <div class="data-row">
-            <span class="data-label">👤 User ID</span>
-            <span class="data-value"><span id="userId">1</span></span>
-        </div>
-        <div class="data-row">
             <span class="data-label">🎯 Final Score</span>
             <span class="data-value"><span id="finalScoreDetail">0</span></span>
         </div>
@@ -310,6 +306,19 @@
     let lastNotificationTime = 0;
     let poseTracker = null;
     let handStabilityHistory = [];
+
+// 🎮 إعدادات اللعبة من HTML
+    const GAME_CONFIG = {
+        fallSpeed: 1.5,
+        appleScale: 0.3,
+        spawnLeft: -7,
+        spawnRight: 7,
+        rows: [4.5, 4, 3], // الصفوف
+        minDistance: 1.2,
+        growTime: 1.5,
+        stayMin: 1.0,
+        stayMax: 3
+    };
     
     function updateUI() {
         document.getElementById('scoreValue').innerText = gameScore;
@@ -392,7 +401,6 @@
                 
                 updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
                 
-                // عكس اتجاه حركة السلة
                 let invertedHandX = 1 - handX;
                 
                 if (unityInstance) {
@@ -405,8 +413,8 @@
             onFrame: async () => {
                 if (mediaPipeActive && hands) await hands.send({ image: video });
             },
-            width: 640,
-            height: 480
+            width: 800,
+            height: 600
         });
         await camera.start();
         mediaPipeActive = true;
@@ -418,7 +426,6 @@
         if (camera) camera.stop();
     }
     
-    // دوال استقبال البيانات من Unity
     window.UpdateScoreFromUnity = function(score) {
         gameScore = score;
         updateUI();
@@ -432,23 +439,25 @@
     };
     
     window.EndGameFromUnity = function(score) {
-        console.log("Game ended from Unity, final score:", score);
-        gameActive = false;
-        if (timerInterval) clearInterval(timerInterval);
-        
-        const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
-        const stability = getHandStability();
-        const userId = 1;
-        
-        document.getElementById('finalScore').innerText = score;
-        document.getElementById('finalScoreDetail').innerText = score;
-        document.getElementById('avgElbow').innerText = avgElbow;
-        document.getElementById('handStability').innerText = stability;
-        
-        document.getElementById('endPanel').style.display = 'flex';
-        if (camera) camera.stop();
-        mediaPipeActive = false;
+    console.log("Game ended from Unity, final score:", score, " userId",userId);
+    gameActive = false;
+    if (timerInterval) clearInterval(timerInterval);
     
+    const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
+    const stability = getHandStability();
+    
+    document.getElementById('finalScore').innerText = score;
+    document.getElementById('finalScoreDetail').innerText = score;
+    document.getElementById('avgElbow').innerText = avgElbow;
+    document.getElementById('handStability').innerText = stability;
+    
+    document.getElementById('endPanel').style.display = 'flex';
+    if (camera){
+        camera.stop();
+        mediaPipeActive = false;
+    }
+    
+    if (userId) {
         fetch('/api/save-game-result/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -464,10 +473,11 @@
         }).then(response => response.json())
           .then(data => {
               if (data.success) {
-                  console.log("تم حفظ النتيجة");
+                  console.log("Result saved for patient:", patientName);
               }
-          });
+          }).catch(err => console.log("Save error:", err));
     }
+}
     
     function startGame() {
         if (!unityInstance) {
@@ -511,12 +521,17 @@
     // تحميل Unity
     // ============================================================
     var canvas = document.querySelector("#unity-canvas");
-    const userId = 1;
-    const gameLevel = 1;
-    
-    console.log("user id", userId);
-    console.log("game level", gameLevel);
-    
+    const patientName = (() => {
+        const name = "__PATIENT_NAME__";
+        return name !== "__PATIENT_NAME__" ? name : "Guest";
+    })();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = parseInt(urlParams.get("user_id")) || null;
+
+console.log("Patient Name:", patientName);
+console.log("User ID:", userId);
+
     function waitForUnity() {
         if (typeof createUnityInstance === 'undefined') {
             setTimeout(waitForUnity, 100);
@@ -534,28 +549,32 @@
         }).then((instance) => {
             if (typeof instance.sendMessage === 'function') {
                 unityInstance = instance;
-                console.log("sendMessage found directly on instance");
             } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
                 unityInstance = {
                     sendMessage: function(obj, method, value) {
                         instance.Module.SendMessage(obj, method, value);
                     }
                 };
-                console.log("sendMessage found in Module.SendMessage");
             } else {
                 console.error("sendMessage not found", instance);
                 showNotification("❌ Unity loaded but sendMessage missing");
                 return;
             }
+
             window.unityInstance = unityInstance;
             console.log("✅ Unity ready");
+
+            // ✅ إرسال الإعدادات
+            setTimeout(() => {
+                if (unityInstance) {
+                    unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
+                    console.log("✅ Config sent to Unity");
+                }
+            }, 1000);
+
             showNotification("✅ Game ready! Click START.");
-        }).catch((err) => {
-            console.error("Unity failed:", err);
-            showNotification("❌ Failed to load game");
-        });
-    }
-    
+            })
+        }
     waitForUnity();
     
     document.getElementById('startBtn').onclick = function() {

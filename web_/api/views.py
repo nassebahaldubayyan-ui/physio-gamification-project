@@ -98,20 +98,46 @@ def game_catching_stars(request):
     
     return HttpResponse(html_content)
 
-
 def game_catching_objects(request):
-
+    user_id = request.GET.get('user_id', '').strip()
     
-    user_id = request.user.id
-    level = request.GET.get('level', '1')
+    # إذا كان user_id فارغ، حاول من session
+    if not user_id or not user_id.isdigit():
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return redirect('/gamer-login/')
+    
+    user_id = int(user_id)
+    
+    # تخزين user_id في الجلسة
+    request.session['user_id'] = user_id
+    
+    try:
+        user = Users.objects.get(id=user_id)
+        
+        if user.role != 'patient':
+            return redirect('/gamer-login/')
+        
+        patient = Patients.objects.filter(user=user).first()
+        if not patient:
+            return HttpResponse("Your account is not linked to a patient record.", status=403)
+        
+        patient_name = user.name
+        
+    except Users.DoesNotExist:
+        return redirect('/gamer-login/')
     
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
     
-    html_content = html_content.replace('__USER_ID__', str(user_id) if user_id else '1')
-    html_content = html_content.replace('__LEVEL__', str(level))
-    
+    html_content = html_content.replace('__USER_ID__', str(user_id))
+    html_content = html_content.replace('"__USER_ID__"', str(user_id))
+    html_content = html_content.replace('__PATIENT_NAME__', patient_name)
+    html_content = html_content.replace('__LEVEL__', '1')
+
+    html_content = html_content.replace('console.log("Logged in user:", userId, userName);', 'console.log("Logged in user:", userId);')
+    print(f"sending to html  {user_id}, patient name {patient_name}" )
     return HttpResponse(html_content)
     
 
@@ -140,6 +166,7 @@ def api_login(request):
             try:
                 user = Users.objects.get(email=email, is_active=True)
                 if check_password(password, user.password):
+                    request.session['user_id'] = user.id
                     return JsonResponse({
                         "success": True,
                         "message": "Login successful",
@@ -471,37 +498,64 @@ import json
 
 @csrf_exempt
 def api_save_game_result(request):
+    print("apiiiiii")
     if request.method == 'POST':
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+            
+            score = data.get('score', 0)
+            user_id = data.get('user_id', None)
+            accuracy = data.get('accuracy', 0)
+            avg_elbow = data.get('avg_elbow', 0)
+            hand_stability = data.get('hand_stability', 0)
+            objects_caught = data.get('objects_caught', score)
+            
+            from .models import Patients, GameSessions, Users
+            
+            if not user_id:
+                return JsonResponse({"success": False, "error": "No user_id"}, status=401)
+            
+            try:
+                user = Users.objects.get(id=user_id)
 
-        score = data.get('score')
-        level = int(data.get('level', 1))
+                patient = Patients.objects.filter(user=user).first()
 
-        # خلنا نفترض مريض واحد فقط (مؤقتًا)
-        patient = Patients.objects.first()
+                if not patient:
+                    print("❌ NO PATIENT FOUND FOR USER:", user_id)
+                    return JsonResponse({
+                        "success": False,
+                        "error": "User is not linked to patient"
+                    }, status=403)
 
-        # حفظ الجلسة
-        GameSessions.objects.create(
-            patient=patient,
-            game_type='catching_objects',
-            level=level,
-            score=score,
-            duration=60,
-            objects_caught=score,
-            accuracy=data.get('accuracy', 0),
-            completed=1,
-            session_date=timezone.now().isoformat()
-        )
+                GameSessions.objects.create(
+                    patient=patient,
+                    game_type='catching-objects',
+                    level=1,
+                    score=score,
+                    duration=60,
+                    accuracy=accuracy,
+                    objects_caught=objects_caught,
+                    completed=1,
+                    session_date=timezone.now()   # ✅ FIX
+                )
+                print(f"✅ SAVED: user {user_id}, score {score}")
+                return JsonResponse({
+                    "success": True,
+                    "message": "Saved successfully"
+                })
+                
+                
+            except Users.DoesNotExist:
+                return JsonResponse({"success": False, "error": "User not found"}, status=404)
+                
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+        
+    
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
-        # الترقية
-        if level == 1 and score >= 30:
-            patient.current_level = 2
-        elif level == 2 and score >= 45:
-            patient.current_level = 3
-
-        patient.save()
-
-        return JsonResponse({
-            "success": True,
-            "new_level": patient.current_level
-        })
+@csrf_exempt
+def api_get_user_name(request):
+    user_id = request.GET.get('user_id')
+    user = Users.objects.get(id=user_id)
+    return JsonResponse({"name": user.name})
