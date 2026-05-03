@@ -299,7 +299,6 @@
         <div>🖐️ HAND X: <span id="handXPos">--</span>% | HAND Y: <span id="handYPos">--</span>%</div>
         <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN</span></div>
         <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
-        <div>⭐ STARS: <span id="starCount">0</span> active</div>
     </div>
     
     <div class="notification-panel" id="notificationPanel"></div>
@@ -415,9 +414,6 @@
         document.getElementById('timerValue').innerText = gameTime;
     }
     
-    function updateStarCount(count) {
-        document.getElementById('starCount').innerText = count;
-    }
     
     function showNotification(msg) {
         const panel = document.getElementById('notificationPanel');
@@ -640,9 +636,6 @@
         }
     };
     
-    window.UpdateStarCountFromUnity = function(count) {
-        updateStarCount(count);
-    };
     
     window.EndGameFromUnity = function(score) {
         gameActive = false;
@@ -680,7 +673,7 @@
             }).then(response => response.json())
           .then(data => {
               if (data.success) {
-                  console.log("Result saved for patient:", patientName);
+                  console.log("Result saved for patient");
               }
           }).catch(err => console.log("Save error:", err));
     }

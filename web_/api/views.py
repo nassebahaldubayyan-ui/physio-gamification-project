@@ -518,75 +518,120 @@ def api_test(request):
 def apple_game(request):
     return render(request, 'game.html')
 
-from django.views.decorators.csrf import csrf_exempt
+
 import json
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def api_save_game_result(request):
-    print("API called - saving game result")
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            
-            score = data.get('score', 0)
-            user_id = data.get('user_id', None)
-            game_type = data.get('game', 'catching_stars')
-            level = data.get('level', 1)
-            
-            accuracy = data.get('accuracy', 0)
-            avg_elbow = data.get('avg_elbow', 0)
-            grip_accuracy = data.get('grip_accuracy', 0) 
-            hand_stability = data.get('hand_stability', 0)  
-            objects_caught = data.get('objects_caught', score)
-            stars_caught = data.get('stars_caught', score)
-            
-            from .models import Patients, GameSessions, Users
-            
+
+            user_id = data.get('user_id')
             if not user_id:
                 return JsonResponse({"success": False, "error": "No user_id"}, status=401)
-            
+
+            from .models import Patients, GameSessions, Users
+
             try:
                 user = Users.objects.get(id=user_id)
                 patient = Patients.objects.filter(user=user).first()
 
                 if not patient:
-                    print("❌ NO PATIENT FOUND FOR USER:", user_id)
                     return JsonResponse({
                         "success": False,
                         "error": "User is not linked to patient"
                     }, status=403)
 
-                if game_type == 'catching_stars':
-                    final_accuracy = grip_accuracy if grip_accuracy > 0 else accuracy
-                    objects_caught_final = stars_caught
-                else:
-                    final_accuracy = hand_stability if hand_stability > 0 else accuracy
-                    objects_caught_final = objects_caught
+                # ======================================================
+                # 🔥 توحيد أسماء الألعاب (IMPORTANT FIX)
+                # ======================================================
+                game_type_raw = data.get('game', '')
 
+                game_type_map = {
+                    "catching_stars": "catching-stars",
+                    "catching_objects": "catching-objects",
+                    "matching_game": "matching-game",
+
+                    # fallback لو جاك dash أصلاً
+                    "catching-stars": "catching-stars",
+                    "catching-objects": "catching-objects",
+                    "matching-game": "matching-game"
+                }
+
+                game_type = game_type_map.get(game_type_raw, game_type_raw)
+
+                # ======================================================
+                # بيانات عامة
+                # ======================================================
+                score = int(data.get('score', 0))
+                level = int(data.get('level', 1))
+                avg_elbow = data.get('avg_elbow', 0)
+
+                # ======================================================
+                # 🎯 توحيد accuracy + objects حسب اللعبة
+                # ======================================================
+                accuracy = 0
+                objects_caught = score
+
+                if game_type == "catching-stars":
+                    accuracy = data.get('grip_accuracy', 0)
+                    objects_caught = data.get('stars_caught', score)
+
+                elif game_type == "catching-objects":
+                    accuracy = data.get('hand_stability', data.get('accuracy', 0))
+                    objects_caught = data.get('objects_caught', score)
+
+                elif game_type == "matching-game":
+                    accuracy = data.get('accuracy', 0)
+                    objects_caught = data.get('matches_made', score)
+
+                # ======================================================
+                # 💾 الحفظ في قاعدة البيانات
+                # ======================================================
                 GameSessions.objects.create(
                     patient=patient,
-                    game_type=game_type,  
+                    game_type=game_type,
                     level=level,
                     score=score,
                     duration=60,
-                    accuracy=final_accuracy,
-                    objects_caught=objects_caught_final,
+                    accuracy=accuracy,
+                    stars_caught=data.get('stars_caught', 0),
+                    matches_made=data.get('matches_made', 0),
+                    objects_caught=objects_caught,
+                    shoulder_activation=0,
+                    elbow_activation=0,
+                    wrist_activation=0,
+                    grip_activation=0,
+                    external_rotation=0,
+                    shoulder_shrug=0,
                     completed=1,
                     session_date=timezone.now()
                 )
-                print(f"✅ SAVED: user {user_id}, game {game_type}, score {score}")
+
+                print(f"✅ SAVED | user:{user_id} | game:{game_type} | score:{score}")
+
                 return JsonResponse({
                     "success": True,
                     "message": "Saved successfully"
                 })
-                
+
             except Users.DoesNotExist:
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
-                
+
         except Exception as e:
-            print(f"❌ Error: {str(e)}")
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
-    
+            import traceback
+            print("🔥 API ERROR:", str(e))
+            print(traceback.format_exc())
+
+            return JsonResponse({
+                "success": False,
+                "error": str(e)
+            }, status=500)
+
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
 @csrf_exempt
