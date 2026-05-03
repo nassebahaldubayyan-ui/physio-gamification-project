@@ -125,11 +125,11 @@ public class GameManager : MonoBehaviour
         UpdateUI();
     }
 
-    // للمطابقة الخاطئة (اختياري)
+    // للمطابقة الخاطئة
     public void AddMiss()
     {
         if (!isGameRunning) return;
-        // تقدرين تسجلين الأخطاء هنا
+        // 
     }
 
     private void UpdateUI()
@@ -163,4 +163,5 @@ public class GameManager : MonoBehaviour
     {
         return isGameRunning;
     }
+   
 }
