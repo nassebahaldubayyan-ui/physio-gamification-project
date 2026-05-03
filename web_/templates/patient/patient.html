@@ -857,7 +857,7 @@
 
         function goToGame(gameNumber) {
             if (gameNumber === 1) {
-                window.location.href = "{% url 'game_catching_stars' %}";
+                window.location.href = "/games/catching-stars/?user_id={{ request.session.user_id }}&level=1";
             } else if (gameNumber === 2) {
                 window.location.href = "{% url 'game_matching' %}";
             } else if (gameNumber === 3) {

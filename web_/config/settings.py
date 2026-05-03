@@ -95,7 +95,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR / 'static'),
-                    os.path.join(BASE_DIR, 'apple_build'),]
+                    os.path.join(BASE_DIR, 'apple_build'),
+                    os.path.join(BASE_DIR, 'Star_build'),]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
