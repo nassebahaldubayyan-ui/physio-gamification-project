@@ -815,7 +815,7 @@ MonoBehaviour:
   matches: 0
   scoreText: {fileID: 1757328612}
   matchesText: {fileID: 0}
-  gameTime: 30
+  gameTime: 60
   timerText: {fileID: 1000375664}
   startPanel: {fileID: 1130682031}
   endPanel: {fileID: 2003708408}
