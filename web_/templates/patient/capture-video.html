@@ -678,12 +678,27 @@
         }
         
         async function saveVideo() { 
-            if(!recordedChunks.length) { showNotification('No recording', 'error'); return; } 
-            showNotification('✅ Assessment video saved!', 'success'); 
-            localStorage.setItem('hasAssessmentVideo','true'); 
-            localStorage.setItem('assessmentCompleted','true'); 
-            setTimeout(()=>{ window.location.href = "{% url 'patient_dashboard' %}"; }, 1500); 
-        }
+    if(!recordedChunks.length) { 
+        showNotification('No recording', 'error'); 
+        return; 
+    } 
+    
+    // حفظ الحالة
+    localStorage.setItem('hasAssessmentVideo', 'true'); 
+    localStorage.setItem('assessmentCompleted', 'true');
+    
+    console.log('Saved values:', {
+        hasVideo: localStorage.getItem('hasAssessmentVideo'),
+        completed: localStorage.getItem('assessmentCompleted')
+    });
+    
+    showNotification('✅ Assessment saved! Redirecting...', 'success'); 
+    
+    // التوجيه إلى صفحة المريض مع强制 إعادة تحميل
+    setTimeout(() => { 
+        window.location.href = "{% url 'patient_dashboard' %}?reload=true"; 
+    }, 1500); 
+}
         
         function goBack() { 
             if(confirm('Are you sure?')) window.location.href = "{% url 'patient_dashboard' %}"; 
