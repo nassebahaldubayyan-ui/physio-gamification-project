@@ -416,7 +416,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     user_id: userId,
-                    game_type: 'matching',
+                    game: 'matching',
+                    level: 1,
                     score: score,
                     matches: matches || 0,
                     accuracy: stability,

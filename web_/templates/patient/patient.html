@@ -859,7 +859,7 @@
             if (gameNumber === 1) {
                 window.location.href = "/games/catching-stars/?user_id={{ request.session.user_id }}&level=1";
             } else if (gameNumber === 2) {
-                window.location.href = "{% url 'game_matching' %}";
+                window.location.href = "/games/matching/?user_id={{ request.session.user_id }}&level=1";
             } else if (gameNumber === 3) {
                 window.location.href = "/games/catching-objects/?user_id={{ request.session.user_id }}&level=1";
     
