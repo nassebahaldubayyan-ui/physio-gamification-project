@@ -166,8 +166,61 @@ def game_catching_objects(request):
     return HttpResponse(html_content)
     
 
+
 def game_matching(request):
-    return render(request, 'games/game-matching.html')
+    
+    user_id = request.GET.get('user_id', '').strip()
+    
+    # إذا كان user_id فارغ، حاول من session
+    if not user_id or not user_id.isdigit():
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return redirect('/gamer-login/')
+    
+    user_id = int(user_id)
+    
+    # تخزين user_id في الجلسة (عشان يضل محفوظ بين الصفحات)
+    request.session['user_id'] = user_id
+    
+    try:
+        user = Users.objects.get(id=user_id)
+        
+        if user.role != 'patient':
+            return redirect('/gamer-login/')
+        
+        patient = Patients.objects.filter(user=user).first()
+        if not patient:
+            return HttpResponse("Your account is not linked to a patient record.", status=403)
+        
+        patient_name = user.name
+        side = patient.affected_hand if patient.affected_hand else 'right'
+        
+    except Users.DoesNotExist:
+        return redirect('/gamer-login/')
+    
+    # قراءة ملف HTML الخاص بلعبة المطابقة
+    file_path = os.path.join('static', 'matching_build', 'index.html')
+    
+    # إذا الملف غير موجود، جرب مكان آخر
+    if not os.path.exists(file_path):
+        file_path = os.path.join(settings.BASE_DIR, 'static', 'matching_build', 'index.html')
+    
+    if not os.path.exists(file_path):
+        return HttpResponse("Matching game not found. Please build the game first.", status=404)
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    # استبدال القيم في الـ HTML
+    html_content = html_content.replace('__USER_ID__', str(user_id))
+    html_content = html_content.replace('"__USER_ID__"', str(user_id))
+    html_content = html_content.replace('__PATIENT_NAME__', patient_name)
+    html_content = html_content.replace('__SIDE__', side)
+    html_content = html_content.replace('__LEVEL__', '1')
+    
+    print(f"🎮 Matching Game - User: {user_id}, Name: {patient_name}, Side: {side}")
+    
+    return HttpResponse(html_content)
 
 # Static Pages
 def about_us(request):
