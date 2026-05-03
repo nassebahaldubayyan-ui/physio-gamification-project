@@ -537,7 +537,6 @@
     <div class="loading" id="loading">Loading patient data...</div>
 
     <script>
-        const currentLevel = {{ level}};
         // ============================================
         // GLOBAL VARIABLES
         // ============================================
@@ -660,37 +659,44 @@
         // CHECK ASSESSMENT STATUS
         // ============================================
         function checkAssessmentStatus() {
-            // Get assessment status from localStorage
-            const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-            const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-            const isFirstTime = localStorage.getItem('firstTime') === null;
-            
-            console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
-            
-            // Case 1: User has already completed assessment
-            if (hasVideo || assessmentCompleted) {
-                console.log('User has completed assessment');
-                enableGameCards();
-                return;
-            }
-            
-            // Case 2: User is new (first time)
-            if (isFirstTime) {
-                console.log('First time user - showing assessment dialog');
-                localStorage.setItem('firstTime', 'false');
-                setTimeout(() => {
-                    showAssessmentDialog();
-                }, 2000);
-                return;
-            }
-            
-            // Case 3: Returning user who hasn't completed assessment
-            if (!hasVideo && !assessmentCompleted) {
-                console.log('Returning user without assessment - showing warning');
-                disableGameCards();
-                return;
-            }
-        }
+    // Get assessment status from localStorage
+    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+    const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+    const isFirstTime = localStorage.getItem('firstTime') === null;
+    
+    console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
+    
+    // ✅ FORCE CHECK - Make sure we read correctly
+    if (hasVideo === true || assessmentCompleted === true) {
+        console.log('✅ Assessment completed - enabling games');
+        enableGameCards();
+        return;
+    }
+    
+    // Case 1: User has already completed assessment
+    if (hasVideo || assessmentCompleted) {
+        console.log('User has completed assessment');
+        enableGameCards();
+        return;
+    }
+    
+    // Case 2: User is new (first time)
+    if (isFirstTime) {
+        console.log('First time user - showing assessment dialog');
+        localStorage.setItem('firstTime', 'false');
+        setTimeout(() => {
+            showAssessmentDialog();
+        }, 2000);
+        return;
+    }
+    
+    // Case 3: Returning user who hasn't completed assessment
+    if (!hasVideo && !assessmentCompleted) {
+        console.log('Returning user without assessment - showing warning');
+        disableGameCards();
+        return;
+    }
+}
 
         // ============================================
         // SHOW ASSESSMENT DIALOG
@@ -857,13 +863,12 @@
 
         function goToGame(gameNumber) {
             if (gameNumber === 1) {
-                window.location.href = "/games/catching-stars/?user_id={{ request.session.user_id }}&level=1";
+                window.location.href = "{% url 'game_catching_stars' %}";
             } else if (gameNumber === 2) {
                 window.location.href = "{% url 'game_matching' %}";
             } else if (gameNumber === 3) {
-                window.location.href = "/games/catching-objects/?user_id={{ request.session.user_id }}&level=1";
-    
-           }
+                window.location.href = "{% url 'game_catching_objects' %}";
+            }
         }
 
         // ============================================
@@ -883,22 +888,28 @@
         }
 
         function enableGameCards() {
-            const gameCards = document.querySelectorAll('.game-card');
-            gameCards.forEach(card => {
-                card.classList.remove('disabled');
-                card.removeAttribute('title');
-            });
-            
-            // Remove warning message if exists
-            const warningMsg = document.querySelector('.assessment-warning');
-            if (warningMsg) {
-                warningMsg.style.display = 'none';
-            }
-            
-            // Ensure localStorage is set correctly
-            localStorage.setItem('hasAssessmentVideo', 'true');
-            localStorage.setItem('assessmentCompleted', 'true');
-        }
+    console.log('enableGameCards called - unlocking games');
+    
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+        card.classList.remove('disabled');
+        card.style.pointerEvents = 'auto';
+        card.style.opacity = '1';
+        card.removeAttribute('title');
+    });
+    
+    // Remove warning message if exists
+    const warningMsg = document.getElementById('assessmentWarning');
+    if (warningMsg) {
+        warningMsg.style.display = 'none';
+    }
+    
+    // Ensure localStorage is set correctly
+    localStorage.setItem('hasAssessmentVideo', 'true');
+    localStorage.setItem('assessmentCompleted', 'true');
+    
+    console.log('Games enabled successfully');
+}
 
         // ============================================
         // NOTIFICATION SYSTEM
