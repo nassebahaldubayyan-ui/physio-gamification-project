@@ -50,4 +50,5 @@ urlpatterns = [
     path('api/get-user-name/', views.api_get_user_name),
     path('game/', views.apple_game, name='game'),
     path('api/save-game-result/', views.api_save_game_result, name='save_game_result'),
+     
 ]
