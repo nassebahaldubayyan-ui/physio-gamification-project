@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>🎨 Matching Game - Rehab</title>
+    <title>Matching Game - Rehab</title>
     <style>
         * {
             margin: 0;
@@ -368,7 +368,6 @@
             <div>🖐️ HAND X: <span id="handXPos">--</span>% | HAND Y: <span id="handYPos">--</span>%</div>
             <div>✊ GRIP: <span id="gripStatus" style="color:#88ff88">OPEN</span></div>
             <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
-            <div>⚠️ COMPENSATION: <span id="compensationStatus" style="color:#ff8888">NO</span></div>
         </div>
 
         <div class="compensation-warning" id="compensationWarning">
@@ -383,7 +382,6 @@
     <div class="start-panel" id="startPanel">
         <h1>🎨 MATCHING GAME 🧩</h1>
         <p>🤚 Move your hand • ✊ Close to GRAB object • ✋ Open over matching color box to SCORE</p>
-        <p style="font-size:12px; color:#ffaa88;">⚠️ Don't shrug your shoulder! Keep it stable ⚠️</p>
         <button id="startBtn">▶️ START GAME</button>
     </div>
 
@@ -855,7 +853,7 @@
 
         window.OnMatchSuccess = function (color) {
             console.log(`✅ MATCH SUCCESS! Color: ${color}`);
-            showNotification(`🎉 Correct match! +10 points!`);
+            showNotification(`🎉 Correct match! `);
             const flash = document.createElement('div');
             flash.style.position = 'fixed';
             flash.style.top = '0';
@@ -904,35 +902,57 @@
                 streamingAssetsUrl: "StreamingAssets",
                 companyName: "RehabGames",
                 productName: "MatchingGame",
-                productVersion: "1.0"
-            }).then(instance => {
+                productVersion: "0.1"
+            }).then((instance) => {
+            if (typeof instance.sendMessage === 'function') {
                 unityInstance = instance;
-                window.unityInstance = unityInstance;
-
-                if (typeof unityInstance.sendMessage !== 'function') {
-                    if (unityInstance.Module && typeof unityInstance.Module.SendMessage === 'function') {
-                        unityInstance.sendMessage = function (obj, method, value) {
-                            unityInstance.Module.SendMessage(obj, method, value);
-                        };
+            } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                unityInstance = {
+                    sendMessage: function(obj, method, value) {
+                        instance.Module.SendMessage(obj, method, value);
                     }
-                }
+                };
+            } else {
+                console.error("sendMessage not found", instance);
+                showNotification("❌ Unity loaded but sendMessage missing");
+                return;
+            }
 
-                console.log("✅ Unity Matching Game ready | Compensation detection active");
-                showNotification("✅ Game ready! Press START");
-            }).catch(err => {
-                console.error("Unity error:", err);
-                showNotification("❌ Error loading game: " + err.message);
-            });
+            window.unityInstance = unityInstance;
+            console.log("✅ Unity ready");
+
+            setTimeout(() => {
+                if (unityInstance) {
+                    unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
+                    console.log("✅ Config sent to Unity");
+                }
+            }, 1000);
+
+            showNotification("✅ Game ready! Click START to play!", true);
+        });
         }
 
         waitForUnity();
 
-        // Event Listeners
-        document.getElementById('startBtn').onclick = startGame;
-        document.getElementById('restartBtn').onclick = restartGame;
-        document.getElementById('exitBtn').onclick = exitToGames;
-
-        console.log("🎮 Matching Game Ready - Compensation detection active!");
+       document.getElementById('startBtn').onclick = function() {
+        soundManager.playButtonClick();
+        startGame();
+    };
+    
+    document.getElementById('restartBtn').onclick = function() {
+        soundManager.playButtonClick();
+        restartGame();
+    };
+    
+    document.getElementById('exitBtn').onclick = function() {
+        exitToGames();
+    };
+    
+    document.body.addEventListener('click', function() {
+        soundManager.resumeAudio();
+    }, { once: true });
+    
+    console.log("🎮 Ready!");
     </script>
 </body>
 

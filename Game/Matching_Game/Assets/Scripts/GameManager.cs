@@ -8,18 +8,18 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     public int score = 0;
-    public int matches = 0;           // <-- أضيفي هذا للمطابقات
+    public int matches = 0;           // <--  للمطابقات
     public TMP_Text scoreText;
-    public TMP_Text matchesText;       // <-- أضيفي هذا (اختياري)
+    public TMP_Text matchesText;       
 
-    public float gameTime = 60f;       // تغيير إلى 60 ثانية
+    public float gameTime = 60f;       
     public TMP_Text timerText;
 
     public GameObject startPanel;
     public GameObject endPanel;
 
     public TMP_Text finalScoreText;
-    public TMP_Text finalMatchesText;   // <-- أضيفي هذا
+    public TMP_Text finalMatchesText;   
 
     private bool isGameRunning = false;
     private bool gameEnded = false;
@@ -145,8 +145,11 @@ public class GameManager : MonoBehaviour
         if (matchesText != null)
             matchesText.text = "Matches: " + matches;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-    Application.ExternalCall("UpdateScoreFromUnity", score);
+#if !UNITY_EDITOR && UNITY_WEBGL
+        try {
+            Application.ExternalCall("UpdateScoreFromUnity", 0);
+            Application.ExternalCall("UpdateTimerFromUnity", 60);
+        } catch { }
 #endif
     }
 
