@@ -26,7 +26,6 @@
             display: block;
         }
 
-        /* Hand cursor visual */
         .hand-cursor {
             position: fixed;
             width: 55px;
@@ -356,7 +355,6 @@
 
     <canvas id="unity-canvas"></canvas>
 
-    <!-- Hand cursor visual -->
     <div class="hand-cursor" id="handCursor"></div>
 
     <div class="ui-overlay">
@@ -368,6 +366,7 @@
             <div>🖐️ HAND X: <span id="handXPos">--</span>% | HAND Y: <span id="handYPos">--</span>%</div>
             <div>✊ GRIP: <span id="gripStatus" style="color:#88ff88">OPEN</span></div>
             <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
+            <div>⚠️ COMPENSATION: <span id="compensationStatus" style="color:#88ff88">NO</span></div>
         </div>
 
         <div class="compensation-warning" id="compensationWarning">
@@ -414,6 +413,121 @@
 
     <script src="/static/matching_build/Build/matching_build.loader.js"></script>
     <script>
+        // ==================== SOUND MANAGER ====================
+        class SoundManager {
+            constructor() {
+                this.enabled = true;
+                this.initSounds();
+            }
+            
+            initSounds() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {
+                    console.log("Web Audio API not supported");
+                    this.enabled = false;
+                    return;
+                }
+                
+                this.buttonSound = this.createNaturalClick();
+                this.catchSound = this.createNaturalCatch();
+                this.startSound = this.createSimpleBeep();
+            }
+            
+            createNaturalClick() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    
+                    const now = this.audioContext.currentTime;
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    
+                    osc.frequency.value = 600;
+                    gain.gain.value = 0.1;
+                    
+                    osc.start();
+                    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.08);
+                    osc.stop(now + 0.08);
+                };
+            }
+            
+            createNaturalCatch() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    
+                    const now = this.audioContext.currentTime;
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    
+                    osc.frequency.value = 400;
+                    gain.gain.value = 0.15;
+                    
+                    osc.start();
+                    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.12);
+                    osc.stop(now + 0.12);
+                };
+            }
+            
+            createSimpleBeep() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    
+                    const now = this.audioContext.currentTime;
+                    
+                    const osc1 = this.audioContext.createOscillator();
+                    const gain1 = this.audioContext.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(this.audioContext.destination);
+                    osc1.frequency.value = 800;
+                    gain1.gain.value = 0.12;
+                    osc1.start();
+                    gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                    osc1.stop(now + 0.1);
+                    
+                    setTimeout(() => {
+                        const osc2 = this.audioContext.createOscillator();
+                        const gain2 = this.audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(this.audioContext.destination);
+                        osc2.frequency.value = 600;
+                        gain2.gain.value = 0.12;
+                        osc2.start();
+                        gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                        osc2.stop(now + 0.2);
+                    }, 120);
+                };
+            }
+            
+            playButtonClick() {
+                if (this.buttonSound) this.buttonSound();
+            }
+            
+            playCatchSound() {
+                if (this.catchSound) this.catchSound();
+            }
+            
+            playGameStart() {
+                if (this.startSound) this.startSound();
+            }
+            
+            resumeAudio() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            }
+        }
+
+        const soundManager = new SoundManager();
+
         // ==================== GAME CONFIG ====================
         const GAME_CONFIG = {
             objectCount: 3,
@@ -437,7 +551,7 @@
             }
         };
 
-        // ==================== POSE TRACKER (with compensation detection) ====================
+        // ==================== POSE TRACKER ====================
         class PoseTracker {
             constructor() {
                 this.current = { elbow: 0, shoulder: 0 };
@@ -451,55 +565,50 @@
 
             processLandmarks(landmarks, w, h, side = "left") {
                 if (!landmarks) return false;
-
+                
                 const shoulderId = side === "left" ? 11 : 12;
                 const elbowId = side === "left" ? 13 : 14;
                 const wristId = side === "left" ? 15 : 16;
                 const hipId = side === "left" ? 23 : 24;
-
+                
                 const shoulder = landmarks[shoulderId];
                 const elbow = landmarks[elbowId];
                 const wrist = landmarks[wristId];
                 const hip = landmarks[hipId];
-
+                
                 if (!shoulder || !elbow || !wrist) return false;
-
-                // Calculate elbow angle
+                
                 this.current.elbow = AngleMath.calculateAngle(shoulder, elbow, wrist);
                 this.elbowHistory.push(this.current.elbow);
                 if (this.elbowHistory.length > 500) this.elbowHistory.shift();
-
-                // Calculate shoulder angle (for compensation detection)
+                
                 if (hip) {
                     this.current.shoulder = AngleMath.calculateAngle(hip, shoulder, elbow);
                     this.shoulderHistory.push(this.current.shoulder);
                     if (this.shoulderHistory.length > 100) this.shoulderHistory.shift();
                 }
-
-                // Shrugging detection: shoulder raising relative to previous position
+                
                 if (this.prevShoulderY !== null) {
                     const shoulderRaise = (this.prevShoulderY - shoulder.y) * h;
-
-                    // If shoulder raised more than 5cm (approx 50px)
+                    
                     if (shoulderRaise > 50 && this.compensationCooldown <= 0) {
                         this.isCompensating = true;
                         this.shrugCount++;
-                        this.compensationCooldown = 30; // 30 frames cooldown
+                        this.compensationCooldown = 30;
                     } else if (shoulderRaise < -20) {
-                        // Shoulder back to normal
                         this.isCompensating = false;
                     }
                 }
-
+                
                 this.prevShoulderY = shoulder.y;
-
+                
                 if (this.compensationCooldown > 0) {
                     this.compensationCooldown--;
                     if (this.compensationCooldown === 0) {
                         this.isCompensating = false;
                     }
                 }
-
+                
                 return true;
             }
 
@@ -532,7 +641,6 @@
         let lastDebugTime = 0;
         let compensationVisible = false;
 
-        // Hand cursor element
         const handCursor = document.getElementById('handCursor');
         const debugPanel = document.getElementById('debugPanel');
         const compensationWarning = document.getElementById('compensationWarning');
@@ -571,13 +679,12 @@
             }
         }
 
-        // Update hand cursor visual
         function updateHandCursor(handX, handY, isGripping) {
             const xPercent = handX * 100;
             const yPercent = handY * 100;
             handCursor.style.left = xPercent + '%';
             handCursor.style.top = yPercent + '%';
-
+            
             if (isGripping) {
                 handCursor.classList.add('gripping');
             } else {
@@ -589,7 +696,7 @@
             document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
             document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
             document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
-
+            
             const gripSpan = document.getElementById('gripStatus');
             if (isGripping) {
                 gripSpan.innerHTML = "CLOSED ✊";
@@ -598,7 +705,7 @@
                 gripSpan.innerHTML = "OPEN ✋";
                 gripSpan.style.color = "#ff8888";
             }
-
+            
             const compensationSpan = document.getElementById('compensationStatus');
             if (isShrugging) {
                 compensationSpan.innerHTML = "YES ⚠️";
@@ -607,7 +714,7 @@
                 compensationSpan.innerHTML = "NO ✓";
                 compensationSpan.style.color = "#88ff88";
             }
-
+            
             showCompensationWarning(isShrugging);
         }
 
@@ -622,7 +729,6 @@
         // ==================== UNITY COMMUNICATION ====================
         function sendToUnity(objectName, methodName, value) {
             if (!unityInstance) return false;
-
             try {
                 if (typeof unityInstance.sendMessage === 'function') {
                     unityInstance.sendMessage(objectName, methodName, value);
@@ -641,7 +747,7 @@
         function calculateGripFromLandmarks(landmarks) {
             const fingerTips = [4, 8, 12, 16, 20];
             const fingerMCPs = [1, 5, 9, 13, 17];
-
+            
             let totalAngle = 0;
             for (let i = 0; i < fingerTips.length; i++) {
                 const angle = AngleMath.calculateAngle(
@@ -652,8 +758,6 @@
                 totalAngle += angle;
             }
             const avgAngle = totalAngle / fingerTips.length;
-
-            // Closed grip = average angle less than 70 degrees
             return avgAngle < 70;
         }
 
@@ -662,7 +766,7 @@
             const video = document.createElement('video');
             video.style.display = 'none';
             document.body.appendChild(video);
-
+            
             hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
             hands.setOptions({
                 maxNumHands: 1,
@@ -670,29 +774,24 @@
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
             });
-
+            
             hands.onResults(results => {
                 if (!mediaPipeActive || !gameActive) return;
-
+                
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                     const landmarks = results.multiHandLandmarks[0];
                     const wrist = landmarks[0];
-
-                    // X: 0 = left, 1 = right
+                    
                     const handX = wrist.x;
-                    // Y: 0 = top, 1 = bottom
                     const handY = wrist.y;
-
                     const isGripping = calculateGripFromLandmarks(landmarks);
-
+                    
                     gripHistory.push(isGripping ? 1 : 0);
                     if (gripHistory.length > 500) gripHistory.shift();
-
-                    // Create fake pose landmarks for shoulder tracking
+                    
                     const fakePoseLandmarks = [];
                     for (let i = 0; i < 33; i++) fakePoseLandmarks.push({ x: 0.5, y: 0.5, z: 0 });
-
-                    // Approximate shoulder positions
+                    
                     const shoulderX = handX;
                     const shoulderY = Math.max(0.1, Math.min(0.8, handY - 0.25));
                     fakePoseLandmarks[11] = { x: shoulderX - 0.12, y: shoulderY, z: 0 };
@@ -701,40 +800,36 @@
                     fakePoseLandmarks[14] = { x: handX + 0.07, y: handY - 0.1, z: 0 };
                     fakePoseLandmarks[23] = { x: shoulderX - 0.08, y: shoulderY + 0.25, z: 0 };
                     fakePoseLandmarks[24] = { x: shoulderX + 0.08, y: shoulderY + 0.25, z: 0 };
-
-                    // Process pose for compensation detection
+                    
                     if (poseTracker) {
                         poseTracker.processLandmarks(fakePoseLandmarks, window.innerWidth, window.innerHeight, "left");
                     }
-
+                    
                     const isShrugging = poseTracker ? poseTracker.isShrugging() : false;
-
-                    // If compensation detected, don't send movement to Unity
+                    
                     if (!isShrugging) {
-                        const success = sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + "," + handY.toFixed(3));
+                        sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + "," + handY.toFixed(3));
                         sendToUnity('HandController', 'SetGripState', isGripping ? "true" : "false");
-                        updateDebug(`🖐️ X:${(handX * 100).toFixed(0)}% Y:${(handY * 100).toFixed(0)}% GRIP:${isGripping ? "CLOSED" : "OPEN"} SHRUG:${isShrugging ? "YES" : "NO"} SEND:${success ? "OK" : "FAIL"}`);
+                        updateDebug(`🖐️ X:${(handX * 100).toFixed(0)}% Y:${(handY * 100).toFixed(0)}% GRIP:${isGripping ? "CLOSED" : "OPEN"} SHRUG:${isShrugging ? "YES" : "NO"}`);
                     } else {
                         updateDebug(`⚠️ COMPENSATION DETECTED! Movement blocked! SHRUG#${poseTracker?.getShrugCount() || 0}`);
                         sendToUnity('HandController', 'SetCompensation', "true");
                     }
-
-                    // Update UI
+                    
                     updateStatsDisplay(handX, handY, poseTracker?.current?.elbow || 85, isGripping, isShrugging);
-
                 } else {
                     updateDebug("⚠️ No hand detected - show palm to camera");
                 }
             });
-
+            
             camera = new Camera(video, {
                 onFrame: async () => { if (mediaPipeActive && hands) await hands.send({ image: video }); },
                 width: 640, height: 480
             });
             await camera.start();
             mediaPipeActive = true;
-            console.log("✅ MediaPipe started with compensation detection");
-            showNotification("✅ Hand tracking active! Don't shrug your shoulders!");
+            console.log("✅ MediaPipe started");
+            showNotification("✅ Hand tracking active!", false);
         }
 
         // ==================== GAME CONTROL ====================
@@ -744,14 +839,16 @@
                 setTimeout(startGame, 500);
                 return;
             }
-
+            
+            soundManager.playGameStart();
+            
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
                     stream.getTracks().forEach(t => t.stop());
-
+                    
                     document.getElementById('startPanel').style.display = 'none';
                     document.getElementById('endPanel').style.display = 'none';
-
+                    
                     gameActive = true;
                     gameScore = 0;
                     gameMatches = 0;
@@ -759,14 +856,15 @@
                     gripHistory = [];
                     poseTracker = new PoseTracker();
                     updateUI();
-
+                    
                     sendToUnity('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
                     sendToUnity('GameManager', 'StartGameFromHTML', "");
-
+                    
                     if (!mediaPipeActive) initMediaPipe();
                     else mediaPipeActive = true;
-
-                    showNotification("🎮 GAME STARTED! Close hand to grab, open over matching box!");
+                    
+                    soundManager.resumeAudio();
+                    showNotification("🎮 GAME STARTED! Close hand to grab, open over matching box!", false);
                 })
                 .catch(err => {
                     console.error("Camera error:", err);
@@ -775,15 +873,24 @@
         }
 
         function exitToGames() {
-            window.location.href = "/patient/";
+            soundManager.playButtonClick();
+            setTimeout(() => {
+                window.location.href = "/patient/";
+            }, 100);
         }
 
         function restartGame() {
-            window.location.reload();
+            soundManager.playButtonClick();
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
         }
 
         // ==================== UNITY CALLBACKS ====================
         window.UpdateScoreFromUnity = function (score) {
+            if (score > gameScore) {
+                soundManager.playCatchSound();
+            }
             gameScore = score;
             updateUI();
             console.log(`📊 Score: ${gameScore}`);
@@ -805,24 +912,24 @@
 
         window.EndGameFromUnity = function (score, matches) {
             gameActive = false;
-
+            
             const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
             const gripAcc = calculateGripAccuracy();
             const shrugCount = poseTracker ? poseTracker.getShrugCount() : 0;
-
+            
             document.getElementById('finalScore').innerHTML = score;
             document.getElementById('finalMatches').innerHTML = matches || 0;
             document.getElementById('avgElbow').innerHTML = avgElbow;
             document.getElementById('gripAccuracy').innerHTML = gripAcc;
             document.getElementById('shrugCount').innerHTML = shrugCount;
-
+            
             document.getElementById('endPanel').style.display = 'flex';
-
+            
             if (camera) {
                 mediaPipeActive = false;
                 camera.stop();
             }
-
+            
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get("user_id");
             if (userId) {
@@ -840,34 +947,13 @@
                         compensation_count: shrugCount
                     })
                 }).then(response => response.json())
-                    .then(data => {
-                        if (data.success) console.log("✅ Result saved for user:", userId);
-                    }).catch(err => console.log("Save error:", err));
+                  .then(data => {
+                      if (data.success) console.log("✅ Result saved for user:", userId);
+                  }).catch(err => console.log("Save error:", err));
             }
         };
 
-        window.OnObjectGrabbed = function () {
-            console.log("🎨 OBJECT GRABBED!");
-            showNotification("✨ Object grabbed! Move to matching box!");
-        };
-
-        window.OnMatchSuccess = function (color) {
-            console.log(`✅ MATCH SUCCESS! Color: ${color}`);
-            showNotification(`🎉 Correct match! `);
-            const flash = document.createElement('div');
-            flash.style.position = 'fixed';
-            flash.style.top = '0';
-            flash.style.left = '0';
-            flash.style.width = '100%';
-            flash.style.height = '100%';
-            flash.style.backgroundColor = 'rgba(68, 255, 136, 0.2)';
-            flash.style.zIndex = '9999';
-            flash.style.pointerEvents = 'none';
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 200);
-        };
         // ==================== WEBGL BRIDGE FUNCTIONS ====================
-
         window.EndGameFromJS = function (score, matches) {
             console.log("🎮 EndGameFromJS:", score, matches);
             if (window.EndGameFromUnity) window.EndGameFromUnity(score, matches);
@@ -883,9 +969,6 @@
             if (window.UpdateMatchesFromUnity) window.UpdateMatchesFromUnity(matches);
         };
 
-
-
-
         // ==================== UNITY LOADER ====================
         const canvas = document.querySelector("#unity-canvas");
 
@@ -894,7 +977,7 @@
                 setTimeout(waitForUnity, 100);
                 return;
             }
-
+            
             createUnityInstance(canvas, {
                 dataUrl: "/static/matching_build/Build/matching_build.data",
                 frameworkUrl: "/static/matching_build/Build/matching_build.framework.js",
@@ -904,55 +987,60 @@
                 productName: "MatchingGame",
                 productVersion: "0.1"
             }).then((instance) => {
-            if (typeof instance.sendMessage === 'function') {
-                unityInstance = instance;
-            } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
-                unityInstance = {
-                    sendMessage: function(obj, method, value) {
-                        instance.Module.SendMessage(obj, method, value);
-                    }
-                };
-            } else {
-                console.error("sendMessage not found", instance);
-                showNotification("❌ Unity loaded but sendMessage missing");
-                return;
-            }
-
-            window.unityInstance = unityInstance;
-            console.log("✅ Unity ready");
-
-            setTimeout(() => {
-                if (unityInstance) {
-                    unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
-                    console.log("✅ Config sent to Unity");
+                if (typeof instance.sendMessage === 'function') {
+                    unityInstance = instance;
+                } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                    unityInstance = {
+                        sendMessage: function(obj, method, value) {
+                            instance.Module.SendMessage(obj, method, value);
+                        }
+                    };
+                } else {
+                    console.error("sendMessage not found", instance);
+                    showNotification("❌ Unity loaded but sendMessage missing");
+                    return;
                 }
-            }, 1000);
-
-            showNotification("✅ Game ready! Click START to play!", true);
-        });
+                
+                window.unityInstance = unityInstance;
+                console.log("✅ Unity ready");
+                
+                setTimeout(() => {
+                    if (unityInstance) {
+                        unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
+                        console.log("✅ Config sent to Unity");
+                    }
+                }, 1000);
+                
+                showNotification("✅ Game ready! Click START to play!", false);
+            }).catch(err => {
+                console.error("Unity loading error:", err);
+                showNotification("❌ Error loading game: " + err.message);
+            });
         }
-
+        
         waitForUnity();
 
-       document.getElementById('startBtn').onclick = function() {
-        soundManager.playButtonClick();
-        startGame();
-    };
-    
-    document.getElementById('restartBtn').onclick = function() {
-        soundManager.playButtonClick();
-        restartGame();
-    };
-    
-    document.getElementById('exitBtn').onclick = function() {
-        exitToGames();
-    };
-    
-    document.body.addEventListener('click', function() {
-        soundManager.resumeAudio();
-    }, { once: true });
-    
-    console.log("🎮 Ready!");
+        // ==================== ربط الأزرار مع الصوت ====================
+        document.getElementById('startBtn').onclick = function() {
+            soundManager.playButtonClick();
+            startGame();
+        };
+        
+        document.getElementById('restartBtn').onclick = function() {
+            soundManager.playButtonClick();
+            restartGame();
+        };
+        
+        document.getElementById('exitBtn').onclick = function() {
+            soundManager.playButtonClick();
+            exitToGames();
+        };
+        
+        document.body.addEventListener('click', function() {
+            soundManager.resumeAudio();
+        }, { once: true });
+        
+        console.log("🎮 Matching Game Ready!");
     </script>
 </body>
 
