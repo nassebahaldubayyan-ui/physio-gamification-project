@@ -37,6 +37,11 @@ public class GameManager : MonoBehaviour
         if (!isGameRunning) return;
 
         gameTime -= Time.deltaTime;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    Application.ExternalCall("UpdateTimerFromUnity", gameTime);
+#endif
+
         if (timerText != null)
             timerText.text = "Time: " + Mathf.Ceil(gameTime);
 
@@ -136,8 +141,13 @@ public class GameManager : MonoBehaviour
     {
         if (scoreText != null)
             scoreText.text = "Score: " + score;
+
         if (matchesText != null)
             matchesText.text = "Matches: " + matches;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    Application.ExternalCall("UpdateScoreFromUnity", score);
+#endif
     }
 
     // ============================================
