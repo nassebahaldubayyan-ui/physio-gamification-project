@@ -683,7 +683,6 @@
         return; 
     } 
     
-    // حفظ الحالة
     localStorage.setItem('hasAssessmentVideo', 'true'); 
     localStorage.setItem('assessmentCompleted', 'true');
     
@@ -694,7 +693,6 @@
     
     showNotification('✅ Assessment saved! Redirecting...', 'success'); 
     
-    // التوجيه إلى صفحة المريض مع强制 إعادة تحميل
     setTimeout(() => { 
         window.location.href = "{% url 'patient_dashboard' %}?reload=true"; 
     }, 1500); 
