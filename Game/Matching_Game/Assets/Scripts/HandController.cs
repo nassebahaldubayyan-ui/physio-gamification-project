@@ -4,161 +4,166 @@ public class HandController : MonoBehaviour
 {
     public static HandController Instance;
 
-    [Header("Hand Position Settings")]
-    public GameObject handCursor;           // مؤشر بصري لليد (اختياري)
-    public float minX = -8f;                // الحد الأيسر للشاشة
-    public float maxX = 8f;                 // الحد الأيمن للشاشة
-    public float minY = -4f;                // الحد السفلي
-    public float maxY = 4f;                 // الحد العلوي
+    [Header("Cursor Settings")]
+    public GameObject handCursor;
 
-    [Header("Pinch Settings")]
-    public float pinchThreshold = 0.05f;    // عتبة كشف حركة Pinch
+    [Header("Screen Mapping")]
+    public float minX = -8f;
+    public float maxX = 8f;
+    public float minY = -4f;
+    public float maxY = 4f;
 
-    // القيم الحالية
-    private float handX = 0.5f;             // 0 = يسار, 1 = يمين
-    private float handY = 0.5f;             // 0 = أسفل, 1 = أعلى
-    private bool isPinching = false;
+    [Header("Smoothing")]
+    public float smoothSpeed = 15f;
 
-    // متغيرات إضافية للـ WebGL
+    // Internal values
+    private float handX = 0.5f;
+    private float handY = 0.5f;
+    private bool isGripping = false;
     private bool isGameRunning = false;
+
+    private Vector3 currentPosition;
+    private Vector3 targetPosition;
 
     void Awake()
     {
-        // Singleton pattern
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     void Start()
     {
-        // إنشاء المؤشر البصري إذا لم يتم تعيينه
         if (handCursor == null)
-        {
-            CreateHandCursor();
-        }
-    }
-
-    void CreateHandCursor()
-    {
-        GameObject cursor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        cursor.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
-        cursor.name = "HandCursor";
-
-        // تغيير لون المؤشر
-        Renderer renderer = cursor.GetComponent<Renderer>();
-        renderer.material.color = Color.yellow;
-
-        handCursor = cursor;
+            CreateCursor();
+        
+        // Initialize positions
+        currentPosition = GetWorldPositionFromNormalized(0.5f, 0.5f);
+        targetPosition = currentPosition;
+        
+        if (handCursor != null)
+            handCursor.transform.position = currentPosition;
     }
 
     void Update()
     {
-        // تحديث موقع المؤشر البصري
-        UpdateCursorVisual();
+        MoveCursorSmooth();
+        UpdateVisual();
     }
 
-    // ============================================
-    // دوال تُنادى من JavaScript (WebGL)
-    // ============================================
+    // ======================================
+    // 🔹 استقبال من JavaScript
+    // ======================================
 
-    public void SetHandPosition(string xValue)
+    public void SetHandPosition(string data)
     {
-        if (float.TryParse(xValue, out float x))
+        string[] values = data.Split(',');
+
+        if (values.Length == 2)
         {
-            handX = Mathf.Clamp01(x);
-            UpdateCursorPosition();
-        }
-    }
-
-    public void SetHandPositionX(string xValue)
-    {
-        if (float.TryParse(xValue, out float x))
-        {
-            handX = Mathf.Clamp01(x);
-            UpdateCursorPosition();
-        }
-    }
-
-    public void SetHandPositionY(string yValue)
-    {
-        if (float.TryParse(yValue, out float y))
-        {
-            handY = Mathf.Clamp01(y);
-            UpdateCursorPosition();
-        }
-    }
-
-    public void SetPinch(string pinchValue)
-    {
-        isPinching = (pinchValue == "1");
-    }
-
-    public void SetGameRunning(string running)
-    {
-        isGameRunning = (running == "1");
-    }
-
-    // ============================================
-    // تحديث موقع المؤشر
-    // ============================================
-
-    private void UpdateCursorPosition()
-    {
-        if (handCursor != null)
-        {
-            Vector3 pos = GetHandWorldPosition();
-            handCursor.transform.position = pos;
-        }
-    }
-
-    private void UpdateCursorVisual()
-    {
-        if (handCursor != null)
-        {
-            // تغيير لون المؤشر عند Pinch
-            Renderer renderer = handCursor.GetComponent<Renderer>();
-            if (renderer != null)
+            if (float.TryParse(values[0], out float x) &&
+                float.TryParse(values[1], out float y))
             {
-                renderer.material.color = isPinching ? Color.red : Color.yellow;
-            }
+                handX = Mathf.Clamp01(x);
+                handY = Mathf.Clamp01(y);
 
-            // تغيير الحجم عند Pinch
-            float scale = isPinching ? 0.8f : 0.5f;
-            handCursor.transform.localScale = new Vector3(scale, scale, scale);
+                // تحديث الموقع المستهدف
+                targetPosition = GetWorldPositionFromNormalized(handX, handY);
+                
+                // Debug (اختياري)
+                // Debug.Log($"Hand Position: X={handX:F2}, Y={handY:F2} → World: {targetPosition}");
+            }
         }
     }
 
-    // ============================================
-    // دوال عامة للاستخدام من سكريبتات أخرى
-    // ============================================
-
-    public Vector3 GetHandWorldPosition()
+    public void SetGripState(string state)
     {
-        return new Vector3(
-            Mathf.Lerp(minX, maxX, handX),
-            Mathf.Lerp(minY, maxY, handY),
-            0f
+        isGripping = (state == "true" || state == "1");
+        // Debug.Log($"Grip State: {isGripping}");
+    }
+
+    public void SetGameRunning(string state)
+    {
+        isGameRunning = (state == "1" || state == "true");
+    }
+
+    // ======================================
+    // 🔹 تحويل الإحداثيات
+    // ======================================
+
+    private Vector3 GetWorldPositionFromNormalized(float x, float y)
+    {
+        // تحويل من (0-1) إلى (minX-maxX) و (minY-maxY)
+        float worldX = Mathf.Lerp(minX, maxX, x);
+        float worldY = Mathf.Lerp(minY, maxY, y);
+        
+        return new Vector3(worldX, worldY, 0f);
+    }
+
+    private void MoveCursorSmooth()
+    {
+        if (handCursor == null) return;
+
+        // حركة سلسة
+        currentPosition = Vector3.Lerp(currentPosition, targetPosition, Time.deltaTime * smoothSpeed);
+        handCursor.transform.position = currentPosition;
+    }
+
+    // ======================================
+    // 🔹 الشكل البصري
+    // ======================================
+
+    void UpdateVisual()
+    {
+        if (handCursor == null) return;
+
+        Renderer r = handCursor.GetComponent<Renderer>();
+        if (r != null)
+        {
+            r.material.color = isGripping ? Color.red : Color.green;
+        }
+
+        float scale = isGripping ? 0.8f : 0.5f;
+        handCursor.transform.localScale = Vector3.Lerp(
+            handCursor.transform.localScale,
+            new Vector3(scale, scale, scale),
+            Time.deltaTime * 10f
         );
     }
 
-    public Vector2 GetHandNormalizedPosition()
+    void CreateCursor()
     {
-        return new Vector2(handX, handY);
+        handCursor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        handCursor.name = "HandCursor";
+        handCursor.transform.localScale = Vector3.one * 0.5f;
+
+        Renderer r = handCursor.GetComponent<Renderer>();
+        if (r != null)
+            r.material.color = Color.green;
+        
+        // إزالة الـ Collider عشان ما يتداخل مع الفيزياء
+        Destroy(handCursor.GetComponent<Collider>());
+    }
+
+    // ======================================
+    // 🔹 دوال عامة للاستخدام
+    // ======================================
+
+    public Vector3 GetHandWorldPosition()
+    {
+        // نرجع الموقع المستهدف (أو الحالي) للسيارات
+        return targetPosition;
     }
 
     public bool IsPinching()
     {
-        return isPinching;
+        return isGripping;
+    }
+
+    public bool IsGameRunning()
+    {
+        return isGameRunning;
     }
 
     public float GetHandX() => handX;
     public float GetHandY() => handY;
-
-    public bool IsGameRunning() => isGameRunning;
 }

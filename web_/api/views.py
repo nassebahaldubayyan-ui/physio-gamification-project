@@ -56,8 +56,36 @@ def edit_patient_profile(request):
     return render(request, 'patient/edit-patient-profile.html')
 
 def capture_video(request):
-    return render(request, 'patient/capture-video.html')
+    print("🔥 capture_video VIEW HIT")
 
+    # 1. Get user from session (NOT request.user)
+    user_id = request.session.get("user_id")
+
+    print("SESSION USER ID:", user_id)
+
+    affected_hand = None
+
+    if user_id:
+        # 2. Get patient linked to this user
+        patient = Patients.objects.filter(user_id=user_id).first()
+
+        if patient:
+            affected_hand = patient.affected_hand
+            print("FOUND PATIENT:", patient.id)
+            print("AFFECTED HAND:", affected_hand)
+        else:
+            print("❌ No patient found for user_id:", user_id)
+    else:
+        print("❌ No user_id in session")
+
+    # 3. Default fallback (important for JS safety)
+    if not affected_hand:
+        affected_hand = "right"
+
+    return render(request, "patient/capture-video.html", {
+        "affected_hand": affected_hand,
+        "patient_id": user_id
+    })
 def physio_assessment(request):
     return render(request, 'patient/physio-assessment.html')
 
@@ -692,3 +720,30 @@ def api_get_user_name(request):
     user_id = request.GET.get('user_id')
     user = Users.objects.get(id=user_id)
     return JsonResponse({"name": user.name})
+
+@csrf_exempt
+def api_save_initial_assessment(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+
+            user_id = data.get("user_id")
+            patient = Patients.objects.get(user_id=user_id)
+
+            Patients.objects.create(
+                patient=patient,
+
+                shoulder_max=data.get("shoulder_max", 0),
+                elbow_max=data.get("elbow_max", 0),
+                grip_max=data.get("grip_max", 0),
+
+                #shoulder_external_rotation=data.get("shoulder_external_rotation", 0),
+                #shoulder_internal_rotation=data.get("shoulder_internal_rotation", 0),
+            )
+
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"error": "POST only"}, status=405)

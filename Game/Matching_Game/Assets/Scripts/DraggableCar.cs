@@ -3,10 +3,8 @@
 public class DraggableCar : MonoBehaviour
 {
     private bool isDragging = false;
-    private Vector3 offset;
     private HandController handController;
     private SpriteRenderer spriteRenderer;
-
     public ColorType color;
 
     void Start()
@@ -18,7 +16,6 @@ public class DraggableCar : MonoBehaviour
     void Update()
     {
         if (handController == null) return;
-
         if (!handController.IsGameRunning()) return;
 
         Vector3 handPos = handController.GetHandWorldPosition();
@@ -27,18 +24,21 @@ public class DraggableCar : MonoBehaviour
         // بدء السحب
         if (isPinching && !isDragging)
         {
-            if (Vector3.Distance(handPos, transform.position) < 1.5f)
+            float distance = Vector3.Distance(handPos, transform.position);
+            Debug.Log($"Try grab: distance={distance}");
+            
+            if (distance < 1.8f)
             {
                 isDragging = true;
-                offset = transform.position - handPos;
                 if (spriteRenderer != null)
                     spriteRenderer.color = Color.yellow;
+                Debug.Log($"✅ Grabbed car: {color}");
             }
         }
         // متابعة السحب
         else if (isDragging && isPinching)
         {
-            transform.position = handPos + offset;
+            transform.position = handPos;
         }
         // إنهاء السحب
         else if (isDragging && !isPinching)
@@ -46,21 +46,19 @@ public class DraggableCar : MonoBehaviour
             isDragging = false;
             if (spriteRenderer != null)
                 spriteRenderer.color = Color.white;
-
-            // التحقق من المطابقة (Basket هو اللي يتعامل معها)
+            Debug.Log($"Released car: {color}");
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (isDragging) return;
+        
         Basket basket = other.GetComponent<Basket>();
-        if (basket != null && isDragging == false)
+        if (basket != null && basket.color == color)
         {
-            if (basket.color == color)
-            {
-                GameManager.instance.AddScore(10);
-                Destroy(gameObject);
-            }
+            GameManager.instance.AddScore(10);
+            Destroy(gameObject);
         }
     }
 }

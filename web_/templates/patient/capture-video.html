@@ -151,14 +151,6 @@
             overflow: hidden;
         }
         
-        .hidden-video {
-            position: fixed;
-            top: -1000px;
-            left: -1000px;
-            width: 640px;
-            height: 480px;
-        }
-        
         canvas {
             width: 100%;
             height: auto;
@@ -307,6 +299,20 @@
             margin-top: 20px;
             gap: 15px;
         }
+        .angle-card.disabled {
+            opacity: 0.35;
+            filter: grayscale(100%);
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            transform: none !important;
+        }
+
+        .angle-card.active {
+            opacity: 1;
+            filter: none;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+        }
         
         .loading-text {
             color: #94a3b8;
@@ -332,7 +338,6 @@
 <body>
     <div class="video-container">
         <h2>📹 Initial Assessment Video</h2>
-        
         <div class="instructions" id="permissionBox">
             <h3><i class="fas fa-camera"></i> Camera Access Required</h3>
             <ul>
@@ -361,19 +366,38 @@
             <div class="angle-card"><h4><span>💪</span> Left Elbow</h4><div><span class="angle-value-large" id="leftElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
             <div class="angle-card"><h4><span>🦾</span> Right Shoulder</h4><div><span class="angle-value-large" id="rightShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
             <div class="angle-card"><h4><span>💪</span> Right Elbow</h4><div><span class="angle-value-large" id="rightElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card">
+                <h4>🔄 Shoulder External Rotation</h4>
+                <div>
+                    <span class="angle-value-large" id="extRotationDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
+            </div>
+
+            <div class="angle-card">
+                <h4>🔄 Shoulder Internal Rotation</h4>
+                <div>
+                    <span class="angle-value-large" id="intRotationDisplay">0</span>
+                    <span class="angle-unit-large">°</span>
+                </div>
+            </div>
         </div>
         
         <div class="main-grid" id="mainGrid" style="display: none;">
             <div class="camera-section">
                 <div class="video-wrapper">
-                    <video id="video" class="hidden-video" width="640" height="480" autoplay muted playsinline></video>
-                    <canvas id="processedCanvas" width="640" height="480"></canvas>
-                    <div id="loadingText" class="loading-text" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Loading AI analysis...</div>
+                    <video id="video" autoplay muted playsinline style="width:100%; max-height:500px; object-fit:cover; border-radius:10px; background:#000;"></video>
                 </div>
             </div>
             <div class="analysis-panel">
-                <h3><i class="fas fa-robot"></i> AI Movement Analysis <span class="status-badge status-success" id="aiStatus">Connecting...</span></h3>
                 <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
+                <div class="angle-card">
+                    <h4>✋ Hand Open</h4>
+                    <div>
+                        <span class="angle-value-large" id="handOpenDisplay">0</span>
+                        <span class="angle-unit-large">%</span>
+                    </div>
+                </div>
                 <div class="feedback-box"><div class="feedback-text" id="feedbackText"><i class="fas fa-info-circle"></i> Position yourself in front of the camera</div></div>
             </div>
         </div>
@@ -391,16 +415,48 @@
         </div>
         <div class="button-group"><button class="btn-back" onclick="goBack()"><span>←</span> Back to Dashboard</button></div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script>
+        const affectedHand = "{{ affected_hand }}".toLowerCase().trim();
+        const userId = "{{ patient_id }}";
 
+
+        // update UI immediately after DOM is ready
+        window.addEventListener("DOMContentLoaded", () => {
+            const handBadge = document.getElementById('handBadge');
+
+            if (affectedHand === 'right') {
+                handBadge.textContent = 'Right Hand';
+            } else if (affectedHand === 'left') {
+                handBadge.textContent = 'Left Hand';
+            } else {
+                handBadge.textContent = 'Unknown Hand';
+            }
+        });
+    </script>
     <script>
         // ============================================
         // VOICE INSTRUCTIONS SYSTEM
-        // ============================================
+        // =====================s=======================
         let voiceGuideActive = false;
         let currentInstructionIdx = 0;
         let speechUtter = null;
         let speechSynth = window.speechSynthesis;
-        
+        let poseTracker = {
+            shoulderAngle: 0,
+            elbowAngle: 0
+        };
+
+        let handTracker = {
+            thumbAngle: 0,
+            indexAngle: 0,
+            middleAngle: 0,
+            ringAngle: 0,
+            pinkyAngle: 0,
+            openPercentage: 0
+        };
         function getTotalDuration() {
             let total = 0;
             for (let i = 0; i < instructionSteps.length; i++) {
@@ -411,7 +467,56 @@
         
         let totalElapsedSeconds = 0;
         let totalDurationSeconds = 0;
-        
+        let currentStep = 0;
+        let stepStartTime = Date.now();
+        function getActiveMetrics() {
+
+            switch(currentStep) {
+
+                case 2:
+                    return {
+                        shoulder: true,
+                        elbow: true,
+                        hand: true,
+                        rotation: false
+                    };
+
+                case 3:
+                    return {
+                        shoulder: true,
+                        elbow: false,
+                        hand: false,
+                        rotation: false
+                    };
+
+                case 4:
+                    return {
+                        shoulder: false,
+                        elbow: false,
+                        hand: true,
+                        rotation: false
+                    };
+
+                case 5:
+                    return {
+                        shoulder: false,
+                        elbow: true,
+                        hand: false,
+                        rotation: false
+                    };
+
+                case 6:
+                    return {
+                        shoulder: false,
+                        elbow: false,
+                        hand: false,
+                        rotation: true
+                    };
+
+                default:
+                    return {};
+            }
+        }
         function updateProgressBar(additionalSeconds) {
             totalElapsedSeconds += additionalSeconds;
             if (totalDurationSeconds > 0) {
@@ -431,7 +536,6 @@
             { text: "Stand still", duration: 5 },
             { text: "Move your arm up and down", duration: 5 },
             { text: "Open and close your fist", duration: 5 },
-            { text: "Move your wrist in circles", duration: 5 },
             { text: "Open and close your elbow", duration: 5 },
             { text: "Pretend you carry a cup in your hand and move it from left to right", duration: 5 }
         ];
@@ -501,6 +605,8 @@
                 return;
             }
             const step = instructionSteps[index];
+            currentStep = index + 1;   // because your switch starts from 1-based logic
+            stepStartTime = Date.now();
             const duration = step.duration;
             updateStatusDisplay(index, duration);
             speakText(step.text, function() {
@@ -515,8 +621,11 @@
         }
         
         function completeAllExercises() {
+            assessment.freezeUI = true;
             voiceGuideActive = false;
-            
+            assessmentFinished = true;
+
+            camera.stop(); // 🔥 stops frame loop
             document.getElementById('currentStatus').innerHTML = `
                 <i class="fas fa-trophy" style="margin-right: 10px;"></i>
                 🎉 Assessment Complete! Great job! 🎉
@@ -559,56 +668,31 @@
         // CAMERA & WEBSOCKET
         // ============================================
         const video = document.getElementById('video');
-        const processedCanvas = document.getElementById('processedCanvas');
-        const ctx = processedCanvas.getContext('2d');
         let mediaRecorder, recordedChunks = [], videoStream, timerInterval, seconds = 0, isRecording = false;
-        let ws, frameInterval, reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        const affectedHand = localStorage.getItem('affectedHand') || 'right';
+        //const maxReconnectAttempts = 5;
+        
         document.getElementById('handBadge').textContent = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
-        
-        function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/ws/pose-detection/`;
-            ws = new WebSocket(wsUrl);
-            ws.onopen = () => {
-                reconnectAttempts = 0;
-                document.getElementById('aiStatus').textContent = 'Active';
-                document.getElementById('aiStatus').className = 'status-badge status-success';
-                if(loadingText) loadingText.style.display = 'none';
-                showNotification('AI analysis connected!', 'success');
-                ws.send(JSON.stringify({ injured_hand: affectedHand, patient_id: 25 }));
-                startFrameCapture();
-            };
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if(data.type === 'pose_data') {
-                    document.getElementById('leftShoulderAngleDisplay').textContent = data.angles.left_shoulder;
-                    document.getElementById('leftElbowAngleDisplay').textContent = data.angles.left_elbow;
-                    document.getElementById('rightShoulderAngleDisplay').textContent = data.angles.right_shoulder;
-                    document.getElementById('rightElbowAngleDisplay').textContent = data.angles.right_elbow;
-                    document.getElementById('feedbackText').innerHTML = `<i class="fas fa-robot"></i> ${data.feedback}`;
-                    if(data.frame) {
-                        const img = new Image();
-                        img.onload = () => { ctx.clearRect(0,0,processedCanvas.width,processedCanvas.height); ctx.save(); ctx.translate(processedCanvas.width,0); ctx.scale(-1,1); ctx.drawImage(img,0,0,processedCanvas.width,processedCanvas.height); ctx.restore(); };
-                        img.src = `data:image/jpeg;base64,${data.frame}`;
-                    }
-                }
-            };
-            ws.onclose = () => { if(reconnectAttempts < maxReconnectAttempts) { reconnectAttempts++; setTimeout(connectWebSocket, 3000); } };
-        }
-        
-        function startFrameCapture() { if(frameInterval) clearInterval(frameInterval); frameInterval = setInterval(() => { if(ws && ws.readyState === WebSocket.OPEN && video.videoWidth) captureAndSendFrame(); }, 100); }
-        function stopFrameCapture() { if(frameInterval) clearInterval(frameInterval); frameInterval = null; }
-        function captureAndSendFrame() { if(!video.videoWidth) return; const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; const tempCtx = canvas.getContext('2d'); tempCtx.drawImage(video,0,0); ws.send(JSON.stringify({ frame: canvas.toDataURL('image/jpeg',0.6) })); }
-        
+        const videoElement = document.getElementById("video");
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+
+                await pose.send({ image: videoElement });
+                await hands.send({ image: videoElement });
+
+                // 🚀 THIS CONNECTS EVERYTHING
+                onFrameUpdate(poseTracker, handTracker);
+                updateAngleUI();
+            },
+            width: 640,
+            height: 480
+        });
+
         async function requestCameraPermission() {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
                 video.srcObject = videoStream;
                 await new Promise(resolve => { video.onloadedmetadata = () => { video.play(); resolve(); }; });
-                if(loadingText) loadingText.style.display = 'block';
-                connectWebSocket();
+                camera.start();
                 document.getElementById('permissionBox').style.display = 'none';
                 document.getElementById('instructionsBox').style.display = 'block';
                 document.getElementById('anglesGrid').style.display = 'grid';
@@ -625,7 +709,9 @@
             seconds = 0; 
             updateTimerDisplay();
             startVoiceGuide();
-            mediaRecorder = new MediaRecorder(videoStream);
+            mediaRecorder = new MediaRecorder(videoStream, {
+                mimeType: 'video/webm;codecs=vp8'
+            });
             mediaRecorder.ondataavailable = e => { if(e.data.size) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => { 
                 document.getElementById('saveBtn').disabled = false; 
@@ -659,12 +745,11 @@
             resetProgressBar();
             recordedChunks = []; 
             if(videoStream) videoStream.getTracks().forEach(t => t.stop()); 
-            if(ws) ws.close(); 
-            stopFrameCapture();
+            camera.stop();
             navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false }).then(stream => { 
                 videoStream = stream; 
-                video.srcObject = stream; 
-                connectWebSocket(); 
+                video.srcObject = stream;
+                camera.start();  
                 document.getElementById('saveBtn').disabled = true; 
                 document.getElementById('retakeBtn').disabled = true; 
                 document.getElementById('recordBtn').disabled = false; 
@@ -678,27 +763,27 @@
         }
         
         async function saveVideo() { 
-    if(!recordedChunks.length) { 
-        showNotification('No recording', 'error'); 
-        return; 
-    } 
-    
-    // حفظ الحالة
-    localStorage.setItem('hasAssessmentVideo', 'true'); 
-    localStorage.setItem('assessmentCompleted', 'true');
-    
-    console.log('Saved values:', {
-        hasVideo: localStorage.getItem('hasAssessmentVideo'),
-        completed: localStorage.getItem('assessmentCompleted')
-    });
-    
-    showNotification('✅ Assessment saved! Redirecting...', 'success'); 
-    
-    // التوجيه إلى صفحة المريض مع强制 إعادة تحميل
-    setTimeout(() => { 
-        window.location.href = "{% url 'patient_dashboard' %}?reload=true"; 
-    }, 1500); 
-}
+            if(!recordedChunks.length) { 
+                showNotification('No recording', 'error'); 
+                return; 
+            } 
+            
+            // حفظ الحالة
+            localStorage.setItem('hasAssessmentVideo', 'true'); 
+            localStorage.setItem('assessmentCompleted', 'true');
+            
+            console.log('Saved values:', {
+                hasVideo: localStorage.getItem('hasAssessmentVideo'),
+                completed: localStorage.getItem('assessmentCompleted')
+            });
+            
+            showNotification('✅ Assessment saved! Redirecting...', 'success'); 
+            
+            // التوجيه إلى صفحة المريض مع强制 إعادة تحميل
+            setTimeout(() => { 
+                window.location.href = "{% url 'patient_dashboard' %}?reload=true"; 
+            }, 1500); 
+        }
         
         function goBack() { 
             if(confirm('Are you sure?')) window.location.href = "{% url 'patient_dashboard' %}"; 
@@ -712,7 +797,624 @@
             setTimeout(()=>div.remove(),3000); 
         }
         
-        window.addEventListener('beforeunload',()=>{ if(ws) ws.close(); stopFrameCapture(); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); });
+        class InitialAssessmentJS {
+            constructor(dbUrl, userId) {
+                this.freezeUI = false;
+                this.maxAngles = {
+                    shoulder: 0,
+                    elbow: 0,
+                    shoulder_external_rotation: 0,
+                    shoulder_internal_rotation: 0,
+                    hand_open: 0
+                };
+                this.dbUrl = dbUrl;
+                this.userId = userId;
+
+                // trackers (JS versions of your Python trackers)
+                this.pose = null;
+                this.hand = null;
+                this.peakReached = false;
+                this.lastRepTime = 0;
+                this.smoothedAngle = 0;
+                this.smoothingFactor = 0.2; // 0 = no smoothing, 1 = very slow
+
+                // ROM storage (same idea as rom_max / rom_min)
+                this.rom = {
+                    shoulder: 0,
+                    elbow: 0,
+                    shoulder_external_rotation: 0,
+                    shoulder_internal_rotation: 0,
+                    hand_open: 0
+                };
+
+                // rep tracking (5 movements)
+                this.repCount = 0;
+                this.isMoving = false;
+                this.lastPeak = 0;
+                this.REPS_TARGET = 5;
+            }
+
+            attachTrackers(poseTracker, handTracker) {
+                this.pose = poseTracker;
+                this.hand = handTracker;
+            }
+
+            // called every frame
+            update() {
+                // exponential smoothing
+                if (assessmentFinished) return;
+                if (!this.pose || !this.hand) return;
+
+                this.trackMaxAngles();
+                this.detectReps();
+            }
+
+            // ====== SAME LOGIC AS YOUR PYTHON MAX TRACKING ======
+            trackMaxAngles() {
+                const p = this.pose;
+                const h = this.hand;
+                if (!p || !h) return;
+                // shoulder / elbow
+                this.maxAngles.shoulder = Math.max(
+                    this.maxAngles.shoulder,
+                    p.rightShoulderAngle || p.leftShoulderAngle || 0
+                );
+
+                this.maxAngles.elbow = Math.max(
+                    this.maxAngles.elbow,
+                    p.rightElbowAngle || p.leftElbowAngle || 0
+                );
+                this.maxAngles.shoulder_external_rotation = Math.max(
+                    this.maxAngles.shoulder_external_rotation,
+                    p.rightShoulderExternalRotation || p.leftShoulderExternalRotation || 0
+                );
+
+                this.maxAngles.shoulder_internal_rotation = Math.max(
+                    this.maxAngles.shoulder_internal_rotation,
+                    p.rightShoulderInternalRotation || p.leftShoulderInternalRotation || 0
+                );
+
+                this.maxAngles.hand_open = Math.max(
+                    this.maxAngles.hand_open,
+                    h.openPercentage || 0
+                );
+            }
+
+            // ====== REP DETECTION (simple peak-based cycle) ======
+            detectReps() {
+
+                let angle = 0;
+
+                if (currentStep === 3) angle = this.pose.activeShoulderAngle;
+                else if (currentStep === 5) angle = this.pose.activeElbowAngle;
+                else if (currentStep === 4) angle = this.hand.openPercentage;
+                else return;
+                if (isNaN(angle)) return;
+
+                // ===== adaptive thresholds (based on current ROM) =====
+                const maxROM = this.rom.shoulder || 1; // avoid divide by zero
+                if (this.rom.shoulder < 20) return; // wait until meaningful movement
+                const highThreshold = maxROM * 0.7; // 70% of max
+                const lowThreshold = maxROM * 0.3;  // 30% of max
+
+                // ===== debounce control =====
+                const now = Date.now();
+                if (!this.lastRepTime) this.lastRepTime = 0;
+
+                const MIN_TIME_BETWEEN_REPS = 800; // ms
+
+                // ===== movement detection =====
+                if (!this.isMoving && angle > highThreshold) {
+                    this.isMoving = true;
+                    this.peakReached = true;
+                }
+
+                if (this.isMoving && angle < lowThreshold && this.peakReached) {
+
+                    // debounce (prevent spam reps)
+                    if (now - this.lastRepTime > MIN_TIME_BETWEEN_REPS) {
+                        this.repCount++;
+                        this.lastRepTime = now;
+
+                        console.log("✅ Rep:", this.repCount);
+                    }
+
+                    // reset cycle
+                    this.isMoving = false;
+                    this.peakReached = false;
+
+                    if (this.repCount >= this.REPS_TARGET) {
+                        this.finishAssessment();
+                    }
+                }
+                document.getElementById("feedbackText").innerHTML =
+                     `<i class="fas fa-wave-square"></i> Angle: ${angle.toFixed(1)}° | Reps: ${this.repCount}`;
+            }
+
+            // ====== SAME AS YOUR PYTHON save() ======
+            async finishAssessment() {
+                assessmentFinished = true;
+                console.log("Saving results...");
+
+                const payload = {
+                    user_id: this.userId,
+
+                    shoulder_strength: this.maxAngles.shoulder,
+                    elbow_strength: this.maxAngles.elbow,
+                    grip_strength: this.maxAngles.hand_open,
+
+                    //shoulder_external_rotation: this.maxAngles.shoulder_external_rotation,
+                    //shoulder_internal_rotation: this.maxAngles.shoulder_internal_rotation
+                };
+                try {
+                    const res = await fetch(this.dbUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    console.log("Saved to DB:", data);
+
+                    showNotification("Assessment saved successfully!", "success");
+                } catch (err) {
+                    console.error("DB error:", err);
+                    showNotification("Failed to save assessment", "error");
+                }
+            }
+        }
+        function calculateHandOpenPercentageFromAngles(handTracker) {
+            const avg =
+                (handTracker.indexAngle +
+                handTracker.middleAngle +
+                handTracker.ringAngle +
+                handTracker.pinkyAngle) / 4;
+
+            let open = ((avg - 60) / (180 - 60)) * 100;
+
+            open = Math.max(0, Math.min(100, open));
+            return open;
+        }
+        function calculateHandOpenPercentage(hand) {
+            // measure how extended fingers are
+            const tips = [8, 12, 16, 20]; // index, middle, ring, pinky tips
+            const mcps = [5, 9, 13, 17];
+
+            let total = 0;
+
+            for (let i = 0; i < tips.length; i++) {
+                const tip = hand[tips[i]];
+                const mcp = hand[mcps[i]];
+
+                const distance = Math.sqrt(
+                    Math.pow(tip.x - mcp.x, 2) +
+                    Math.pow(tip.y - mcp.y, 2)
+                );
+
+                total += distance;
+            }
+
+            // normalize (empirical scaling)
+            let percentage = (total / 0.8) * 100;
+            percentage = Math.max(0, Math.min(100, percentage));
+
+            return percentage;
+        }
+        let assessmentFinished = false;
+        let prevAngles = {
+            leftShoulder: 0,
+            rightShoulder: 0,
+            leftElbow: 0,
+            rightElbow: 0,
+        };
+
+        const SMOOTHING = 0.7;
+
+        function smoothAngle(prev, current) {
+            if (prev === null || prev === undefined) return current;
+            return SMOOTHING * prev + (1 - SMOOTHING) * current;
+        }
+        // ===================== POSE =====================
+        const pose = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        });
+        function isValidRotationPose(elbowAngle, shoulder, elbow, hip) {
+
+            // elbow must be bent ~90°
+            const elbowValid = elbowAngle > 75 && elbowAngle < 105;
+
+            // arm must be close to body
+            const dx = Math.abs(elbow.x - shoulder.x);
+            const dy = Math.abs(elbow.y - shoulder.y);
+            const distance = Math.sqrt(dx*dx + dy*dy);
+
+            const torsoLength = Math.sqrt(
+                (hip.x - shoulder.x)**2 +
+                (hip.y - shoulder.y)**2
+            );
+
+            const armCloseToBody = distance < torsoLength * 0.45;
+
+            return elbowValid && armCloseToBody;
+        }
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+        
+        // ===================== HANDS =====================
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+        let assessment = new InitialAssessmentJS("/api/initial-assessment/", userId);
+        function applyActiveMetrics() {
+            const active = getActiveMetrics();
+
+            // Shoulder
+            poseTracker.activeShoulderAngle = active.shoulder
+                ? poseTracker.activeShoulderAngle
+                : 0;
+
+            // Elbow
+            poseTracker.activeElbowAngle = active.elbow
+                ? poseTracker.activeElbowAngle
+                : 0;
+
+
+            // Hand
+            if (!active.hand) {
+                handTracker.openPercentage = 0;
+                handTracker.thumbAngle = 0;
+                handTracker.indexAngle = 0;
+                handTracker.middleAngle = 0;
+                handTracker.ringAngle = 0;
+                handTracker.pinkyAngle = 0;
+            }
+        }
+        function onFrameUpdate(poseTracker, handTracker) {
+            applyActiveMetrics();
+            assessment.attachTrackers(poseTracker, handTracker);
+            assessment.update();
+        }
+
+        pose.onResults((results) => {
+
+            if (!results.poseLandmarks) {
+                poseTracker.shoulderAngle = 0;
+                poseTracker.elbowAngle = 0;
+                return;
+            }
+
+            const lm = results.poseLandmarks;
+            if (affectedHand === "right") {
+
+                poseTracker.rightShoulderAngle = smoothAngle(
+                    prevAngles.rightShoulder,
+                    calculateAngle(lm[24], lm[12], lm[14])
+                );
+
+                poseTracker.rightElbowAngle = smoothAngle(
+                    prevAngles.rightElbow,
+                    calculateAngle(lm[12], lm[14], lm[16])
+                );
+                const rotation = calculateShoulderRotation(
+                    lm[12], lm[14], lm[16], lm[24]
+                );
+                poseTracker.rightShoulderExternalRotation = Math.max(0, rotation);
+                poseTracker.rightShoulderInternalRotation = Math.max(0, -rotation);
+            } else {
+
+                poseTracker.leftShoulderAngle = smoothAngle(
+                    prevAngles.leftShoulder,
+                    calculateAngle(lm[23], lm[11], lm[13])
+                );
+
+                poseTracker.leftElbowAngle = smoothAngle(
+                    prevAngles.leftElbow,
+                    calculateAngle(lm[11], lm[13], lm[15])
+                );
+                const rotation = calculateShoulderRotation(
+                    lm[11], lm[13], lm[15], lm[23]
+                );
+                
+                poseTracker.leftShoulderExternalRotation = Math.max(0, rotation);
+                poseTracker.leftShoulderInternalRotation = Math.max(0, -rotation);
+                
+            }
+            // ===============================
+            // UPDATE PREVIOUS ANGLES (FIX)
+            // ===============================
+            if (affectedHand === "right") {
+                prevAngles.rightShoulder = poseTracker.rightShoulderAngle;
+                prevAngles.rightElbow = poseTracker.rightElbowAngle;
+            } else {
+                prevAngles.leftShoulder = poseTracker.leftShoulderAngle;
+                prevAngles.leftElbow = poseTracker.leftElbowAngle;
+            }
+            const active = getActiveMetrics();
+
+            // reset defaults (important to avoid stale values)
+            //poseTracker.activeShoulderAngle = 0;
+            //poseTracker.activeElbowAngle = 0;
+
+            // ===== SHOULDER =====
+            if (active.shoulder) {
+                poseTracker.activeShoulderAngle =
+                    affectedHand === "right"
+                        ? poseTracker.rightShoulderAngle
+                        : poseTracker.leftShoulderAngle;
+            }
+
+            // ===== ELBOW =====
+            if (active.elbow) {
+                poseTracker.activeElbowAngle =
+                    affectedHand === "right"
+                        ? poseTracker.rightElbowAngle
+                        : poseTracker.leftElbowAngle;
+            }
+        });
+
+        hands.onResults((results) => {
+            handTracker.openPercentage = 0;
+            if (!results.multiHandLandmarks || !results.multiHandedness) return;
+
+            const count = Math.min(
+                results.multiHandLandmarks.length,
+                results.multiHandedness.length
+            );
+
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+
+                // 🔥 flip label because camera is mirrored
+                let label = results.multiHandedness[i].label.toLowerCase();
+                const hand = results.multiHandLandmarks[i];
+                // mirror correction (VERY IMPORTANT for selfie camera)
+                if (label === "left") label = "right";
+                else if (label === "right") label = "left";
+                if (label !== affectedHand) continue;
+                handTracker.thumbAngle = calculateAngle(hand[1], hand[2], hand[4]);
+                handTracker.indexAngle = calculateAngle(hand[5], hand[6], hand[8]);
+                handTracker.middleAngle = calculateAngle(hand[9], hand[10], hand[12]);
+                handTracker.ringAngle = calculateAngle(hand[13], hand[14], hand[16]);
+                handTracker.pinkyAngle = calculateAngle(hand[17], hand[18], hand[20]);
+
+                // ✅ ADD THIS (for open/close %)
+                //handTracker.openPercentage = calculateHandOpenPercentage(hand);
+                const active = getActiveMetrics();
+
+                if (active.hand) {
+                    handTracker.openPercentage =
+                        calculateHandOpenPercentageFromAngles(handTracker);
+                } else {
+                    handTracker.openPercentage = 0;
+                }
+                console.log("Hand open %:", handTracker.openPercentage);
+                break; // stop after finding correct hand
+            }
+        });
+
+        function calculateAngle(a, b, c) {
+            const AB = {
+                x: a.x - b.x,
+                y: a.y - b.y,
+                z: a.z - b.z
+            };
+
+            const CB = {
+                x: c.x - b.x,
+                y: c.y - b.y,
+                z: c.z - b.z
+            };
+
+            const dot = AB.x * CB.x + AB.y * CB.y + AB.z * CB.z;
+
+            const magAB = Math.sqrt(AB.x**2 + AB.y**2 + AB.z**2);
+            const magCB = Math.sqrt(CB.x**2 + CB.y**2 + CB.z**2);
+
+            const denom = magAB * magCB;
+
+            if (denom === 0) return 0; // ✅ prevent crash
+
+            let cosAngle = dot / denom;
+
+            // ✅ clamp to avoid NaN from floating errors
+            cosAngle = Math.max(-1, Math.min(1, cosAngle));
+
+            const angle = Math.acos(cosAngle);
+
+            return angle * (180 / Math.PI);
+        }
+        
+        function calculateShoulderRotation(shoulder, elbow, wrist, hip) {
+
+            // Upper arm (axis)
+            const upper = {
+                x: elbow.x - shoulder.x,
+                y: elbow.y - shoulder.y,
+                z: elbow.z - shoulder.z
+            };
+
+            // Forearm
+            const lower = {
+                x: wrist.x - elbow.x,
+                y: wrist.y - elbow.y,
+                z: wrist.z - elbow.z
+            };
+
+            // Torso (reference)
+            const torso = {
+                x: hip.x - shoulder.x,
+                y: hip.y - shoulder.y,
+                z: hip.z - shoulder.z
+            };
+
+            const normalize = (v) => {
+                const mag = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+                return mag === 0 ? {x:0,y:0,z:0} : {
+                    x: v.x/mag,
+                    y: v.y/mag,
+                    z: v.z/mag
+                };
+            };
+
+            const u = normalize(upper);
+            const l = normalize(lower);
+            const t = normalize(torso);
+
+            // ✅ Reference plane normal (upper vs torso)
+            const referenceNormal = {
+                x: u.y*t.z - u.z*t.y,
+                y: u.z*t.x - u.x*t.z,
+                z: u.x*t.y - u.y*t.x
+            };
+
+            // ✅ Rotation axis (upper vs lower)
+            const rotationAxis = {
+                x: u.y*l.z - u.z*l.y,
+                y: u.z*l.x - u.x*l.z,
+                z: u.x*l.y - u.y*l.x
+            };
+
+            const dot = u.x*l.x + u.y*l.y + u.z*l.z;
+
+            let angle = Math.atan2(
+                Math.sqrt(rotationAxis.x**2 + rotationAxis.y**2 + rotationAxis.z**2),
+                dot
+            );
+
+            // ✅ SIGNED rotation (THIS is the key improvement)
+            const sign = Math.sign(
+                rotationAxis.x * referenceNormal.x +
+                rotationAxis.y * referenceNormal.y +
+                rotationAxis.z * referenceNormal.z
+            );
+
+            angle = angle * (-sign) * (180 / Math.PI);
+
+            return angle;
+        }
+
+        function updateAngleGridState() {
+            const active = getActiveMetrics();
+
+            const isRight = affectedHand === "right";
+            const isLeft = affectedHand === "left";
+
+            // helper
+            function setState(id, enabled) {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                const card = el.closest(".angle-card");
+                if (!card) return;
+
+                if (enabled) {
+                    card.classList.add("active");
+                    card.classList.remove("disabled");
+                } else {
+                    card.classList.add("disabled");
+                    card.classList.remove("active");
+                }
+            }
+
+            // ================= LEFT SIDE =================
+            setState("leftShoulderAngleDisplay", isLeft && active.shoulder);
+            setState("leftElbowAngleDisplay", isLeft && active.elbow);
+
+            // ================= RIGHT SIDE =================
+            setState("rightShoulderAngleDisplay", isRight && active.shoulder);
+            setState("rightElbowAngleDisplay", isRight && active.elbow);
+
+            // ================= HAND =================
+            const handEnabled = active.hand;
+            setState("handOpenDisplay", handEnabled);
+
+            // ================= ROTATION =================
+            const rotationEnabled = active.rotation;
+            setState("extRotationDisplay", rotationEnabled);
+            setState("intRotationDisplay", rotationEnabled);
+        }
+
+        function updateAngleUI() {
+
+            const active = getActiveMetrics();
+            const isRight = affectedHand === "right";
+
+            let shoulder = 0, elbow = 0;
+
+            // =========================
+            // SHOULDER + ELBOW
+            // =========================
+            if (assessment.freezeUI) {
+                shoulder = assessment.maxAngles.shoulder;
+                elbow = assessment.maxAngles.elbow;
+            } else {
+                if (isRight) {
+                    shoulder = active.shoulder ? poseTracker.rightShoulderAngle : 0;
+                    elbow = active.elbow ? poseTracker.rightElbowAngle : 0;
+                } else {
+                    shoulder = active.shoulder ? poseTracker.leftShoulderAngle : 0;
+                    elbow = active.elbow ? poseTracker.leftElbowAngle : 0;
+                }
+            }
+
+            if (active.shoulder) {
+                document.getElementById(
+                    isRight ? "rightShoulderAngleDisplay" : "leftShoulderAngleDisplay"
+                ).textContent = shoulder.toFixed(1);
+            }
+
+            if (active.elbow) {
+                document.getElementById(
+                    isRight ? "rightElbowAngleDisplay" : "leftElbowAngleDisplay"
+                ).textContent = elbow.toFixed(1);
+            }
+
+            // =========================
+            // ROTATION
+            // =========================
+            let ext = 0, int = 0;
+
+            if (assessment.freezeUI) {
+                ext = assessment.maxAngles.shoulder_external_rotation;
+                int = assessment.maxAngles.shoulder_internal_rotation;
+            } else if (active.rotation) {
+                ext = isRight
+                    ? poseTracker.rightShoulderExternalRotation
+                    : poseTracker.leftShoulderExternalRotation;
+
+                int = isRight
+                    ? poseTracker.rightShoulderInternalRotation
+                    : poseTracker.leftShoulderInternalRotation;
+            }
+
+            document.getElementById("extRotationDisplay").textContent = ext.toFixed(1);
+            document.getElementById("intRotationDisplay").textContent = int.toFixed(1);
+
+            // =========================
+            // HAND
+            // =========================
+            let hand = assessment.freezeUI
+                ? assessment.maxAngles.hand_open
+                : handTracker.openPercentage;
+
+            document.getElementById("handOpenDisplay").textContent =
+                (hand || 0).toFixed(0);
+
+            updateAngleGridState();
+        }
+        window.addEventListener('beforeunload',()=>{ if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); });
     </script>
 </body>
 </html>
