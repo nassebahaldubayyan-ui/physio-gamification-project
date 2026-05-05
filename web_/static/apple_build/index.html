@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <title>Catching Falling Object - Rehab Game</title>
@@ -81,91 +81,20 @@
             backdrop-filter: blur(5px);
             pointer-events: none;
         }
-        
-        /* Start Panel with Instructions */
         .start-panel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #2e3b2e, #1a2a1a);
-            padding: 35px 45px;
+            padding: 30px 50px;
             border-radius: 30px;
             text-align: center;
             z-index: 200;
             border: 2px solid #ffcc44;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             pointer-events: auto;
-            min-width: 450px;
-            max-width: 90vw;
         }
-        
-        .start-panel h1 {
-            color: #ffdd88;
-            margin-bottom: 15px;
-            font-size: 28px;
-        }
-        
-        .start-panel h2 {
-            color: #ffaa44;
-            font-size: 20px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,204,68,0.3);
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-        
-        .instructions-box {
-            background: rgba(0,0,0,0.4);
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .instruction-line {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 12px 0;
-            color: #eeeeee;
-            font-size: 14px;
-        }
-        
-        .instruction-icon {
-            font-size: 22px;
-            min-width: 40px;
-            text-align: center;
-        }
-        
-        .instruction-text {
-            flex: 1;
-            line-height: 1.4;
-        }
-        
-        .instruction-highlight {
-            color: #ffcc44;
-            font-weight: bold;
-        }
-        
-        .start-panel button {
-            background: #ffaa22;
-            border: none;
-            padding: 14px 40px;
-            font-size: 22px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            color: #1a3a1a;
-            transition: all 0.2s ease;
-            margin-top: 10px;
-        }
-        
-        .start-panel button:hover {
-            background: #ffcc44;
-            transform: scale(1.03);
-        }
-        
         .end-panel {
             position: fixed;
             top: 50%;
@@ -186,7 +115,26 @@
             align-items: center;     
             gap: 15px; 
         }
-        
+        .start-panel h1 { 
+            color: #ffdd88; 
+            margin-bottom: 25px; 
+            font-size: 32px;
+        }
+        .start-panel button {
+            background: #ffaa22;
+            border: none;
+            padding: 14px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #1a3a1a;
+            transition: all 0.2s ease;
+        }
+        .start-panel button:hover {
+            background: #ffcc44;
+            transform: scale(1.03);
+        }
         .end-panel h2 { 
             color: #ffdd88; 
             margin-bottom: 20px; 
@@ -194,7 +142,6 @@
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
-        
         .end-panel .final-score { 
             font-size: 52px; 
             color: #ffaa44; 
@@ -202,7 +149,6 @@
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        
         .accuracy-data {
             background: rgba(0,0,0,0.4);
             border-radius: 20px;
@@ -211,7 +157,6 @@
             text-align: left;
             border: 1px solid rgba(255,204,68,0.3);
         }
-        
         .data-row {
             display: flex;
             justify-content: space-between;
@@ -220,34 +165,28 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             font-size: 16px;
         }
-        
         .data-row:last-child {
             border-bottom: none;
         }
-        
         .data-label {
             color: #ffdd88;
             font-weight: bold;
         }
-        
         .data-value {
             color: #ffffff;
             font-family: monospace;
             font-size: 18px;
             font-weight: bold;
         }
-        
         .data-value span {
             color: #ffaa44;
         }
-        
         .button-group {
             display: flex;
             gap: 20px;
             justify-content: center;
             margin-top: 20px;
         }
-        
         .end-panel button {
             background: #ffaa22;
             border: none;
@@ -260,12 +199,10 @@
             transition: all 0.2s ease;
             min-width: 140px;
         }
-        
         .end-panel button:hover {
             background: #ffcc44;
             transform: scale(1.02);
         }
-        
         .end-panel { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
@@ -286,32 +223,8 @@
     </div>
 </div>
 
-<!-- Start Panel with English Instructions -->
 <div class="start-panel" id="startPanel">
-    <h1>🍎 CATCHING FALLING OBJECTS 🧺</h1>
-    <h2>📖 HOW TO PLAY</h2>
-    <div class="instructions-box">
-        <div class="instruction-line">
-            <div class="instruction-icon">🖐️</div>
-            <div class="instruction-text">Move your <span class="instruction-highlight">HAND LEFT/RIGHT</span> to control the basket</div>
-        </div>
-        <div class="instruction-line">
-            <div class="instruction-icon">🍎</div>
-            <div class="instruction-text">Catch <span class="instruction-highlight">FALLING APPLES</span> with the basket</div>
-        </div>
-        <div class="instruction-line">
-            <div class="instruction-icon">➕</div>
-            <div class="instruction-text">Each apple = <span class="instruction-highlight">+1 POINT</span></div>
-        </div>
-        <div class="instruction-line">
-            <div class="instruction-icon">⏱️</div>
-            <div class="instruction-text">You have <span class="instruction-highlight">60 SECONDS</span> to catch as many as possible</div>
-        </div>
-        <div class="instruction-line">
-            <div class="instruction-icon">💡</div>
-            <div class="instruction-text">Keep your hand <span class="instruction-highlight">IN CAMERA VIEW</span> for best control</div>
-        </div>
-    </div>
+    <h1>🍎 CATCHING FALLING OBJECT 🧺</h1>
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
@@ -340,131 +253,6 @@
 
 <script src="/static/apple_build/Build/apple_build.loader.js"></script>
 <script>
-    // ============================================================
-    // Natural Sound System - No Music, Just Natural Sounds
-    // ============================================================
-    class SoundManager {
-        constructor() {
-            this.enabled = true;
-            this.initSounds();
-        }
-        
-        initSounds() {
-            try {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            } catch(e) {
-                console.log("Web Audio API not supported");
-                this.enabled = false;
-                return;
-            }
-            
-            // Natural click sound (like button press)
-            this.buttonSound = this.createNaturalClick();
-            
-            // Natural catch sound (like "pop" or "plop")
-            this.catchSound = this.createNaturalCatch();
-            
-            // Simple beep for game start (not music)
-            this.startSound = this.createSimpleBeep();
-        }
-        
-        createNaturalClick() {
-            return () => {
-                if (!this.enabled || !this.audioContext) return;
-                if (this.audioContext.state === 'suspended') this.audioContext.resume();
-                
-                const now = this.audioContext.currentTime;
-                const osc = this.audioContext.createOscillator();
-                const gain = this.audioContext.createGain();
-                
-                osc.connect(gain);
-                gain.connect(this.audioContext.destination);
-                
-                osc.frequency.value = 600;
-                gain.gain.value = 0.1;
-                
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.08);
-                osc.stop(now + 0.08);
-            };
-        }
-        
-        createNaturalCatch() {
-            return () => {
-                if (!this.enabled || !this.audioContext) return;
-                if (this.audioContext.state === 'suspended') this.audioContext.resume();
-                
-                const now = this.audioContext.currentTime;
-                
-                // Simple "plop" sound for catching
-                const osc = this.audioContext.createOscillator();
-                const gain = this.audioContext.createGain();
-                
-                osc.connect(gain);
-                gain.connect(this.audioContext.destination);
-                
-                osc.frequency.value = 400;
-                gain.gain.value = 0.15;
-                
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.12);
-                osc.stop(now + 0.12);
-            };
-        }
-        
-        createSimpleBeep() {
-            return () => {
-                if (!this.enabled || !this.audioContext) return;
-                if (this.audioContext.state === 'suspended') this.audioContext.resume();
-                
-                const now = this.audioContext.currentTime;
-                
-                // Simple double beep for game start
-                const osc1 = this.audioContext.createOscillator();
-                const gain1 = this.audioContext.createGain();
-                osc1.connect(gain1);
-                gain1.connect(this.audioContext.destination);
-                osc1.frequency.value = 800;
-                gain1.gain.value = 0.12;
-                osc1.start();
-                gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
-                osc1.stop(now + 0.1);
-                
-                setTimeout(() => {
-                    const osc2 = this.audioContext.createOscillator();
-                    const gain2 = this.audioContext.createGain();
-                    osc2.connect(gain2);
-                    gain2.connect(this.audioContext.destination);
-                    osc2.frequency.value = 600;
-                    gain2.gain.value = 0.12;
-                    osc2.start();
-                    gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
-                    osc2.stop(now + 0.2);
-                }, 120);
-            };
-        }
-        
-        playButtonClick() {
-            if (this.buttonSound) this.buttonSound();
-        }
-        
-        playCatchSound() {
-            if (this.catchSound) this.catchSound();
-        }
-        
-        playGameStart() {
-            if (this.startSound) this.startSound();
-        }
-        
-        resumeAudio() {
-            if (this.audioContext && this.audioContext.state === 'suspended') {
-                this.audioContext.resume();
-            }
-        }
-    }
-    
-    const soundManager = new SoundManager();
-    
     // ============================================================
     // ANGLE MATH
     // ============================================================
@@ -506,7 +294,7 @@
     }
 
     // ============================================================
-    // Game Variables
+    // متغيرات اللعبة
     // ============================================================
     let unityInstance = null;
     let gameActive = false;
@@ -519,12 +307,13 @@
     let poseTracker = null;
     let handStabilityHistory = [];
 
+// 🎮 إعدادات اللعبة من HTML
     const GAME_CONFIG = {
         fallSpeed: 1.5,
         appleScale: 0.3,
         spawnLeft: -7,
         spawnRight: 7,
-        rows: [4.5, 4, 3],
+        rows: [4.5, 4, 3], // الصفوف
         minDistance: 1.2,
         growTime: 1.5,
         stayMin: 1.0,
@@ -536,12 +325,10 @@
         document.getElementById('timerValue').innerText = Math.ceil(gameTime);
     }
     
-    function showNotification(msg, isSuccess = false) {
+    function showNotification(msg) {
         let panel = document.getElementById('notificationPanel');
         let div = document.createElement('div');
         div.className = 'notification';
-        div.style.borderLeftColor = isSuccess ? '#44ff44' : '#ff4444';
-        div.style.color = isSuccess ? '#88ff88' : '#ff8888';
         div.innerText = msg;
         panel.appendChild(div);
         setTimeout(() => div.remove(), 2500);
@@ -569,11 +356,6 @@
             if (gameActive && gameTime > 0) {
                 gameTime -= 1;
                 updateUI();
-                
-                if (gameTime === 10) {
-                    showNotification("⏰ 10 seconds remaining!", false);
-                }
-                
                 if (gameTime <= 0 && unityInstance) {
                     clearInterval(timerInterval);
                     unityInstance.sendMessage('GameManager', 'ForceEndGame');
@@ -644,11 +426,7 @@
         if (camera) camera.stop();
     }
     
-    // Only play natural sound when score increases - NO notification popup
     window.UpdateScoreFromUnity = function(score) {
-        if (score > gameScore) {
-            soundManager.playCatchSound();  // Natural "plop" sound only
-        }
         gameScore = score;
         updateUI();
         console.log("Score updated:", gameScore);
@@ -661,46 +439,45 @@
     };
     
     window.EndGameFromUnity = function(score) {
-        console.log("Game ended from Unity, final score:", score, " userId",userId);
-        gameActive = false;
-        if (timerInterval) clearInterval(timerInterval);
-        
-        const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
-        const stability = getHandStability();
-        
-        document.getElementById('finalScore').innerText = score;
-        document.getElementById('finalScoreDetail').innerText = score;
-        document.getElementById('avgElbow').innerText = avgElbow;
-        document.getElementById('handStability').innerText = stability;
-        
-        document.getElementById('endPanel').style.display = 'flex';
-        if (camera){
-            camera.stop();
-            mediaPipeActive = false;
-        }
-        
-        if (userId) {
-            fetch('/api/save-game-result/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId,
-                    game: "catching_objects",
-                    level: 1,
-                    score: score,
-                    objects_caught: score,
-                    accuracy: stability,
-                    avg_elbow: avgElbow,
-                    hand_stability: stability
-                })
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      console.log("Result saved for patient:", patientName);
-                  }
-              }).catch(err => console.log("Save error:", err));
-        }
+    console.log("Game ended from Unity, final score:", score, " userId",userId);
+    gameActive = false;
+    if (timerInterval) clearInterval(timerInterval);
+    
+    const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
+    const stability = getHandStability();
+    
+    document.getElementById('finalScore').innerText = score;
+    document.getElementById('finalScoreDetail').innerText = score;
+    document.getElementById('avgElbow').innerText = avgElbow;
+    document.getElementById('handStability').innerText = stability;
+    
+    document.getElementById('endPanel').style.display = 'flex';
+    if (camera){
+        camera.stop();
+        mediaPipeActive = false;
     }
+    
+    if (userId) {
+        fetch('/api/save-game-result/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                level: 1,
+                score: score,
+                objects_caught: score,
+                accuracy: stability,
+                avg_elbow: avgElbow,
+                hand_stability: stability
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  console.log("Result saved for patient:", patientName);
+              }
+          }).catch(err => console.log("Save error:", err));
+    }
+}
     
     function startGame() {
         if (!unityInstance) {
@@ -708,8 +485,6 @@
             setTimeout(startGame, 500);
             return;
         }
-        
-        soundManager.playGameStart();  // Simple double beep only
         
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -731,25 +506,19 @@
                 
                 startTimer();
                 if (!mediaPipeActive) initMediaPipe();
-                
-                soundManager.resumeAudio();
-                showNotification("🎮 Game Started! Good luck! 🍎", true);
             })
             .catch(err => {
                 console.error("Camera error:", err);
-                showNotification("❌ Please allow camera access to play!");
+                showNotification("❌ Please allow camera access");
             });
     }
     
     function exitToGames() {
-        soundManager.playButtonClick();
-        setTimeout(() => {
-            window.location.href = "/patient/";
-        }, 100);
+        window.location.href = "/patient/";
     }
     
     // ============================================================
-    // Load Unity
+    // تحميل Unity
     // ============================================================
     var canvas = document.querySelector("#unity-canvas");
     const patientName = (() => {
@@ -760,8 +529,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const userId = parseInt(urlParams.get("user_id")) || null;
 
-    console.log("Patient Name:", patientName);
-    console.log("User ID:", userId);
+console.log("Patient Name:", patientName);
+console.log("User ID:", userId);
 
     function waitForUnity() {
         if (typeof createUnityInstance === 'undefined') {
@@ -795,6 +564,7 @@
             window.unityInstance = unityInstance;
             console.log("✅ Unity ready");
 
+            // ✅ إرسال الإعدادات
             setTimeout(() => {
                 if (unityInstance) {
                     unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
@@ -802,32 +572,23 @@
                 }
             }, 1000);
 
-            showNotification("✅ Game ready! Click START to play!", true);
-        });
-    }
-    
+            showNotification("✅ Game ready! Click START.");
+            })
+        }
     waitForUnity();
     
     document.getElementById('startBtn').onclick = function() {
-        soundManager.playButtonClick();
         console.log("Start button clicked");
         startGame();
     };
     
     document.getElementById('restartBtn').onclick = function() {
-        soundManager.playButtonClick();
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
+        window.location.reload();
     };
     
     document.getElementById('exitBtn').onclick = function() {
         exitToGames();
     };
-    
-    document.body.addEventListener('click', function() {
-        soundManager.resumeAudio();
-    }, { once: true });
     
     console.log("Ready");
 </script>
