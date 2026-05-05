@@ -161,18 +161,55 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             pointer-events: auto;
             backdrop-filter: blur(20px);
+            min-width: 480px;
         }
         
         .start-panel h1 {
             color: #ffdd88;
             font-size: 34px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         
-        .start-panel p {
-            color: #aaaaff;
-            margin-bottom: 25px;
+        .start-panel h2 {
+            color: #ffaa44;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,204,68,0.3);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+        
+        .instructions-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .instruction-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+            color: #eeeeee;
             font-size: 14px;
+        }
+        
+        .instruction-icon {
+            font-size: 22px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .instruction-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+        
+        .instruction-highlight {
+            color: #ffcc44;
+            font-weight: bold;
         }
         
         .start-panel button {
@@ -185,6 +222,7 @@
             cursor: pointer;
             color: #1a1f3a;
             transition: all 0.2s ease;
+            margin-top: 10px;
         }
         
         .start-panel button:hover {
@@ -228,6 +266,10 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        
         .data-label { color: #ffdd88; font-weight: bold; }
         .data-value { color: white; font-family: monospace; }
         .data-value span { color: #ffaa44; }
@@ -251,19 +293,6 @@
         }
         
         .end-panel button:hover { background: #ffcc44; }
-        
-        .instructions {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 12px;
-            border-radius: 8px;
-            color: #aaaaff;
-            font-size: 11px;
-            z-index: 101;
-            pointer-events: none;
-        }
         
         .debug-panel {
             position: fixed;
@@ -302,13 +331,38 @@
     </div>
     
     <div class="notification-panel" id="notificationPanel"></div>
-    <div class="instructions">✊ CLOSE HAND = CATCH | ✋ OPEN OVER BAG = SCORE | 🌟 STAR DISAPPEARS IN 7s</div>
-    <div class="debug-panel" id="debugPanel">DEBUG: Waiting for hand...</div>
 </div>
 
+<!-- Start Panel with English Instructions -->
 <div class="start-panel" id="startPanel">
     <h1>⭐ CATCHING STARS ⭐</h1>
-    <p>🤚 Move your hand in ANY direction • ✊ Close to catch • 🎒 Open over bag to score</p>
+    <h2>📖 HOW TO PLAY</h2>
+    <div class="instructions-box">
+        <div class="instruction-line">
+            <div class="instruction-icon">🖐️</div>
+            <div class="instruction-text">Move your <span class="instruction-highlight">HAND ANYWHERE</span> on screen</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">✊</div>
+            <div class="instruction-text"><span class="instruction-highlight">CLOSE YOUR HAND</span> to catch stars</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">🎒</div>
+            <div class="instruction-text">Move <span class="instruction-highlight">STAR ABOVE THE BAG</span> to score</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">⭐</div>
+            <div class="instruction-text">Each star = <span class="instruction-highlight">+1 POINT</span></div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">⏱️</div>
+            <div class="instruction-text">You have <span class="instruction-highlight">60 SECONDS</span> to collect stars</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">💡</div>
+            <div class="instruction-text">Star disappears after <span class="instruction-highlight">7 seconds</span> if not caught</div>
+        </div>
+    </div>
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
@@ -337,6 +391,159 @@
 
 <script src="/static/Star_build/Build/Star_build.loader.js"></script>
 <script>
+    // ============================================================
+    // Natural Sound System - No Music, Just Natural Sounds
+    // ============================================================
+    class SoundManager {
+        constructor() {
+            this.enabled = true;
+            this.initSounds();
+        }
+        
+        initSounds() {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {
+                console.log("Web Audio API not supported");
+                this.enabled = false;
+                return;
+            }
+            
+            // Natural click sound (like button press)
+            this.buttonSound = this.createNaturalClick();
+            
+            // Natural catch sound (like "pop" or "plop")
+            this.catchSound = this.createNaturalCatch();
+            
+            // Simple beep for game start (not music)
+            this.startSound = this.createSimpleBeep();
+            
+            // Star success sound
+            this.starSound = this.createStarSound();
+        }
+        
+        createNaturalClick() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                
+                const now = this.audioContext.currentTime;
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                
+                osc.frequency.value = 600;
+                gain.gain.value = 0.1;
+                
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.08);
+                osc.stop(now + 0.08);
+            };
+        }
+        
+        createNaturalCatch() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                
+                const now = this.audioContext.currentTime;
+                
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                
+                osc.frequency.value = 400;
+                gain.gain.value = 0.15;
+                
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.12);
+                osc.stop(now + 0.12);
+            };
+        }
+        
+        createStarSound() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                
+                const now = this.audioContext.currentTime;
+                
+                // Simple "ting" sound for star
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                
+                osc.frequency.value = 880;
+                gain.gain.value = 0.12;
+                
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                osc.stop(now + 0.1);
+            };
+        }
+        
+        createSimpleBeep() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                
+                const now = this.audioContext.currentTime;
+                
+                const osc1 = this.audioContext.createOscillator();
+                const gain1 = this.audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(this.audioContext.destination);
+                osc1.frequency.value = 800;
+                gain1.gain.value = 0.12;
+                osc1.start();
+                gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                osc1.stop(now + 0.1);
+                
+                setTimeout(() => {
+                    const osc2 = this.audioContext.createOscillator();
+                    const gain2 = this.audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(this.audioContext.destination);
+                    osc2.frequency.value = 600;
+                    gain2.gain.value = 0.12;
+                    osc2.start();
+                    gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                    osc2.stop(now + 0.2);
+                }, 120);
+            };
+        }
+        
+        playButtonClick() {
+            if (this.buttonSound) this.buttonSound();
+        }
+        
+        playCatchSound() {
+            if (this.catchSound) this.catchSound();
+        }
+        
+        playStarSound() {
+            if (this.starSound) this.starSound();
+        }
+        
+        playGameStart() {
+            if (this.startSound) this.startSound();
+        }
+        
+        resumeAudio() {
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+        }
+    }
+    
+    const soundManager = new SoundManager();
+    
     // ==================== GAME CONFIG ====================
     const GAME_CONFIG = {
         starScale: 2,
@@ -414,7 +621,6 @@
         document.getElementById('timerValue').innerText = gameTime;
     }
     
-    
     function showNotification(msg) {
         const panel = document.getElementById('notificationPanel');
         const div = document.createElement('div');
@@ -427,12 +633,12 @@
     function updateDebug(msg) {
         const now = Date.now();
         if (now - lastDebugTime > 500) {
-            debugPanel.innerHTML = msg;
+            if (debugPanel) debugPanel.innerHTML = msg;
             lastDebugTime = now;
         }
     }
     
-    // Update hand cursor visual (fixed Y direction)
+    // Update hand cursor visual
     function updateHandCursor(handX, handY, isGripping) {
         const xPercent = handX * 100;
         const yPercent = handY * 100;
@@ -503,7 +709,6 @@
         }
         const avgAngle = totalAngle / fingerTips.length;
         
-        // Closed grip = average angle less than 70 degrees
         return avgAngle < 70;
     }
     
@@ -528,10 +733,7 @@
                 const landmarks = results.multiHandLandmarks[0];
                 const wrist = landmarks[0];
                 
-                // FIX: Correct X and Y mapping
-                // X: 0 = left, 1 = right (no inversion needed for X)
-                const handX = 1 - wrist.x;
-                // Y: 0 = top, 1 = bottom (no inversion - raising hand moves cursor up)
+                const handX = 1- wrist.x;
                 const handY = wrist.y;
                 
                 const isGripping = calculateGripFromLandmarks(landmarks);
@@ -539,14 +741,11 @@
                 gripHistory.push(isGripping ? 1 : 0);
                 if (gripHistory.length > 500) gripHistory.shift();
                 
-                // Send to Unity (X and Y as comma-separated string)
-                const success = sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + "," + handY.toFixed(3));
+                sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + "," + handY.toFixed(3));
                 sendToUnity('HandController', 'SetGripState', isGripping ? "true" : "false");
                 
-                // Update visual cursor
                 updateHandCursor(handX, handY, isGripping);
                 
-                // Update pose tracking (approximate)
                 if (poseTracker) {
                     const fakeLandmarks = [];
                     for (let i = 0; i < 33; i++) fakeLandmarks.push({ x: 0.5, y: 0.5 });
@@ -557,9 +756,7 @@
                     poseTracker.process(fakeLandmarks, "left");
                 }
                 
-                // Update UI
                 updateStatsDisplay(handX, handY, poseTracker?.current?.elbow || 85, isGripping);
-                updateDebug(`🖐️ X:${(handX*100).toFixed(0)}% Y:${(handY*100).toFixed(0)}% GRIP:${isGripping?"CLOSED":"OPEN"} SEND:${success?"OK":"FAIL"}`);
                 
             } else {
                 updateDebug("⚠️ No hand detected - show palm to camera");
@@ -572,8 +769,8 @@
         });
         await camera.start();
         mediaPipeActive = true;
-        console.log("✅ MediaPipe started | Hand tracks X and Y correctly");
-        showNotification("✅ Hand tracking active! Move your hand anywhere on screen!");
+        console.log("✅ MediaPipe started");
+        showNotification("✅ Hand tracking active!");
     }
     
     // ==================== GAME CONTROL ====================
@@ -583,6 +780,8 @@
             setTimeout(startGame, 500);
             return;
         }
+        
+        soundManager.playGameStart();
         
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -604,6 +803,7 @@
                 if (!mediaPipeActive) initMediaPipe();
                 else mediaPipeActive = true;
                 
+                soundManager.resumeAudio();
                 showNotification("🎮 GAME STARTED! Close your hand to catch stars!");
             })
             .catch(err => {
@@ -613,15 +813,24 @@
     }
     
     function exitToGames() {
-        window.location.href = "/patient/";
+        soundManager.playButtonClick();
+        setTimeout(() => {
+            window.location.href = "/patient/";
+        }, 100);
     }
     
     function restartGame() {
-        window.location.reload();
+        soundManager.playButtonClick();
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     }
     
     // ==================== UNITY CALLBACKS ====================
     window.UpdateScoreFromUnity = function(score) {
+        if (score > gameScore) {
+            soundManager.playStarSound();
+        }
         gameScore = score;
         updateUI();
         console.log(`📊 Score: ${gameScore}`);
@@ -635,7 +844,6 @@
             lastTimerValue = rounded;
         }
     };
-    
     
     window.EndGameFromUnity = function(score) {
         gameActive = false;
@@ -671,28 +879,16 @@
                     grip_accuracy: gripAcc
                 })
             }).then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  console.log("Result saved for patient");
-              }
-          }).catch(err => console.log("Save error:", err));
-    }
+              .then(data => {
+                  if (data.success) {
+                      console.log("Result saved for patient");
+                  }
+              }).catch(err => console.log("Save error:", err));
+        }
     };
     
     window.OnStarPickedUp = function() {
-        console.log("🌟🌟🌟 STAR PICKED UP! 🌟🌟🌟");
-        showNotification("✨ STAR CAUGHT! Move to bag! ✨");
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
-        flash.style.zIndex = '9999';
-        flash.style.pointerEvents = 'none';
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 200);
+        soundManager.playCatchSound();
     };
     
     // ==================== UNITY LOADER ====================
@@ -724,7 +920,7 @@
                 }
             }
             
-            console.log("✅ Unity ready | Hand tracks X & Y correctly");
+            console.log("✅ Unity ready");
             showNotification("✅ Game ready! Click START");
         }).catch(err => {
             console.error("Unity error:", err);
@@ -734,12 +930,26 @@
     
     waitForUnity();
     
-    // Event Listeners
-    document.getElementById('startBtn').onclick = startGame;
-    document.getElementById('restartBtn').onclick = restartGame;
-    document.getElementById('exitBtn').onclick = exitToGames;
+    // Event Listeners with sounds
+    document.getElementById('startBtn').onclick = function() {
+        soundManager.playButtonClick();
+        startGame();
+    };
     
-    console.log("🎮 Ready - Hand tracks X and Y positions correctly!");
+    document.getElementById('restartBtn').onclick = function() {
+        soundManager.playButtonClick();
+        restartGame();
+    };
+    
+    document.getElementById('exitBtn').onclick = function() {
+        exitToGames();
+    };
+    
+    document.body.addEventListener('click', function() {
+        soundManager.resumeAudio();
+    }, { once: true });
+    
+    console.log("🎮 Ready!");
 </script>
 </body>
 </html>

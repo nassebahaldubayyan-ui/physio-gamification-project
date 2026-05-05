@@ -1,8 +1,16 @@
 import sqlite3
+import os
 
 #NDB_PATH = "C:\Users\Dell\physio-gamification-project-grad\web_\rehabdatabase.db"
 #SDB_PATH = "C:\\Users\\sh210\\aiphysio\\AI_model_for_physioGamification\\rehab.db"
-MDB_PATH = r"C:\Users\Mulik\physio-gamification-project\web_\rehabdatabase.db"
+#MDB_PATH = r"C:\Users\Mulik\physio-gamification-project\web_\rehabdatabase.db"
+
+CURRENT_USER = os.getlogin()
+
+if CURRENT_USER == "Mulik":
+    MDB_PATH = r"C:\Users\Mulik\physio-gamification-project\web_\rehabdatabase.db"
+else :
+    MDB_PATH = r"C:\Users\sa293\physio-gamification-project\web_\rehabdatabase.db"
 
 class DatabaseManager:
 
