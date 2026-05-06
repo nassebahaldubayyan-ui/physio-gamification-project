@@ -21,39 +21,41 @@ public class DraggableCar : MonoBehaviour
         Vector3 handPos = handController.GetHandWorldPosition();
         bool isPinching = handController.IsPinching();
 
-        // بدء السحب
+        // طباعة المسافة فقط عندما تحاول الإمساك (لتجنب زحمة الـ Console)
+        if (isPinching)
+        {
+            float dist = Vector3.Distance(handPos, transform.position);
+            Debug.Log($"Hand at: {handPos} | Car at: {transform.position} | Distance: {dist}");
+        }
+
         if (isPinching && !isDragging)
         {
             float distance = Vector3.Distance(handPos, transform.position);
-            Debug.Log($"Try grab: distance={distance}");
-            
-            if (distance < 1.8f)
+
+            if (distance < 3.5f && handController.IsPinching())
             {
                 isDragging = true;
                 if (spriteRenderer != null)
                     spriteRenderer.color = Color.yellow;
-                Debug.Log($"✅ Grabbed car: {color}");
             }
         }
-        // متابعة السحب
         else if (isDragging && isPinching)
         {
-            transform.position = handPos;
+            // جعل السيارة تتبع اليد مباشرة
+            transform.position = new Vector3(handPos.x, handPos.y, 0f);
         }
-        // إنهاء السحب
         else if (isDragging && !isPinching)
         {
             isDragging = false;
             if (spriteRenderer != null)
                 spriteRenderer.color = Color.white;
-            Debug.Log($"Released car: {color}");
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (isDragging) return;
-        
+
         Basket basket = other.GetComponent<Basket>();
         if (basket != null && basket.color == color)
         {
