@@ -154,43 +154,113 @@ def game_catching_stars(request):
     return HttpResponse(html_content)
     
 def game_catching_objects(request):
-    user_id = request.GET.get('user_id', '').strip()
+    print(f"\n{'='*50}")
+    print(f"🎮 game_catching_objects CALLED")
+    print(f"📥 GET params: {request.GET}")
+    print(f"📥 Session: {dict(request.session)}")
     
+    user_id = request.GET.get('user_id', '').strip()
+    print(f"📥 user_id from GET: '{user_id}'")
+    
+    # إذا ما في user_id في GET، جرب من session
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
+        print(f"📥 user_id from session: '{user_id}'")
+        
         if not user_id:
+            print("❌ No user_id found anywhere!")
             return redirect('/gamer-login/')
     
     user_id = int(user_id)
-    
     request.session['user_id'] = user_id
+    request.session.modified = True  # ✅ مهم: حفظ session
     
+    print(f"✅ Final user_id: {user_id}")
+
     try:
         user = Users.objects.get(id=user_id)
+        print(f"✅ User found: {user.name} (role: {user.role})")
         
         if user.role != 'patient':
+            print(f"❌ User is not patient, role: {user.role}")
             return redirect('/gamer-login/')
         
         patient = Patients.objects.filter(user=user).first()
         if not patient:
+            print("❌ No patient record")
             return HttpResponse("Your account is not linked to a patient record.", status=403)
         
         patient_name = user.name
         
     except Users.DoesNotExist:
+        print(f"❌ User {user_id} not found")
         return redirect('/gamer-login/')
     
+    # تحديد المستوى من DB
+    from .models import GameSessions
+    
+    last_session = GameSessions.objects.filter(
+        patient=patient,
+        game_type='catching-objects'
+    ).order_by('-session_date').first()
+    
+    if last_session is None:
+        current_level = 1
+        print("📊 No previous sessions, starting at level 1")
+    else:
+        level_thresholds = {1: 20, 2: 40, 3: 999}
+        last_level = last_session.level
+        last_score = last_session.score
+        
+        print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
+        
+        if last_level >= 3:
+            current_level = 3
+        elif last_score >= level_thresholds.get(last_level, 5):
+            current_level = last_level + 1
+        else:
+            current_level = last_level
+    
+    print(f"✅ Final level: {current_level}")
+    
+    # ✅ قراءة الملف
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
     
+    # ✅ طباعة قبل الاستبدال للتحقق
+    print(f"📝 Before replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
+    print(f"📝 Before replace - contains __PATIENT_NAME__: {'__PATIENT_NAME__' in html_content}")
+    print(f"📝 Before replace - contains __LEVEL__: {'__LEVEL__' in html_content}")
+    
+    # ✅ استبدال المتغيرات
     html_content = html_content.replace('__USER_ID__', str(user_id))
     html_content = html_content.replace('"__USER_ID__"', str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
-    html_content = html_content.replace('__LEVEL__', '1')
-
-    html_content = html_content.replace('console.log("Logged in user:", userId, userName);', 'console.log("Logged in user:", userId);')
-    print(f"sending to html  {user_id}, patient name {patient_name}" )
+    html_content = html_content.replace('__LEVEL__', str(current_level))
+    
+    # ✅ طباعة بعد الاستبدال للتحقق
+    print(f"📝 After replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
+    print(f"📝 Final check - user {user_id} in HTML: {str(user_id) in html_content}")
+    
+    # ✅ إضافة سكريبت تأكيد (خطة B)
+    backup_script = f"""
+    <script>
+        // ✅ Django Backup - يضمن إن userId موجود
+        window.DJANGO_USER_ID = {user_id};
+        window.DJANGO_PATIENT_NAME = "{patient_name}";
+        window.DJANGO_LEVEL = {current_level};
+        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
+                    "Patient:", window.DJANGO_PATIENT_NAME, 
+                    "Level:", window.DJANGO_LEVEL);
+    </script>
+    """
+    
+    # حقن السكريبت قبل </body>
+    html_content = html_content.replace('</body>', backup_script + '\n</body>')
+    
+    print(f"{'='*50}\n")
+    
     return HttpResponse(html_content)
     
 
@@ -628,7 +698,7 @@ def api_save_game_result(request):
                     }, status=403)
 
                 # ======================================================
-                # 🔥 توحيد أسماء الألعاب (IMPORTANT FIX)
+                # توحيد أسماء الألعاب
                 # ======================================================
                 game_type_raw = data.get('game', '')
 
@@ -636,8 +706,6 @@ def api_save_game_result(request):
                     "catching_stars": "catching-stars",
                     "catching_objects": "catching-objects",
                     "matching_game": "matching-game",
-
-                    # fallback لو جاك dash أصلاً
                     "catching-stars": "catching-stars",
                     "catching-objects": "catching-objects",
                     "matching-game": "matching-game"
@@ -653,7 +721,7 @@ def api_save_game_result(request):
                 avg_elbow = data.get('avg_elbow', 0)
 
                 # ======================================================
-                # 🎯 توحيد accuracy + objects حسب اللعبة
+                # توحيد accuracy + objects حسب اللعبة
                 # ======================================================
                 accuracy = 0
                 objects_caught = score
@@ -671,7 +739,7 @@ def api_save_game_result(request):
                     objects_caught = data.get('matches_made', score)
 
                 # ======================================================
-                # 💾 الحفظ في قاعدة البيانات
+                # الحفظ في قاعدة البيانات
                 # ======================================================
                 GameSessions.objects.create(
                     patient=patient,
@@ -693,7 +761,7 @@ def api_save_game_result(request):
                     session_date=timezone.now()
                 )
 
-                print(f"✅ SAVED | user:{user_id} | game:{game_type} | score:{score}")
+                print(f"✅ SAVED | user:{user_id} | game:{game_type} | level:{level} | score:{score}")
 
                 return JsonResponse({
                     "success": True,
@@ -714,6 +782,7 @@ def api_save_game_result(request):
             }, status=500)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
+
 
 @csrf_exempt
 def api_get_user_name(request):

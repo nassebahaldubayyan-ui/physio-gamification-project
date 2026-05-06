@@ -117,8 +117,14 @@
         }
         .start-panel h1 { 
             color: #ffdd88; 
-            margin-bottom: 25px; 
+            margin-bottom: 10px; 
             font-size: 32px;
+        }
+        .start-panel .level-info {
+            color: #ffaa44;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
         .start-panel button {
             background: #ffaa22;
@@ -186,6 +192,7 @@
             gap: 20px;
             justify-content: center;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         .end-panel button {
             background: #ffaa22;
@@ -204,6 +211,13 @@
             transform: scale(1.02);
         }
         .end-panel { display: none; }
+        #nextLevelBtn {
+            background: #33bb33;
+            display: none;
+        }
+        #nextLevelBtn:hover {
+            background: #55dd55;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -214,6 +228,7 @@
 
 <div class="ui-overlay">
     <div class="game-info">
+        ⭐ LVL: <span id="levelValue">1</span> &nbsp;|
         🍎 SCORE: <span id="scoreValue">0</span> &nbsp;| ⏱️ TIME: <span id="timerValue">60</span>s
     </div>
     <div class="notification-panel" id="notificationPanel"></div>
@@ -225,6 +240,7 @@
 
 <div class="start-panel" id="startPanel">
     <h1>🍎 CATCHING FALLING OBJECT 🧺</h1>
+    <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
@@ -232,6 +248,10 @@
     <h2>🎮 GAME OVER 🎮</h2>
     <div class="final-score" id="finalScore">0</div>
     <div class="accuracy-data">
+        <div class="data-row">
+            <span class="data-label">⭐ Level</span>
+            <span class="data-value"><span id="finalLevel">1</span></span>
+        </div>
         <div class="data-row">
             <span class="data-label">🎯 Final Score</span>
             <span class="data-value"><span id="finalScoreDetail">0</span></span>
@@ -246,351 +266,513 @@
         </div>
     </div>
     <div class="button-group">
+        <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
         <button id="restartBtn">🔄 PLAY AGAIN</button>
         <button id="exitBtn">🚪 EXIT TO GAMES</button>
     </div>
 </div>
 
 <script src="/static/apple_build/Build/apple_build.loader.js"></script>
+
+<!-- ✅ السكريبت الرئيسي يتأخر لين Django Backup يخلص -->
 <script>
     // ============================================================
-    // ANGLE MATH
+    // ✅ ننتظر Django Backup
     // ============================================================
-    const AngleMath = {
-        calculateAngle(p1, p2, p3) {
-            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z||0) - (p2.z||0) };
-            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z||0) - (p2.z||0) };
-            const dot = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
-            const mag1 = Math.hypot(v1.x, v1.y, v1.z);
-            const mag2 = Math.hypot(v2.x, v2.y, v2.z);
-            const rad = Math.acos(Math.min(1, Math.max(-1, dot/(mag1*mag2))));
-            return rad * 180 / Math.PI;
-        }
-    };
-
-    // ============================================================
-    // POSE TRACKER
-    // ============================================================
-    class PoseTracker {
-        constructor() {
-            this.current = { elbow: 0 };
-            this.elbowHistory = [];
-        }
-        process(landmarks, side="left") {
-            if(!landmarks) return false;
-            const shoulderId = side==="left"?11:12, elbowId=side==="left"?13:14, wristId=side==="left"?15:16;
-            const shoulder=landmarks[shoulderId], elbow=landmarks[elbowId], wrist=landmarks[wristId];
-            if(!shoulder||!elbow||!wrist) return false;
-            this.current.elbow = AngleMath.calculateAngle(shoulder, elbow, wrist);
-            this.elbowHistory.push(this.current.elbow);
-            if (this.elbowHistory.length > 500) this.elbowHistory.shift();
-            return true;
-        }
-        getAverageElbow() {
-            if (this.elbowHistory.length === 0) return 0;
-            const sum = this.elbowHistory.reduce((a, b) => a + b, 0);
-            return Math.round(sum / this.elbowHistory.length);
-        }
-    }
-
-    // ============================================================
-    // متغيرات اللعبة
-    // ============================================================
-    let unityInstance = null;
-    let gameActive = false;
-    let gameTime = 60;
-    let gameScore = 0;
-    let timerInterval = null;
-    let mediaPipeActive = false;
-    let hands = null, camera = null;
-    let lastNotificationTime = 0;
-    let poseTracker = null;
-    let handStabilityHistory = [];
-
-// 🎮 إعدادات اللعبة من HTML
-    const GAME_CONFIG = {
-        fallSpeed: 1.5,
-        appleScale: 0.3,
-        spawnLeft: -7,
-        spawnRight: 7,
-        rows: [4.5, 4, 3], // الصفوف
-        minDistance: 1.2,
-        growTime: 1.5,
-        stayMin: 1.0,
-        stayMax: 3
-    };
-    
-    function updateUI() {
-        document.getElementById('scoreValue').innerText = gameScore;
-        document.getElementById('timerValue').innerText = Math.ceil(gameTime);
-    }
-    
-    function showNotification(msg) {
-        let panel = document.getElementById('notificationPanel');
-        let div = document.createElement('div');
-        div.className = 'notification';
-        div.innerText = msg;
-        panel.appendChild(div);
-        setTimeout(() => div.remove(), 2500);
-    }
-    
-    function updateStatsDisplay(handX, elbowAngle, isInside) {
-        document.getElementById('handX').innerText = Math.round(handX * 100);
-        document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
-        document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
-        document.getElementById('elbowAngle').innerText = Math.round(elbowAngle || 0);
-        
-        handStabilityHistory.push(isInside ? 1 : 0);
-        if (handStabilityHistory.length > 300) handStabilityHistory.shift();
-    }
-    
-    function getHandStability() {
-        if (handStabilityHistory.length === 0) return 100;
-        const stability = (handStabilityHistory.filter(v => v === 1).length / handStabilityHistory.length) * 100;
-        return Math.round(stability);
-    }
-    
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (gameActive && gameTime > 0) {
-                gameTime -= 1;
-                updateUI();
-                if (gameTime <= 0 && unityInstance) {
-                    clearInterval(timerInterval);
-                    unityInstance.sendMessage('GameManager', 'ForceEndGame');
+    function waitForDjangoBackup(callback) {
+        if (window.DJANGO_USER_ID) {
+            console.log("✅ Django Backup found immediately");
+            callback();
+        } else {
+            console.log("⏳ Waiting for Django Backup...");
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (window.DJANGO_USER_ID) {
+                    clearInterval(checkInterval);
+                    console.log("✅ Django Backup found after", attempts, "attempts");
+                    callback();
+                } else if (attempts > 50) {
+                    clearInterval(checkInterval);
+                    console.log("⚠️ Django Backup timeout, continuing anyway");
+                    callback();
                 }
+            }, 100);
+        }
+    }
+    
+    // ============================================================
+    // ✅ الدالة الرئيسية - تشتغل بعد ما يتأكد وجود Django Backup
+    // ============================================================
+    function initGame() {
+        // ============================================================
+        // المتغيرات الأساسية
+        // ============================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = parseInt(urlParams.get("user_id")) || null;
+        
+        // ✅ الأولوية لـ Django Backup
+        if (!userId && window.DJANGO_USER_ID) {
+            userId = window.DJANGO_USER_ID;
+            console.log("🔄 UserID from Django Backup:", userId);
+        }
+        
+        // ✅ backup من sessionStorage
+        if (!userId) {
+            const savedId = sessionStorage.getItem('gameUserId');
+            if (savedId) {
+                userId = parseInt(savedId);
+                console.log("🔄 UserID from sessionStorage:", userId);
             }
-        }, 1000);
-    }
-    
-    async function initMediaPipe() {
-        let video = document.createElement('video');
-        video.style.display = 'none';
-        document.body.appendChild(video);
+        }
         
-        hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
+        // ✅ حفظ للمستقبل
+        if (userId) {
+            sessionStorage.setItem('gameUserId', userId);
+        }
         
-        hands.onResults(results => {
-            if (!mediaPipeActive || !gameActive) return;
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                let wrist = results.multiHandLandmarks[0][0];
-                let handX = wrist.x;
-                let isInside = (handX > 0.05 && handX < 0.95);
-                
-                if (!isInside && (Date.now() - lastNotificationTime > 3000)) {
-                    showNotification("⚠️ Please return your hand to the center!");
-                    lastNotificationTime = Date.now();
-                }
-                
-                const poseLandmarks = [];
-                for(let i = 0; i < 33; i++) poseLandmarks.push({x:0.5, y:0.5, z:0});
-                poseLandmarks[11] = { x: wrist.x - 0.12, y: wrist.y - 0.25, z: 0 };
-                poseLandmarks[12] = { x: wrist.x + 0.12, y: wrist.y - 0.25, z: 0 };
-                poseLandmarks[13] = { x: wrist.x - 0.07, y: wrist.y - 0.12, z: 0 };
-                poseLandmarks[14] = { x: wrist.x + 0.07, y: wrist.y - 0.12, z: 0 };
-                
-                if (poseTracker) poseTracker.process(poseLandmarks, "left");
-                
-                updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
-                
-                let invertedHandX = 1 - handX;
-                
-                if (unityInstance) {
-                    unityInstance.sendMessage('Basket', 'SetHandPosition', invertedHandX.toString());
-                }
+        const patientName = (window.DJANGO_PATIENT_NAME && window.DJANGO_PATIENT_NAME !== "Guest") 
+            ? window.DJANGO_PATIENT_NAME 
+            : "Guest";
+        
+        const currentLevel = window.DJANGO_LEVEL || 1;
+        
+        console.log("🎮 INITIAL STATE");
+        console.log("  Patient Name:", patientName);
+        console.log("  User ID:", userId);
+        console.log("  Level:", currentLevel);
+        
+        // ============================================================
+        // ANGLE MATH
+        // ============================================================
+        const AngleMath = {
+            calculateAngle(p1, p2, p3) {
+                const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z||0) - (p2.z||0) };
+                const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z||0) - (p2.z||0) };
+                const dot = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+                const mag1 = Math.hypot(v1.x, v1.y, v1.z);
+                const mag2 = Math.hypot(v2.x, v2.y, v2.z);
+                const rad = Math.acos(Math.min(1, Math.max(-1, dot/(mag1*mag2))));
+                return rad * 180 / Math.PI;
             }
-        });
-        
-        camera = new Camera(video, {
-            onFrame: async () => {
-                if (mediaPipeActive && hands) await hands.send({ image: video });
+        };
+
+        // ============================================================
+        // POSE TRACKER
+        // ============================================================
+        class PoseTracker {
+            constructor() {
+                this.current = { elbow: 0 };
+                this.elbowHistory = [];
+            }
+            process(landmarks, side="left") {
+                if(!landmarks) return false;
+                const shoulderId = side==="left"?11:12, elbowId=side==="left"?13:14, wristId=side==="left"?15:16;
+                const shoulder=landmarks[shoulderId], elbow=landmarks[elbowId], wrist=landmarks[wristId];
+                if(!shoulder||!elbow||!wrist) return false;
+                this.current.elbow = AngleMath.calculateAngle(shoulder, elbow, wrist);
+                this.elbowHistory.push(this.current.elbow);
+                if (this.elbowHistory.length > 500) this.elbowHistory.shift();
+                return true;
+            }
+            getAverageElbow() {
+                if (this.elbowHistory.length === 0) return 0;
+                const sum = this.elbowHistory.reduce((a, b) => a + b, 0);
+                return Math.round(sum / this.elbowHistory.length);
+            }
+        }
+
+        // ============================================================
+        // 🎮 إعدادات المستويات
+        // ============================================================
+        const LEVEL_CONFIGS = {
+            1: {
+                scoreToAdvance: 20,
+                fallSpeed: 1,
+                appleScale: 0.3,
+                spawnLeft: -3,
+                spawnRight: 3,
+                rows: [4.5, 4, 3],
+                minDistance: 1.2,
+                growTime: 1.5,
+                stayMin: 1.0,
+                stayMax: 3,
+                totalApples: 30,
+                minConsecutiveApples: 1,
+                maxConsecutiveApples: 3,
+                timeBetweenApples: 3.0,
+                basketSpeed: 5.0,
+                basketRightBound: 5.0,
+                basketLeftBound: -5.0
+
             },
-            width: 800,
-            height: 600
-        });
-        await camera.start();
-        mediaPipeActive = true;
-        console.log("MediaPipe started");
-    }
-    
-    function stopMediaPipe() {
-        mediaPipeActive = false;
-        if (camera) camera.stop();
-    }
-    
-    window.UpdateScoreFromUnity = function(score) {
-        gameScore = score;
-        updateUI();
-        console.log("Score updated:", gameScore);
-    };
-    
-    window.UpdateTimerFromUnity = function(timer) {
-        gameTime = timer;
-        updateUI();
-        console.log("Timer updated:", gameTime);
-    };
-    
-    window.EndGameFromUnity = function(score) {
-    console.log("Game ended from Unity, final score:", score, " userId",userId);
-    gameActive = false;
-    if (timerInterval) clearInterval(timerInterval);
-    
-    const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
-    const stability = getHandStability();
-    
-    document.getElementById('finalScore').innerText = score;
-    document.getElementById('finalScoreDetail').innerText = score;
-    document.getElementById('avgElbow').innerText = avgElbow;
-    document.getElementById('handStability').innerText = stability;
-    
-    document.getElementById('endPanel').style.display = 'flex';
-    if (camera){
-        camera.stop();
-        mediaPipeActive = false;
-    }
-    
-    if (userId) {
-        fetch('/api/save-game-result/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId,
-                level: 1,
-                score: score,
-                objects_caught: score,
-                accuracy: stability,
-                avg_elbow: avgElbow,
-                hand_stability: stability
-            })
-        }).then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  console.log("Result saved for patient:", patientName);
-              }
-          }).catch(err => console.log("Save error:", err));
-    }
-}
-    
-    function startGame() {
-        if (!unityInstance) {
-            showNotification("⏳ Loading game, please wait...");
-            setTimeout(startGame, 500);
-            return;
-        }
-        
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                stream.getTracks().forEach(track => track.stop());
-                
-                document.getElementById('startPanel').style.display = 'none';
-                document.getElementById('endPanel').style.display = 'none';
-                
-                gameActive = true;
-                gameTime = 60;
-                gameScore = 0;
-                updateUI();
-                
-                poseTracker = new PoseTracker();
-                handStabilityHistory = [];
-                
-                unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
-                unityInstance.sendMessage('Basket', 'StartMove');
-                
-                startTimer();
-                if (!mediaPipeActive) initMediaPipe();
-            })
-            .catch(err => {
-                console.error("Camera error:", err);
-                showNotification("❌ Please allow camera access");
-            });
-    }
-    
-    function exitToGames() {
-        window.location.href = "/patient/";
-    }
-    
-    // ============================================================
-    // تحميل Unity
-    // ============================================================
-    var canvas = document.querySelector("#unity-canvas");
-    const patientName = (() => {
-        const name = "__PATIENT_NAME__";
-        return name !== "__PATIENT_NAME__" ? name : "Guest";
-    })();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = parseInt(urlParams.get("user_id")) || null;
-
-console.log("Patient Name:", patientName);
-console.log("User ID:", userId);
-
-    function waitForUnity() {
-        if (typeof createUnityInstance === 'undefined') {
-            setTimeout(waitForUnity, 100);
-            return;
-        }
-        
-        createUnityInstance(canvas, {
-            dataUrl: "/static/apple_build/Build/apple_build.data",
-            frameworkUrl: "/static/apple_build/Build/apple_build.framework.js",
-            codeUrl: "/static/apple_build/Build/apple_build.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "CatchingFallingObjects",
-            productVersion: "0.1",
-        }).then((instance) => {
-            if (typeof instance.sendMessage === 'function') {
-                unityInstance = instance;
-            } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
-                unityInstance = {
-                    sendMessage: function(obj, method, value) {
-                        instance.Module.SendMessage(obj, method, value);
-                    }
-                };
-            } else {
-                console.error("sendMessage not found", instance);
-                showNotification("❌ Unity loaded but sendMessage missing");
-                return;
+            2: {
+                scoreToAdvance: 40,
+                fallSpeed: 2.5,
+                appleScale: 0.3,
+                spawnLeft: -5,
+                spawnRight: 5,
+                rows: [4.5, 4, 3],
+                minDistance: 1.0,
+                growTime: 1.2,
+                stayMin: 0.8,
+                stayMax: 2.5,
+                totalApples: 50,
+                minConsecutiveApples: 2,
+                maxConsecutiveApples: 5,
+                timeBetweenApples: 2.0,
+                basketSpeed: 10.0,
+                basketRightBound: 7.0,
+                basketLeftBound: -7.0
+            },
+            3: {
+                scoreToAdvance: null,
+                fallSpeed: 3.5,
+                appleScale: 0.3,
+                spawnLeft: -7,
+                spawnRight: 7,
+                rows: [4.5, 4, 3],
+                minDistance: 0.9,
+                growTime: 0.9,
+                stayMin: 0.5,
+                stayMax: 1.8,
+                totalApples: 50,
+                minConsecutiveApples: 3,
+                maxConsecutiveApples: 6,
+                timeBetweenApples: 1.0,
+                basketSpeed: 15.0,
+                basketRightBound: 9.0,
+                basketLeftBound: -9.0
             }
+        };
 
-            window.unityInstance = unityInstance;
-            console.log("✅ Unity ready");
+        // ============================================================
+        // متغيرات اللعبة
+        // ============================================================
+        let unityInstance = null;
+        let gameActive = false;
+        let gameTime = 60;
+        let gameScore = 0;
+        let timerInterval = null;
+        let mediaPipeActive = false;
+        let hands = null, camera = null;
+        let lastNotificationTime = 0;
+        let poseTracker = null;
+        let handStabilityHistory = [];
 
-            // ✅ إرسال الإعدادات
-            setTimeout(() => {
-                if (unityInstance) {
-                    unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(GAME_CONFIG));
-                    console.log("✅ Config sent to Unity");
+        // تهيئة العرض
+        document.getElementById('startLevelInfo').innerText = `⭐ Level ${currentLevel}`;
+        document.getElementById('levelValue').innerText = currentLevel;
+        document.getElementById('finalLevel').innerText = currentLevel;
+
+        function updateUI() {
+            document.getElementById('scoreValue').innerText = gameScore;
+            document.getElementById('timerValue').innerText = Math.ceil(gameTime);
+        }
+        
+        function showNotification(msg) {
+            let panel = document.getElementById('notificationPanel');
+            let div = document.createElement('div');
+            div.className = 'notification';
+            div.innerText = msg;
+            panel.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+        
+        function updateStatsDisplay(handX, elbowAngle, isInside) {
+            document.getElementById('handX').innerText = Math.round(handX * 100);
+            document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
+            document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
+            document.getElementById('elbowAngle').innerText = Math.round(elbowAngle || 0);
+            
+            handStabilityHistory.push(isInside ? 1 : 0);
+            if (handStabilityHistory.length > 300) handStabilityHistory.shift();
+        }
+        
+        function getHandStability() {
+            if (handStabilityHistory.length === 0) return 100;
+            const stability = (handStabilityHistory.filter(v => v === 1).length / handStabilityHistory.length) * 100;
+            return Math.round(stability);
+        }
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameActive && gameTime > 0) {
+                    gameTime -= 1;
+                    updateUI();
+                    if (gameTime <= 0 && unityInstance) {
+                        clearInterval(timerInterval);
+                        unityInstance.sendMessage('GameManager', 'ForceEndGame');
+                    }
                 }
             }, 1000);
-
-            showNotification("✅ Game ready! Click START.");
-            })
         }
-    waitForUnity();
+        
+        async function initMediaPipe() {
+            let video = document.createElement('video');
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
+            hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            
+            hands.onResults(results => {
+                if (!mediaPipeActive || !gameActive) return;
+                
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    let wrist = results.multiHandLandmarks[0][0];
+                    let handX = wrist.x;
+                    let isInside = (handX > 0.05 && handX < 0.95);
+                    
+                    if (!isInside && (Date.now() - lastNotificationTime > 3000)) {
+                        showNotification("⚠️ Please return your hand to the center!");
+                        lastNotificationTime = Date.now();
+                    }
+                    
+                    const poseLandmarks = [];
+                    for(let i = 0; i < 33; i++) poseLandmarks.push({x:0.5, y:0.5, z:0});
+                    poseLandmarks[11] = { x: wrist.x - 0.12, y: wrist.y - 0.25, z: 0 };
+                    poseLandmarks[12] = { x: wrist.x + 0.12, y: wrist.y - 0.25, z: 0 };
+                    poseLandmarks[13] = { x: wrist.x - 0.07, y: wrist.y - 0.12, z: 0 };
+                    poseLandmarks[14] = { x: wrist.x + 0.07, y: wrist.y - 0.12, z: 0 };
+                    
+                    if (poseTracker) poseTracker.process(poseLandmarks, "left");
+                    
+                    updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
+                    
+                    let invertedHandX = 1 - handX;
+                    
+                    if (unityInstance) {
+                        unityInstance.sendMessage('Basket', 'SetHandPosition', invertedHandX.toString());
+                    }
+                }
+            });
+            
+            camera = new Camera(video, {
+                onFrame: async () => {
+                    if (mediaPipeActive && hands) await hands.send({ image: video });
+                },
+                width: 800,
+                height: 600
+            });
+            await camera.start();
+            mediaPipeActive = true;
+            console.log("MediaPipe started");
+        }
+        
+        function stopMediaPipe() {
+            mediaPipeActive = false;
+            if (camera) camera.stop();
+        }
+        
+        window.UpdateScoreFromUnity = function(score) {
+            gameScore = score;
+            updateUI();
+        };
+        
+        window.UpdateTimerFromUnity = function(timer) {
+            gameTime = timer;
+            updateUI();
+        };
+        
+        window.EndGameFromUnity = function(score) {
+            console.log("Game ended - Score:", score, "Level:", currentLevel, "UserID:", userId);
+            gameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
+            const stability = getHandStability();
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('finalScoreDetail').innerText = score;
+            document.getElementById('avgElbow').innerText = avgElbow;
+            document.getElementById('handStability').innerText = stability;
+
+            const cfg = LEVEL_CONFIGS[currentLevel];
+            const canAdvance = cfg && cfg.scoreToAdvance !== null && score >= cfg.scoreToAdvance && currentLevel < 3;
+            document.getElementById('nextLevelBtn').style.display = canAdvance ? 'block' : 'none';
+            
+            document.getElementById('endPanel').style.display = 'flex';
+            if (camera) {
+                camera.stop();
+                mediaPipeActive = false;
+            }
+            
+            // ✅ حفظ النتيجة - userId مضمون وجوده
+            if (userId) {
+                const saveData = {
+                    user_id: userId,
+                    game: 'catching-objects',
+                    level: currentLevel,
+                    score: score,
+                    objects_caught: score,
+                    accuracy: stability,
+                    avg_elbow: avgElbow,
+                    hand_stability: stability
+                };
+                console.log("💾 Saving:", saveData);
+                
+                fetch('/api/save-game-result/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(saveData)
+                }).then(r => r.json())
+                  .then(data => {
+                      if (data.success) {
+                          console.log("✅ Saved! Level:", currentLevel);
+                      } else {
+                          console.log("❌ Save failed:", data.error);
+                      }
+                  }).catch(err => console.log("Save error:", err));
+            } else {
+                console.log("⚠️ No userId, cannot save");
+            }
+        };
+        
+        function startGame() {
+            if (!unityInstance) {
+                showNotification("⏳ Loading game, please wait...");
+                setTimeout(startGame, 500);
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    document.getElementById('startPanel').style.display = 'none';
+                    document.getElementById('endPanel').style.display = 'none';
+                    
+                    gameActive = true;
+                    gameTime = 60;
+                    gameScore = 0;
+                    updateUI();
+                    
+                    poseTracker = new PoseTracker();
+                    handStabilityHistory = [];
+                    
+                    unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
+                    unityInstance.sendMessage('Basket', 'StartMove');
+                    
+                    startTimer();
+                    if (!mediaPipeActive) initMediaPipe();
+                })
+                .catch(err => {
+                    console.error("Camera error:", err);
+                    showNotification("❌ Please allow camera access");
+                });
+        }
+        
+        function exitToGames() {
+            window.location.href = "/patient/";
+        }
+        
+        // ============================================================
+        // تحميل Unity
+        // ============================================================
+        var canvas = document.querySelector("#unity-canvas");
+
+        function waitForUnity() {
+            if (typeof createUnityInstance === 'undefined') {
+                setTimeout(waitForUnity, 100);
+                return;
+            }
+            
+            createUnityInstance(canvas, {
+                dataUrl: "/static/apple_build/Build/apple_build.data",
+                frameworkUrl: "/static/apple_build/Build/apple_build.framework.js",
+                codeUrl: "/static/apple_build/Build/apple_build.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "DefaultCompany",
+                productName: "CatchingFallingObjects",
+                productVersion: "0.1",
+            }).then((instance) => {
+                if (typeof instance.sendMessage === 'function') {
+                    unityInstance = instance;
+                } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                    unityInstance = {
+                        sendMessage: function(obj, method, value) {
+                            instance.Module.SendMessage(obj, method, value);
+                        }
+                    };
+                } else {
+                    console.error("sendMessage not found", instance);
+                    showNotification("❌ Unity loaded but sendMessage missing");
+                    return;
+                }
+
+                window.unityInstance = unityInstance;
+                console.log("✅ Unity ready");
+
+                setTimeout(() => {
+                    if (unityInstance) {
+                        const cfg = LEVEL_CONFIGS[currentLevel];
+                        const unityCfg = {
+                            fallSpeed: cfg.fallSpeed,
+                            appleScale: cfg.appleScale,
+                            spawnLeft: cfg.spawnLeft,
+                            spawnRight: cfg.spawnRight,
+                            rows: cfg.rows,
+                            minDistance: cfg.minDistance,
+                            growTime: cfg.growTime,
+                            stayMin: cfg.stayMin,
+                            stayMax: cfg.stayMax,
+                            totalApples: cfg.totalApples,
+                            minConsecutiveApples: cfg.minConsecutiveApples,
+                            maxConsecutiveApples: cfg.maxConsecutiveApples,
+                            timeBetweenApples: cfg.timeBetweenApples,
+                            basketSpeed: cfg.basketSpeed,
+                            basketRightBound: cfg.basketRightBound,
+                            basketLeftBound: cfg.basketLeftBound
+                        };
+                        unityInstance.sendMessage('GameManager', 'SetConfig', JSON.stringify(unityCfg));
+                        console.log("✅ Config sent for level:", currentLevel);
+                    }
+                }, 1000);
+
+                showNotification(`✅ Game ready! Level ${currentLevel} — Click START.`);
+            }).catch(err => {
+                console.error("Unity load error:", err);
+            });
+        }
+        waitForUnity();
+        
+        document.getElementById('startBtn').onclick = function() {
+            console.log("Start button clicked, level:", currentLevel);
+            startGame();
+        };
+
+        document.getElementById('nextLevelBtn').onclick = function() {
+            const id = userId || window.DJANGO_USER_ID;
+            if (id) {
+                console.log("🔗 Next level with userId:", id);
+                window.location.href = `/games/catching-objects/?user_id=${id}`;
+            } else {
+                showNotification("❌ Error: Please login again");
+            }
+        };
+        
+        document.getElementById('restartBtn').onclick = function() {
+            window.location.reload();
+        };
+        
+        document.getElementById('exitBtn').onclick = function() {
+            exitToGames();
+        };
+        
+        console.log("✅ Game initialized - Level:", currentLevel, "UserID:", userId);
+    }
     
-    document.getElementById('startBtn').onclick = function() {
-        console.log("Start button clicked");
-        startGame();
-    };
-    
-    document.getElementById('restartBtn').onclick = function() {
-        window.location.reload();
-    };
-    
-    document.getElementById('exitBtn').onclick = function() {
-        exitToGames();
-    };
-    
-    console.log("Ready");
+    // ============================================================
+    // ✅ بداية التشغيل: انتظر Django Backup أولاً
+    // ============================================================
+    waitForDjangoBackup(initGame);
 </script>
 </body>
 </html>
