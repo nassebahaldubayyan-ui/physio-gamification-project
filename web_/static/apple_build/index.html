@@ -81,20 +81,85 @@
             backdrop-filter: blur(5px);
             pointer-events: none;
         }
+
+        /* Start Panel with Instructions */
         .start-panel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #2e3b2e, #1a2a1a);
-            padding: 30px 50px;
+            padding: 35px 45px;
             border-radius: 30px;
             text-align: center;
             z-index: 200;
             border: 2px solid #ffcc44;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             pointer-events: auto;
+            min-width: 450px;
+            max-width: 90vw;
         }
+        .start-panel h1 {
+            color: #ffdd88;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        .start-panel h2 {
+            color: #ffaa44;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .level-info {
+            color: #ffaa44;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .instructions-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        .instruction-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0;
+            color: #eeeeee;
+            font-size: 14px;
+        }
+        .instruction-icon {
+            font-size: 22px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .instruction-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+        .instruction-highlight {
+            color: #ffcc44;
+            font-weight: bold;
+        }
+        .start-panel button {
+            background: #ffaa22;
+            border: none;
+            padding: 14px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #1a3a1a;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+        .start-panel button:hover {
+            background: #ffcc44;
+            transform: scale(1.03);
+        }
+
         .end-panel {
             position: fixed;
             top: 50%;
@@ -110,48 +175,22 @@
             pointer-events: auto;
             min-width: 420px;
             max-width: 85vw;
-            display: flex;            
-            flex-direction: column;   
-            align-items: center;     
-            gap: 15px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
-        .start-panel h1 { 
-            color: #ffdd88; 
-            margin-bottom: 10px; 
-            font-size: 32px;
-        }
-        .start-panel .level-info {
-            color: #ffaa44;
-            font-size: 20px;
-            font-weight: bold;
+        .end-panel h2 {
+            color: #ffdd88;
             margin-bottom: 20px;
-        }
-        .start-panel button {
-            background: #ffaa22;
-            border: none;
-            padding: 14px 40px;
-            font-size: 22px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            color: #1a3a1a;
-            transition: all 0.2s ease;
-        }
-        .start-panel button:hover {
-            background: #ffcc44;
-            transform: scale(1.03);
-        }
-        .end-panel h2 { 
-            color: #ffdd88; 
-            margin-bottom: 20px; 
             font-size: 36px;
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
-        .end-panel .final-score { 
-            font-size: 52px; 
-            color: #ffaa44; 
-            margin: 10px 0 20px 0; 
+        .end-panel .final-score {
+            font-size: 52px;
+            color: #ffaa44;
+            margin: 10px 0 20px 0;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
@@ -171,22 +210,10 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             font-size: 16px;
         }
-        .data-row:last-child {
-            border-bottom: none;
-        }
-        .data-label {
-            color: #ffdd88;
-            font-weight: bold;
-        }
-        .data-value {
-            color: #ffffff;
-            font-family: monospace;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .data-value span {
-            color: #ffaa44;
-        }
+        .data-row:last-child { border-bottom: none; }
+        .data-label { color: #ffdd88; font-weight: bold; }
+        .data-value { color: #ffffff; font-family: monospace; font-size: 18px; font-weight: bold; }
+        .data-value span { color: #ffaa44; }
         .button-group {
             display: flex;
             gap: 20px;
@@ -206,18 +233,10 @@
             transition: all 0.2s ease;
             min-width: 140px;
         }
-        .end-panel button:hover {
-            background: #ffcc44;
-            transform: scale(1.02);
-        }
+        .end-panel button:hover { background: #ffcc44; transform: scale(1.02); }
         .end-panel { display: none; }
-        #nextLevelBtn {
-            background: #33bb33;
-            display: none;
-        }
-        #nextLevelBtn:hover {
-            background: #55dd55;
-        }
+        #nextLevelBtn { background: #33bb33; display: none; }
+        #nextLevelBtn:hover { background: #55dd55; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -239,8 +258,31 @@
 </div>
 
 <div class="start-panel" id="startPanel">
-    <h1>🍎 CATCHING FALLING OBJECT 🧺</h1>
+    <h1>🍎 CATCHING FALLING OBJECTS 🧺</h1>
     <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
+    <h2>📖 HOW TO PLAY</h2>
+    <div class="instructions-box">
+        <div class="instruction-line">
+            <div class="instruction-icon">🖐️</div>
+            <div class="instruction-text">Move your <span class="instruction-highlight">HAND LEFT/RIGHT</span> to control the basket</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">🍎</div>
+            <div class="instruction-text">Catch <span class="instruction-highlight">FALLING APPLES</span> with the basket</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">➕</div>
+            <div class="instruction-text">Each apple = <span class="instruction-highlight">+1 POINT</span></div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">⏱️</div>
+            <div class="instruction-text">You have <span class="instruction-highlight">60 SECONDS</span> to catch as many as possible</div>
+        </div>
+        <div class="instruction-line">
+            <div class="instruction-icon">💡</div>
+            <div class="instruction-text">Keep your hand <span class="instruction-highlight">IN CAMERA VIEW</span> for best control</div>
+        </div>
+    </div>
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
@@ -274,10 +316,99 @@
 
 <script src="/static/apple_build/Build/apple_build.loader.js"></script>
 
-<!-- ✅ السكريبت الرئيسي يتأخر لين Django Backup يخلص -->
 <script>
     // ============================================================
-    // ✅ ننتظر Django Backup
+    // Natural Sound System
+    // ============================================================
+    class SoundManager {
+        constructor() {
+            this.enabled = true;
+            this.initSounds();
+        }
+        initSounds() {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {
+                this.enabled = false;
+                return;
+            }
+            this.buttonSound = this.createNaturalClick();
+            this.catchSound = this.createNaturalCatch();
+            this.startSound = this.createSimpleBeep();
+        }
+        createNaturalClick() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                const now = this.audioContext.currentTime;
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                osc.frequency.value = 600;
+                gain.gain.value = 0.1;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.08);
+                osc.stop(now + 0.08);
+            };
+        }
+        createNaturalCatch() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                const now = this.audioContext.currentTime;
+                const osc = this.audioContext.createOscillator();
+                const gain = this.audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioContext.destination);
+                osc.frequency.value = 400;
+                gain.gain.value = 0.15;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.12);
+                osc.stop(now + 0.12);
+            };
+        }
+        createSimpleBeep() {
+            return () => {
+                if (!this.enabled || !this.audioContext) return;
+                if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                const now = this.audioContext.currentTime;
+                const osc1 = this.audioContext.createOscillator();
+                const gain1 = this.audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(this.audioContext.destination);
+                osc1.frequency.value = 800;
+                gain1.gain.value = 0.12;
+                osc1.start();
+                gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                osc1.stop(now + 0.1);
+                setTimeout(() => {
+                    const osc2 = this.audioContext.createOscillator();
+                    const gain2 = this.audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(this.audioContext.destination);
+                    osc2.frequency.value = 600;
+                    gain2.gain.value = 0.12;
+                    osc2.start();
+                    gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                    osc2.stop(now + 0.2);
+                }, 120);
+            };
+        }
+        playButtonClick() { if (this.buttonSound) this.buttonSound(); }
+        playCatchSound() { if (this.catchSound) this.catchSound(); }
+        playGameStart() { if (this.startSound) this.startSound(); }
+        resumeAudio() {
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+        }
+    }
+
+    const soundManager = new SoundManager();
+
+    // ============================================================
+    // انتظر Django Backup
     // ============================================================
     function waitForDjangoBackup(callback) {
         if (window.DJANGO_USER_ID) {
@@ -300,24 +431,15 @@
             }, 100);
         }
     }
-    
-    // ============================================================
-    // ✅ الدالة الرئيسية - تشتغل بعد ما يتأكد وجود Django Backup
-    // ============================================================
+
     function initGame() {
-        // ============================================================
-        // المتغيرات الأساسية
-        // ============================================================
         const urlParams = new URLSearchParams(window.location.search);
         let userId = parseInt(urlParams.get("user_id")) || null;
-        
-        // ✅ الأولوية لـ Django Backup
+
         if (!userId && window.DJANGO_USER_ID) {
             userId = window.DJANGO_USER_ID;
             console.log("🔄 UserID from Django Backup:", userId);
         }
-        
-        // ✅ backup من sessionStorage
         if (!userId) {
             const savedId = sessionStorage.getItem('gameUserId');
             if (savedId) {
@@ -325,23 +447,18 @@
                 console.log("🔄 UserID from sessionStorage:", userId);
             }
         }
-        
-        // ✅ حفظ للمستقبل
-        if (userId) {
-            sessionStorage.setItem('gameUserId', userId);
-        }
-        
-        const patientName = (window.DJANGO_PATIENT_NAME && window.DJANGO_PATIENT_NAME !== "Guest") 
-            ? window.DJANGO_PATIENT_NAME 
-            : "Guest";
-        
+        if (userId) sessionStorage.setItem('gameUserId', userId);
+
+        const patientName = (window.DJANGO_PATIENT_NAME && window.DJANGO_PATIENT_NAME !== "Guest")
+            ? window.DJANGO_PATIENT_NAME : "Guest";
+
         const currentLevel = window.DJANGO_LEVEL || 1;
-        
+
         console.log("🎮 INITIAL STATE");
         console.log("  Patient Name:", patientName);
         console.log("  User ID:", userId);
         console.log("  Level:", currentLevel);
-        
+
         // ============================================================
         // ANGLE MATH
         // ============================================================
@@ -383,7 +500,7 @@
         }
 
         // ============================================================
-        // 🎮 إعدادات المستويات
+        // 🎮 إعدادات المستويات — عدّل هنا فقط
         // ============================================================
         const LEVEL_CONFIGS = {
             1: {
@@ -404,7 +521,6 @@
                 basketSpeed: 5.0,
                 basketRightBound: 5.0,
                 basketLeftBound: -5.0
-
             },
             2: {
                 scoreToAdvance: 40,
@@ -460,7 +576,6 @@
         let poseTracker = null;
         let handStabilityHistory = [];
 
-        // تهيئة العرض
         document.getElementById('startLevelInfo').innerText = `⭐ Level ${currentLevel}`;
         document.getElementById('levelValue').innerText = currentLevel;
         document.getElementById('finalLevel').innerText = currentLevel;
@@ -469,38 +584,42 @@
             document.getElementById('scoreValue').innerText = gameScore;
             document.getElementById('timerValue').innerText = Math.ceil(gameTime);
         }
-        
-        function showNotification(msg) {
+
+        function showNotification(msg, isSuccess = false) {
             let panel = document.getElementById('notificationPanel');
             let div = document.createElement('div');
             div.className = 'notification';
+            div.style.borderLeftColor = isSuccess ? '#44ff44' : '#ff4444';
+            div.style.color = isSuccess ? '#88ff88' : '#ff8888';
             div.innerText = msg;
             panel.appendChild(div);
             setTimeout(() => div.remove(), 2500);
         }
-        
+
         function updateStatsDisplay(handX, elbowAngle, isInside) {
             document.getElementById('handX').innerText = Math.round(handX * 100);
             document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
             document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
             document.getElementById('elbowAngle').innerText = Math.round(elbowAngle || 0);
-            
             handStabilityHistory.push(isInside ? 1 : 0);
             if (handStabilityHistory.length > 300) handStabilityHistory.shift();
         }
-        
+
         function getHandStability() {
             if (handStabilityHistory.length === 0) return 100;
             const stability = (handStabilityHistory.filter(v => v === 1).length / handStabilityHistory.length) * 100;
             return Math.round(stability);
         }
-        
+
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 if (gameActive && gameTime > 0) {
                     gameTime -= 1;
                     updateUI();
+                    if (gameTime === 10) {
+                        showNotification("⏰ 10 seconds remaining!", false);
+                    }
                     if (gameTime <= 0 && unityInstance) {
                         clearInterval(timerInterval);
                         unityInstance.sendMessage('GameManager', 'ForceEndGame');
@@ -508,12 +627,12 @@
                 }
             }, 1000);
         }
-        
+
         async function initMediaPipe() {
             let video = document.createElement('video');
             video.style.display = 'none';
             document.body.appendChild(video);
-            
+
             hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
             hands.setOptions({
                 maxNumHands: 1,
@@ -521,39 +640,32 @@
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
             });
-            
+
             hands.onResults(results => {
                 if (!mediaPipeActive || !gameActive) return;
-                
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                     let wrist = results.multiHandLandmarks[0][0];
                     let handX = wrist.x;
                     let isInside = (handX > 0.05 && handX < 0.95);
-                    
                     if (!isInside && (Date.now() - lastNotificationTime > 3000)) {
                         showNotification("⚠️ Please return your hand to the center!");
                         lastNotificationTime = Date.now();
                     }
-                    
                     const poseLandmarks = [];
                     for(let i = 0; i < 33; i++) poseLandmarks.push({x:0.5, y:0.5, z:0});
                     poseLandmarks[11] = { x: wrist.x - 0.12, y: wrist.y - 0.25, z: 0 };
                     poseLandmarks[12] = { x: wrist.x + 0.12, y: wrist.y - 0.25, z: 0 };
                     poseLandmarks[13] = { x: wrist.x - 0.07, y: wrist.y - 0.12, z: 0 };
                     poseLandmarks[14] = { x: wrist.x + 0.07, y: wrist.y - 0.12, z: 0 };
-                    
                     if (poseTracker) poseTracker.process(poseLandmarks, "left");
-                    
                     updateStatsDisplay(handX, poseTracker?.current?.elbow || 0, isInside);
-                    
                     let invertedHandX = 1 - handX;
-                    
                     if (unityInstance) {
                         unityInstance.sendMessage('Basket', 'SetHandPosition', invertedHandX.toString());
                     }
                 }
             });
-            
+
             camera = new Camera(video, {
                 onFrame: async () => {
                     if (mediaPipeActive && hands) await hands.send({ image: video });
@@ -565,30 +677,29 @@
             mediaPipeActive = true;
             console.log("MediaPipe started");
         }
-        
-        function stopMediaPipe() {
-            mediaPipeActive = false;
-            if (camera) camera.stop();
-        }
-        
+
+        // صوت عند كل تفاحة تُمسك
         window.UpdateScoreFromUnity = function(score) {
+            if (score > gameScore) {
+                soundManager.playCatchSound();
+            }
             gameScore = score;
             updateUI();
         };
-        
+
         window.UpdateTimerFromUnity = function(timer) {
             gameTime = timer;
             updateUI();
         };
-        
+
         window.EndGameFromUnity = function(score) {
             console.log("Game ended - Score:", score, "Level:", currentLevel, "UserID:", userId);
             gameActive = false;
             if (timerInterval) clearInterval(timerInterval);
-            
+
             const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
             const stability = getHandStability();
-            
+
             document.getElementById('finalScore').innerText = score;
             document.getElementById('finalScoreDetail').innerText = score;
             document.getElementById('avgElbow').innerText = avgElbow;
@@ -597,14 +708,13 @@
             const cfg = LEVEL_CONFIGS[currentLevel];
             const canAdvance = cfg && cfg.scoreToAdvance !== null && score >= cfg.scoreToAdvance && currentLevel < 3;
             document.getElementById('nextLevelBtn').style.display = canAdvance ? 'block' : 'none';
-            
+
             document.getElementById('endPanel').style.display = 'flex';
             if (camera) {
                 camera.stop();
                 mediaPipeActive = false;
             }
-            
-            // ✅ حفظ النتيجة - userId مضمون وجوده
+
             if (userId) {
                 const saveData = {
                     user_id: userId,
@@ -617,65 +727,53 @@
                     hand_stability: stability
                 };
                 console.log("💾 Saving:", saveData);
-                
                 fetch('/api/save-game-result/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(saveData)
                 }).then(r => r.json())
                   .then(data => {
-                      if (data.success) {
-                          console.log("✅ Saved! Level:", currentLevel);
-                      } else {
-                          console.log("❌ Save failed:", data.error);
-                      }
+                      if (data.success) console.log("✅ Saved! Level:", currentLevel);
+                      else console.log("❌ Save failed:", data.error);
                   }).catch(err => console.log("Save error:", err));
             } else {
                 console.log("⚠️ No userId, cannot save");
             }
         };
-        
+
         function startGame() {
             if (!unityInstance) {
                 showNotification("⏳ Loading game, please wait...");
                 setTimeout(startGame, 500);
                 return;
             }
-            
+
+            soundManager.playGameStart();
+
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
                     stream.getTracks().forEach(track => track.stop());
-                    
                     document.getElementById('startPanel').style.display = 'none';
                     document.getElementById('endPanel').style.display = 'none';
-                    
                     gameActive = true;
                     gameTime = 60;
                     gameScore = 0;
                     updateUI();
-                    
                     poseTracker = new PoseTracker();
                     handStabilityHistory = [];
-                    
                     unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
                     unityInstance.sendMessage('Basket', 'StartMove');
-                    
                     startTimer();
                     if (!mediaPipeActive) initMediaPipe();
+                    soundManager.resumeAudio();
+                    showNotification("🎮 Game Started! Good luck! 🍎", true);
                 })
                 .catch(err => {
                     console.error("Camera error:", err);
-                    showNotification("❌ Please allow camera access");
+                    showNotification("❌ Please allow camera access to play!");
                 });
         }
-        
-        function exitToGames() {
-            window.location.href = "/patient/";
-        }
-        
-        // ============================================================
-        // تحميل Unity
-        // ============================================================
+
         var canvas = document.querySelector("#unity-canvas");
 
         function waitForUnity() {
@@ -683,7 +781,6 @@
                 setTimeout(waitForUnity, 100);
                 return;
             }
-            
             createUnityInstance(canvas, {
                 dataUrl: "/static/apple_build/Build/apple_build.data",
                 frameworkUrl: "/static/apple_build/Build/apple_build.framework.js",
@@ -702,11 +799,9 @@
                         }
                     };
                 } else {
-                    console.error("sendMessage not found", instance);
                     showNotification("❌ Unity loaded but sendMessage missing");
                     return;
                 }
-
                 window.unityInstance = unityInstance;
                 console.log("✅ Unity ready");
 
@@ -736,43 +831,51 @@
                     }
                 }, 1000);
 
-                showNotification(`✅ Game ready! Level ${currentLevel} — Click START.`);
-            }).catch(err => {
-                console.error("Unity load error:", err);
-            });
+                showNotification(`✅ Game ready! Level ${currentLevel} — Click START.`, true);
+            }).catch(err => console.error("Unity load error:", err));
         }
         waitForUnity();
-        
+
         document.getElementById('startBtn').onclick = function() {
+            soundManager.playButtonClick();
             console.log("Start button clicked, level:", currentLevel);
             startGame();
         };
 
+        // NEXT LEVEL — بدون force_level، views.py يرفع المستوى من DB
         document.getElementById('nextLevelBtn').onclick = function() {
+            soundManager.playButtonClick();
             const id = userId || window.DJANGO_USER_ID;
             if (id) {
-                console.log("🔗 Next level with userId:", id);
                 window.location.href = `/games/catching-objects/?user_id=${id}`;
             } else {
                 showNotification("❌ Error: Please login again");
             }
         };
-        
+
+        // PLAY AGAIN — نفس المستوى بـ force_level
         document.getElementById('restartBtn').onclick = function() {
+            soundManager.playButtonClick();
             const id = userId || window.DJANGO_USER_ID;
-            window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}`;
-                };
-        
-        document.getElementById('exitBtn').onclick = function() {
-            exitToGames();
+            if (id) {
+                window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}`;
+            } else {
+                window.location.reload();
+            }
         };
-        
+
+        document.getElementById('exitBtn').onclick = function() {
+            soundManager.playButtonClick();
+            setTimeout(() => { window.location.href = "/patient/"; }, 100);
+        };
+
+        document.body.addEventListener('click', function() {
+            soundManager.resumeAudio();
+        }, { once: true });
+
         console.log("✅ Game initialized - Level:", currentLevel, "UserID:", userId);
     }
-    
-    // ============================================================
-    // ✅ بداية التشغيل: انتظر Django Backup أولاً
-    // ============================================================
+
     waitForDjangoBackup(initGame);
 </script>
 </body>
