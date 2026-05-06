@@ -416,11 +416,11 @@
                 minDistance: 1.0,
                 growTime: 1.2,
                 stayMin: 0.8,
-                stayMax: 2.5,
+                stayMax: 1.5,
                 totalApples: 50,
-                minConsecutiveApples: 2,
-                maxConsecutiveApples: 5,
-                timeBetweenApples: 2.0,
+                minConsecutiveApples: 4,
+                maxConsecutiveApples: 8,
+                timeBetweenApples: 1.0,
                 basketSpeed: 10.0,
                 basketRightBound: 7.0,
                 basketLeftBound: -7.0
@@ -435,10 +435,10 @@
                 minDistance: 0.9,
                 growTime: 0.9,
                 stayMin: 0.5,
-                stayMax: 1.8,
+                stayMax: 1.0,
                 totalApples: 50,
-                minConsecutiveApples: 3,
-                maxConsecutiveApples: 6,
+                minConsecutiveApples: 6,
+                maxConsecutiveApples: 10,
                 timeBetweenApples: 1.0,
                 basketSpeed: 15.0,
                 basketRightBound: 9.0,
@@ -759,8 +759,9 @@
         };
         
         document.getElementById('restartBtn').onclick = function() {
-            window.location.reload();
-        };
+            const id = userId || window.DJANGO_USER_ID;
+            window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}`;
+                };
         
         document.getElementById('exitBtn').onclick = function() {
             exitToGames();

@@ -198,28 +198,35 @@ def game_catching_objects(request):
     
     # تحديد المستوى من DB
     from .models import GameSessions
-    
-    last_session = GameSessions.objects.filter(
-        patient=patient,
-        game_type='catching-objects'
-    ).order_by('-session_date').first()
-    
-    if last_session is None:
-        current_level = 1
-        print("📊 No previous sessions, starting at level 1")
+    force_level = request.GET.get('force_level', '').strip()
+
+    if force_level and force_level.isdigit():
+        # المريض ضغط PLAY AGAIN — نبقى بنفس المستوى بدون ما نرفعه
+        current_level = int(force_level)
+        current_level = max(1, min(3, current_level))
+        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
     else:
-        level_thresholds = {1: 20, 2: 40, 3: 999}
-        last_level = last_session.level
-        last_score = last_session.score
-        
-        print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
-        
-        if last_level >= 3:
-            current_level = 3
-        elif last_score >= level_thresholds.get(last_level, 5):
-            current_level = last_level + 1
+        last_session = GameSessions.objects.filter(
+            patient=patient,
+            game_type='catching-objects'
+        ).order_by('-session_date').first()
+    
+        if last_session is None:
+            current_level = 1
+            print("📊 No previous sessions, starting at level 1")
         else:
-            current_level = last_level
+            level_thresholds = {1: 20, 2: 40, 3: 999}
+            last_level = last_session.level
+            last_score = last_session.score
+        
+            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
+        
+            if last_level >= 3:
+                current_level = 3
+            elif last_score >= level_thresholds.get(last_level, 5):
+                current_level = last_level + 1
+            else:
+                current_level = last_level
     
     print(f"✅ Final level: {current_level}")
     
