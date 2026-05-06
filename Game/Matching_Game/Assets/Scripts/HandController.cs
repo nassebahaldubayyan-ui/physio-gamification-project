@@ -8,10 +8,10 @@ public class HandController : MonoBehaviour
     public GameObject handCursor;
 
     [Header("Screen Mapping")]
-    public float minX = -8f;
-    public float maxX = 8f;
-    public float minY = -4f;
-    public float maxY = 4f;
+    public float minX = -11f;
+    public float maxX = 11f;
+    public float minY = -6f;
+    public float maxY = 6f;
 
     [Header("Smoothing")]
     public float smoothSpeed = 15f;
