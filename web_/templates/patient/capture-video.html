@@ -759,7 +759,11 @@
                 showNotification('No recording', 'error'); 
                 return; 
             } 
-            
+            try {
+                await assessment.finishAssessment();  // 🔥 ADD THIS LINE
+            } catch (e) {
+                console.error(e);
+            }
             // حفظ الحالة
             localStorage.setItem('hasAssessmentVideo', 'true'); 
             localStorage.setItem('assessmentCompleted', 'true');

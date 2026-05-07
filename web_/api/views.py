@@ -815,8 +815,9 @@ def api_save_initial_assessment(request):
 
         user_id = data.get("user_id")
 
-        patient = Patients.objects.get(user_id=user_id)
-
+        patient = Patients.objects.get(user__id=user_id)
+        print("USER ID RECEIVED:", user_id)
+        print("PATIENT FOUND:", patient)
         # UPDATE EXISTING PATIENT
         patient.shoulder_strength = data.get("shoulder_strength", 0)
         patient.elbow_strength = data.get("elbow_strength", 0)
