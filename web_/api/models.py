@@ -92,6 +92,8 @@ class Messages(models.Model):
 
 class GameSessions(models.Model):
     patient = models.ForeignKey(Patients, models.DO_NOTHING)
+    user_id = models.IntegerField(blank=True, null=True)
+    player_name= models.TextField(blank=True, null=True)
     game_type = models.TextField()
     level = models.IntegerField()
     score = models.IntegerField()
@@ -107,10 +109,10 @@ class GameSessions(models.Model):
     external_rotation = models.IntegerField(blank=True, null=True)
     shoulder_shrug = models.IntegerField(blank=True, null=True)
     completed = models.IntegerField(blank=True, null=True)
-    session_date = models.TextField(blank=True, null=True)
+    session_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'game_sessions'
 
     def __str__(self):

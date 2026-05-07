@@ -752,6 +752,8 @@ def api_save_game_result(request):
                     patient=patient,
                     game_type=game_type,
                     level=level,
+                    player_name=patient.user.name,
+                    user_id=patient.user.id,
                     score=score,
                     duration=60,
                     accuracy=accuracy,
