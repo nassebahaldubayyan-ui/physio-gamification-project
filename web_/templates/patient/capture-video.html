@@ -373,14 +373,6 @@
                     <span class="angle-unit-large">°</span>
                 </div>
             </div>
-
-            <div class="angle-card">
-                <h4>🔄 Shoulder Internal Rotation</h4>
-                <div>
-                    <span class="angle-value-large" id="intRotationDisplay">0</span>
-                    <span class="angle-unit-large">°</span>
-                </div>
-            </div>
         </div>
         
         <div class="main-grid" id="mainGrid" style="display: none;">
@@ -804,7 +796,6 @@
                     shoulder: 0,
                     elbow: 0,
                     shoulder_external_rotation: 0,
-                    shoulder_internal_rotation: 0,
                     hand_open: 0
                 };
                 this.dbUrl = dbUrl;
@@ -823,7 +814,6 @@
                     shoulder: 0,
                     elbow: 0,
                     shoulder_external_rotation: 0,
-                    shoulder_internal_rotation: 0,
                     hand_open: 0
                 };
 
@@ -867,11 +857,6 @@
                 this.maxAngles.shoulder_external_rotation = Math.max(
                     this.maxAngles.shoulder_external_rotation,
                     p.rightShoulderExternalRotation || p.leftShoulderExternalRotation || 0
-                );
-
-                this.maxAngles.shoulder_internal_rotation = Math.max(
-                    this.maxAngles.shoulder_internal_rotation,
-                    p.rightShoulderInternalRotation || p.leftShoulderInternalRotation || 0
                 );
 
                 this.maxAngles.hand_open = Math.max(
@@ -943,10 +928,10 @@
                     elbow_strength: this.maxAngles.elbow,
                     grip_strength: this.maxAngles.hand_open,
 
-                    //shoulder_external_rotation: this.maxAngles.shoulder_external_rotation,
-                    //shoulder_internal_rotation: this.maxAngles.shoulder_internal_rotation
+                    shoulder_external_rotation: this.maxAngles.shoulder_external_rotation
                 };
                 try {
+                    console.log("Sending payload:", payload);
                     const res = await fetch(this.dbUrl, {
                         method: "POST",
                         headers: {
@@ -1112,7 +1097,6 @@
                     lm[12], lm[14], lm[16], lm[24]
                 );
                 poseTracker.rightShoulderExternalRotation = Math.max(0, rotation);
-                poseTracker.rightShoulderInternalRotation = Math.max(0, -rotation);
             } else {
 
                 poseTracker.leftShoulderAngle = smoothAngle(
@@ -1129,7 +1113,6 @@
                 );
                 
                 poseTracker.leftShoulderExternalRotation = Math.max(0, rotation);
-                poseTracker.leftShoulderInternalRotation = Math.max(0, -rotation);
                 
             }
             // ===============================
@@ -1343,7 +1326,6 @@
             // ================= ROTATION =================
             const rotationEnabled = active.rotation;
             setState("extRotationDisplay", rotationEnabled);
-            setState("intRotationDisplay", rotationEnabled);
         }
 
         function updateAngleUI() {
@@ -1384,23 +1366,17 @@
             // =========================
             // ROTATION
             // =========================
-            let ext = 0, int = 0;
+            let ext = 0;
 
             if (assessment.freezeUI) {
                 ext = assessment.maxAngles.shoulder_external_rotation;
-                int = assessment.maxAngles.shoulder_internal_rotation;
             } else if (active.rotation) {
                 ext = isRight
                     ? poseTracker.rightShoulderExternalRotation
                     : poseTracker.leftShoulderExternalRotation;
-
-                int = isRight
-                    ? poseTracker.rightShoulderInternalRotation
-                    : poseTracker.leftShoulderInternalRotation;
             }
 
             document.getElementById("extRotationDisplay").textContent = ext.toFixed(1);
-            document.getElementById("intRotationDisplay").textContent = int.toFixed(1);
 
             // =========================
             // HAND

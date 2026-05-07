@@ -797,29 +797,50 @@ def api_get_user_name(request):
     user = Users.objects.get(id=user_id)
     return JsonResponse({"name": user.name})
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Patients
+import json
+from django.utils import timezone
+
+
 @csrf_exempt
 def api_save_initial_assessment(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
 
-            user_id = data.get("user_id")
-            patient = Patients.objects.get(user_id=user_id)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
 
-            Patients.objects.create(
-                patient=patient,
+    try:
+        data = json.loads(request.body)
 
-                shoulder_max=data.get("shoulder_max", 0),
-                elbow_max=data.get("elbow_max", 0),
-                grip_max=data.get("grip_max", 0),
+        user_id = data.get("user_id")
 
-                #shoulder_external_rotation=data.get("shoulder_external_rotation", 0),
-                #shoulder_internal_rotation=data.get("shoulder_internal_rotation", 0),
-            )
+        patient = Patients.objects.get(user_id=user_id)
 
-            return JsonResponse({"success": True})
+        # UPDATE EXISTING PATIENT
+        patient.shoulder_strength = data.get("shoulder_strength", 0)
+        patient.elbow_strength = data.get("elbow_strength", 0)
+        patient.grip_strength = data.get("grip_strength", 0)
 
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
+        # optional tracking fields
+        patient.has_assessment_video = 1
+        patient.assessment_date = str(timezone.now())
 
-    return JsonResponse({"error": "POST only"}, status=405)
+        patient.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Assessment saved successfully"
+        })
+
+    except Patients.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": "Patient not found"
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        })

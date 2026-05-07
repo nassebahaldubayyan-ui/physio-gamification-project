@@ -51,4 +51,6 @@ urlpatterns = [
     path('game/', views.apple_game, name='game'),
     path('api/save-game-result/', views.api_save_game_result, name='save_game_result'),
      
+    # save assessment result
+    path("api/initial-assessment/",views.api_save_initial_assessment,name="api_save_initial_assessment"),
 ]
