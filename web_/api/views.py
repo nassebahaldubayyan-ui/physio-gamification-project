@@ -113,6 +113,8 @@ def edit_doctor_profile(request):
 
 # Game Pages
 def game_catching_stars(request):
+    print(f"\n{'='*50}")
+    print(f"🎮 game_catching_stars CALLED")
     
     user_id = request.GET.get('user_id', '').strip()
     
@@ -122,12 +124,13 @@ def game_catching_stars(request):
             return redirect('/gamer-login/')
     
     user_id = int(user_id)
-    
     request.session['user_id'] = user_id
+    request.session.modified = True
     
+    print(f"✅ Final user_id: {user_id}")
+
     try:
         user = Users.objects.get(id=user_id)
-        
         if user.role != 'patient':
             return redirect('/gamer-login/')
         
@@ -140,18 +143,69 @@ def game_catching_stars(request):
     except Users.DoesNotExist:
         return redirect('/gamer-login/')
     
+    # تحديد المستوى
+    from .models import GameSessions
+    force_level = request.GET.get('force_level', '').strip()
+
+    if force_level and force_level.isdigit():
+        current_level = int(force_level)
+        current_level = max(1, min(3, current_level))
+        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
+    else:
+        last_session = GameSessions.objects.filter(
+            patient=patient,
+            game_type='catching-stars'
+        ).order_by('-session_date').first()
+    
+        if last_session is None:
+            current_level = 1
+            print("📊 No previous sessions, starting at level 1")
+        else:
+            # thresholds للنجوم: 10 نقاط للمستوى 2، 20 نقطة للمستوى 3
+            level_thresholds = {1: 10, 2: 20, 3: 999}
+            last_level = last_session.level
+            last_score = last_session.score
+        
+            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
+        
+            if last_level >= 3:
+                current_level = 3
+            elif last_score >= level_thresholds.get(last_level, 5):
+                current_level = last_level + 1
+            else:
+                current_level = last_level
+    
+    print(f"✅ Final level: {current_level}")
+    
+    # قراءة ملف index.html
     file_path = os.path.join('static', 'Star_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
     
+    # استبدال المتغيرات
     html_content = html_content.replace('__USER_ID__', str(user_id))
     html_content = html_content.replace('"__USER_ID__"', str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
-    html_content = html_content.replace('__LEVEL__', '1')
-
-    html_content = html_content.replace('console.log("Logged in user:", userId, userName);', 'console.log("Logged in user:", userId);')
-    print(f"sending to html  {user_id}, patient name {patient_name}" )
+    html_content = html_content.replace('__LEVEL__', str(current_level))
+    
+    # إضافة سكريبت تأكيد
+    backup_script = f"""
+    <script>
+        window.DJANGO_USER_ID = {user_id};
+        window.DJANGO_PATIENT_NAME = "{patient_name}";
+        window.DJANGO_LEVEL = {current_level};
+        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
+                    "Patient:", window.DJANGO_PATIENT_NAME, 
+                    "Level:", window.DJANGO_LEVEL);
+    </script>
+    """
+    
+    html_content = html_content.replace('</body>', backup_script + '\n</body>')
+    
+    print(f"{'='*50}\n")
     return HttpResponse(html_content)
+
+
     
 def game_catching_objects(request):
     print(f"\n{'='*50}")
