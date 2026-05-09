@@ -1,19 +1,23 @@
 ﻿using UnityEngine;
+#if !UNITY_WEBGL || UNITY_EDITOR
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+#endif
 
 public class MatchingReceiver : MonoBehaviour
 {
-    public int port = 5053;  
+    public int port = 5053;
     public Transform handPoint;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient udpClient;
     private Thread receiveThread;
     private bool isRunning = true;
     private TrackerPacket latestPacket;
     private object packetLock = new object();
+#endif
 
     void Start()
     {
@@ -28,14 +32,25 @@ public class MatchingReceiver : MonoBehaviour
             handPoint = hand.transform;
         }
 
-        udpClient = new UdpClient(port);
-        receiveThread = new Thread(new ThreadStart(ReceiveData));
-        receiveThread.IsBackground = true;
-        receiveThread.Start();
-        
-        Debug.Log($"MatchingReceiver started on port {port}");
+#if !UNITY_WEBGL || UNITY_EDITOR
+        try
+        {
+            udpClient = new UdpClient(port);
+            receiveThread = new Thread(new ThreadStart(ReceiveData));
+            receiveThread.IsBackground = true;
+            receiveThread.Start();
+            Debug.Log($"MatchingReceiver started on port {port}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("MatchingReceiver disabled: " + e.Message);
+        }
+#else
+        Debug.Log("MatchingReceiver: WebGL build - UDP disabled, using JS bridge instead.");
+#endif
     }
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     void ReceiveData()
     {
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
@@ -67,6 +82,21 @@ public class MatchingReceiver : MonoBehaviour
             }
         }
     }
+#else
+    // WebGL: receive packets via JS bridge -> unityInstance.sendMessage("MatchingReceiver", "ReceivePacketFromJS", json)
+    public void ReceivePacketFromJS(string json)
+    {
+        try
+        {
+            TrackerPacket packet = JsonUtility.FromJson<TrackerPacket>(json);
+            if (packet != null) UpdateGame(packet);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("ReceivePacketFromJS parse error: " + e.Message);
+        }
+    }
+#endif
 
     void UpdateGame(TrackerPacket p)
     {
@@ -77,19 +107,20 @@ public class MatchingReceiver : MonoBehaviour
             handPoint.position = worldPos;
         }
 
-        // إرسال حالة القبضة لكل السيارات
+        // Send hand-closed state to all cars
         DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
         foreach (DraggableCar car in allCars)
         {
             car.SetHandClosed(p.hand_closed);
         }
     }
-
     void OnDestroy()
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         isRunning = false;
         receiveThread?.Join();
         udpClient?.Close();
+#endif
     }
 
     [System.Serializable]
