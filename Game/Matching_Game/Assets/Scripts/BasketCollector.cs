@@ -27,8 +27,8 @@ public class BasketCollector : MonoBehaviour
         // نقاط فقط لو السيارة ممسوكة + لون مطابق 
         if (car.IsHolding() && car.color == myBasket.color)
         {
-            if (GameManager.instance != null)
-                GameManager.instance.AddScore(10);
+            if (GameManager.Instance != null)
+                GameManager.Instance.AddScore(10);
 
             Destroy(other.gameObject);
         }

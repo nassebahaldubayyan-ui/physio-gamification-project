@@ -6,76 +6,53 @@ using System.Threading;
 
 public class MatchingReceiver : MonoBehaviour
 {
-    public int port = 5052;
-
-    [Header("Hand Object")]
+    public int port = 5053;  
     public Transform handPoint;
 
     private UdpClient udpClient;
     private Thread receiveThread;
     private bool isRunning = true;
-
     private TrackerPacket latestPacket;
-    private readonly object packetLock = new object();
+    private object packetLock = new object();
 
     void Start()
     {
-        // إذا ما فيه HandPoint
         if (handPoint == null)
         {
-            GameObject h = GameObject.FindGameObjectWithTag("Hand");
-
-            if (h == null)
+            GameObject hand = GameObject.FindGameObjectWithTag("Hand");
+            if (hand == null)
             {
-                h = new GameObject("HandPoint");
-                h.tag = "Hand";
+                hand = new GameObject("HandPoint");
+                hand.tag = "Hand";
             }
-
-            handPoint = h.transform;
+            handPoint = hand.transform;
         }
 
-        // تشغيل UDP
-        try
-        {
-            udpClient = new UdpClient(port);
-
-            receiveThread = new Thread(new ThreadStart(ReceiveData));
-            receiveThread.IsBackground = true;
-            receiveThread.Start();
-
-            Debug.Log("[MatchingReceiver] UDP Started");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("UDP Start Error: " + e.Message);
-        }
+        udpClient = new UdpClient(port);
+        receiveThread = new Thread(new ThreadStart(ReceiveData));
+        receiveThread.IsBackground = true;
+        receiveThread.Start();
+        
+        Debug.Log($"MatchingReceiver started on port {port}");
     }
 
     void ReceiveData()
     {
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
-
         while (isRunning)
         {
             try
             {
                 byte[] data = udpClient.Receive(ref remoteEP);
-
                 string json = Encoding.UTF8.GetString(data);
-
-                TrackerPacket packet =
-                    JsonUtility.FromJson<TrackerPacket>(json);
+                var packet = JsonUtility.FromJson<TrackerPacket>(json);
 
                 lock (packetLock)
                 {
                     latestPacket = packet;
                 }
             }
-            catch (System.Exception e)
-            {
-                if (isRunning)
-                    Debug.LogError("UDP Error: " + e.Message);
-            }
+            catch (System.Exception e) { Debug.LogError("UDP Error: " + e.Message); }
         }
     }
 
@@ -93,23 +70,15 @@ public class MatchingReceiver : MonoBehaviour
 
     void UpdateGame(TrackerPacket p)
     {
-        // تحريك اليد
         if (handPoint != null && Camera.main != null)
         {
-            Vector3 worldPos =
-                Camera.main.ViewportToWorldPoint(
-                    new Vector3(p.palm_x, p.palm_y, 10f)
-                );
-
+            Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
             worldPos.z = 0f;
-
             handPoint.position = worldPos;
         }
 
-        // إرسال حالة القبضة للسيارات
-        DraggableCar[] allCars =
-            FindObjectsOfType<DraggableCar>();
-
+        // إرسال حالة القبضة لكل السيارات
+        DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
         foreach (DraggableCar car in allCars)
         {
             car.SetHandClosed(p.hand_closed);
@@ -119,10 +88,7 @@ public class MatchingReceiver : MonoBehaviour
     void OnDestroy()
     {
         isRunning = false;
-
-        if (receiveThread != null && receiveThread.IsAlive)
-            receiveThread.Join(200);
-
+        receiveThread?.Join();
         udpClient?.Close();
     }
 

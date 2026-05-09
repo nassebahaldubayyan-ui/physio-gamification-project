@@ -12,8 +12,8 @@
         }
 
         body {
-            background: linear-gradient(135deg, #0a1f0a, #1a3a1a);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a2a1a, #1a3a2a);
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
         }
 
@@ -26,26 +26,25 @@
             display: block;
         }
 
-        /* Hand cursor visual */
         .hand-cursor {
             position: fixed;
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 180, 255, 0.7), rgba(0, 100, 200, 0.4));
-            border: 3px solid #44aaff;
+            background: radial-gradient(circle, rgba(255, 100, 0, 0.6), rgba(255, 200, 0, 0.3));
+            border: 3px solid #ffaa44;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 1000;
             transition: all 0.05s ease;
-            box-shadow: 0 0 20px rgba(68, 170, 255, 0.6);
+            box-shadow: 0 0 15px rgba(255, 170, 68, 0.5);
         }
 
         .hand-cursor.gripping {
-            background: radial-gradient(circle, rgba(255, 50, 0, 0.9), rgba(255, 100, 0, 0.7));
+            background: radial-gradient(circle, rgba(255, 50, 0, 0.8), rgba(255, 100, 0, 0.6));
             border-color: #ff3300;
             transform: translate(-50%, -50%) scale(1.2);
-            box-shadow: 0 0 30px rgba(255, 68, 0, 0.9);
+            box-shadow: 0 0 25px rgba(255, 68, 0, 0.8);
         }
 
         .hand-cursor.gripping::after {
@@ -70,7 +69,6 @@
             text-shadow: 0 0 5px black;
         }
 
-          
         .ui-overlay {
             position: fixed;
             top: 0;
@@ -90,7 +88,7 @@
             padding: 12px 24px;
             border-radius: 20px;
             font-family: monospace;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             color: #88ffaa;
             z-index: 101;
@@ -100,7 +98,7 @@
 
         .game-info span {
             color: #44ff88;
-            font-size: 28px;
+            font-size: 24px;
         }
 
         .stats-panel {
@@ -115,7 +113,7 @@
             font-size: 13px;
             color: #aaaaff;
             z-index: 101;
-            border-left: 3px solid #44aaff;
+            border-left: 3px solid #44ff88;
             pointer-events: none;
         }
 
@@ -140,11 +138,17 @@
             backdrop-filter: blur(10px);
             padding: 10px 16px;
             border-radius: 10px;
-            border-left: 3px solid #44aaff;
-            color: #88ddff;
+            border-left: 3px solid #44ff88;
+            color: #88ffaa;
             font-weight: bold;
-            animation: slideIn 0.3s ease;
             font-size: 13px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.level-up {
+            border-left-color: #ffaa44;
+            background: rgba(0, 0, 0, 0.95);
+            color: #ffdd88;
         }
 
         @keyframes slideIn {
@@ -159,108 +163,113 @@
             }
         }
 
-        /* Start Panel */
+        .sensitivity-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #ffaa44;
+            z-index: 101;
+            text-align: center;
+        }
+
+        .sensitivity-meter {
+            width: 100px;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .sensitivity-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s;
+            background: linear-gradient(90deg, #44ff44, #ffaa44, #ff4444);
+        }
+
         .start-panel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a2f1a, #0f1f0f);
+            background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
             padding: 35px 55px;
             border-radius: 35px;
             text-align: center;
             z-index: 200;
-            border: 2px solid #44cc44;
+            border: 2px solid #44ff88;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            pointer-events: auto;
             backdrop-filter: blur(20px);
-            min-width: 480px;
+            pointer-events: auto;
         }
 
         .start-panel h1 {
             color: #88ffaa;
             font-size: 34px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
-        .start-panel h2 {
-            color: #44ff88;
-            font-size: 20px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(68, 255, 120, 0.3);
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-
-        .instructions-box {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin: 20px 0;
-            text-align: left;
-        }
-
-        .instruction-line {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 12px 0;
-            color: #eeeeee;
+        .start-panel p {
+            color: #aaaaff;
+            margin-bottom: 25px;
             font-size: 14px;
         }
 
-        .instruction-icon {
-            font-size: 22px;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        .instruction-text {
-            flex: 1;
-            line-height: 1.4;
-        }
-
-        .instruction-highlight {
-            color: #88ffaa;
-            font-weight: bold;
-        }
-
         .start-panel button {
-            background: linear-gradient(135deg, #22aa44, #118833);
+            background: linear-gradient(135deg, #44ff88, #22aa55);
             border: none;
             padding: 14px 45px;
             font-size: 22px;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            color: white;
+            color: #1a2a1a;
             transition: all 0.2s ease;
-            margin-top: 10px;
         }
 
         .start-panel button:hover {
             transform: scale(1.03);
         }
 
-        /* End Panel */
+        .instruction-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0;
+            color: #eee;
+            font-size: 14px;
+        }
+
+        .level-info {
+            color: #44ff88;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
         .end-panel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a2f1a, #0f1f0f);
+            background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
             padding: 30px 45px;
             border-radius: 35px;
             text-align: center;
             z-index: 200;
-            border: 2px solid #44cc44;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            pointer-events: auto;
-            backdrop-filter: blur(20px);
+            border: 2px solid #44ff88;
             min-width: 380px;
             display: none;
             flex-direction: column;
             gap: 15px;
+            backdrop-filter: blur(20px);
+            pointer-events: auto;
         }
 
         .end-panel h2 {
@@ -288,10 +297,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .data-row:last-child {
-            border-bottom: none;
-        }
-
         .data-label {
             color: #88ffaa;
             font-weight: bold;
@@ -311,56 +316,34 @@
             gap: 12px;
             justify-content: center;
             margin-top: 5px;
+            flex-wrap: wrap;
         }
 
         .end-panel button {
-            background: #22aa44;
+            background: #44ff88;
             border: none;
             padding: 10px 22px;
             font-size: 15px;
             font-weight: bold;
             border-radius: 35px;
             cursor: pointer;
-            color: white;
+            color: #1a2a1a;
         }
 
         .end-panel button:hover {
-            background: #44cc66;
+            background: #88ffaa;
         }
 
-        /* Color legend */
-        .color-legend {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 8px 20px;
-            border-radius: 20px;
-            display: flex;
-            gap: 16px;
-            z-index: 101;
-            pointer-events: none;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+        #nextLevelBtn {
+            background: #ffaa44;
+            color: #1a2a1a;
+            display: none;
         }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .legend-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
+        #nextLevelBtn:hover {
+            background: #ffcc66;
         }
     </style>
-
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
@@ -368,162 +351,159 @@
 <body>
 
     <canvas id="unity-canvas"></canvas>
-
-    <!-- Hand cursor -->
     <div class="hand-cursor" id="handCursor"></div>
 
-    <!-- Score / Timer -->
-    <div class="game-info">
-        🚗 SCORE: <span id="scoreValue">0</span> &nbsp;| ⏱️ TIME: <span id="timerValue">60</span>s
-    </div>
-
-
-
-    <!-- Stats Panel -->
-    <div class="stats-panel">
-        <div>🖐️ X: <span id="handXPos">--</span>% | Y: <span id="handYPos">--</span>%</div>
-        <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN</span></div>
-    </div>
-
-    <!-- Notifications -->
-    <div class="notification-panel" id="notificationPanel"></div>
-
-    <!-- Start Panel -->
-    <div class="start-panel" id="startPanel">
-        <h1>🚗 MATCHING GAME 🚗</h1>
-        <h2>📖 HOW TO PLAY</h2>
-        <div class="instructions-box">
-            <div class="instruction-line">
-                <div class="instruction-icon">🖐️</div>
-                <div class="instruction-text">Move your <span class="instruction-highlight">HAND</span> to control the
-                    cursor</div>
-            </div>
-            <div class="instruction-line">
-                <div class="instruction-icon">✊</div>
-                <div class="instruction-text"><span class="instruction-highlight">CLOSE YOUR HAND</span> over a car to
-                    grab it</div>
-            </div>
-            <div class="instruction-line">
-                <div class="instruction-icon">🎨</div>
-                <div class="instruction-text">Drag each car to the <span class="instruction-highlight">MATCHING COLOR
-                        BASKET</span></div>
-            </div>
-            <div class="instruction-line">
-                <div class="instruction-icon">✅</div>
-                <div class="instruction-text">Release (<span class="instruction-highlight">OPEN HAND</span>) over the
-                    correct basket</div>
-            </div>
-            <div class="instruction-line">
-                <div class="instruction-icon">⏱️</div>
-                <div class="instruction-text">Match as many cars as you can in <span class="instruction-highlight">60
-                        SECONDS</span></div>
-            </div>
+    <div class="ui-overlay">
+        <div class="game-info">
+            🎮 LVL: <span id="levelValue">1</span> &nbsp;| 🚗 SCORE: <span id="scoreValue">0</span> &nbsp;| ⏱️ TIME:
+            <span id="timerValue">60</span>s
         </div>
+        <div class="notification-panel" id="notificationPanel"></div>
+        <div class="stats-panel">
+            <div>🖐️ X: <span id="handXPos">--</span>% | Y: <span id="handYPos">--</span>%</div>
+            <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN ✋</span></div>
+        </div>
+        <div class="sensitivity-bar">
+            🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
+            <div class="sensitivity-meter">
+                <div class="sensitivity-fill" id="sensitivityFill"></div>
+            </div>
+            <span style="font-size:9px">↓ easier &nbsp;&nbsp;&nbsp;&nbsp; harder →</span>
+        </div>
+    </div>
+
+    <div class="start-panel" id="startPanel">
+        <h1>🚗 MATCHING GAME 🧩</h1>
+        <div class="level-info" id="startLevelInfo">⭐ Level 1 - Easy</div>
+        <p>Match each colored car to its box!</p>
+        <div class="instruction-line"><span>✊</span><span>Close hand → GRAB car</span></div>
+        <div class="instruction-line"><span>🤚</span><span>Move hand → DRAG car</span></div>
+        <div class="instruction-line"><span>✋</span><span>Open hand over box → RELEASE</span></div>
+        <br>
         <button id="startBtn">▶️ START GAME</button>
     </div>
 
-    <!-- End Panel -->
     <div class="end-panel" id="endPanel">
         <h2>🏆 GAME OVER 🏆</h2>
         <div class="final-score" id="finalScore">0</div>
         <div class="accuracy-data">
-            <div class="data-row">
-                <span class="data-label">🚗 Cars Matched</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">⭐ Total Score</span>
-                <span class="data-value"><span id="finalScoreDetail">0</span></span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">✊ Grip Accuracy</span>
-                <span class="data-value"><span id="gripAccuracy">--</span>%</span>
-            </div>
+            <div class="data-row"><span class="data-label">🏆 Final Level</span><span class="data-value"><span
+                        id="finalLevel">1</span></span></div>
+            <div class="data-row"><span class="data-label">✊ Grip Accuracy</span><span class="data-value"><span
+                        id="gripAccuracy">--</span>%</span></div>
         </div>
         <div class="button-group">
+            <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
             <button id="restartBtn">🔄 PLAY AGAIN</button>
             <button id="exitBtn">🚪 EXIT</button>
         </div>
     </div>
 
     <script src="/static/matching_build/Build/matching_build.loader.js"></script>
+
     <script>
-
-
-
-
-
         // ============================================================
-        // Sound Manager (same as Catching_Stars)
+        // 🎮 إعدادات المستويات - مثل لعبة النجوم
         // ============================================================
-       class SoundManager {
-    constructor() {
-        this.enabled = true;
-        this.initSounds();
-    }
-    initSounds() {
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch(e) { this.enabled = false; return; }
-        this.buttonSound = this.createSound(600, 0.08);
-        this.catchSound = this.createSound(400, 0.12);
-        this.starSound = this.createSound(880, 0.1);
-        this.startSound = this.createStartSound();
-    }
-    createSound(freq, duration) {
-        return () => {
-            if (!this.enabled || !this.audioContext) return;
-            if (this.audioContext.state === 'suspended') this.audioContext.resume();
-            const now = this.audioContext.currentTime;
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(this.audioContext.destination);
-            osc.frequency.value = freq;
-            gain.gain.value = 0.12;
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, now + duration);
-            osc.stop(now + duration);
+        const GAME_CONFIG = {
+            level1: { levelNumber: 1, gameDuration: 60, gripSensitivity: 160, levelName: "Easy" },
+            level2: { levelNumber: 2, gameDuration: 55, gripSensitivity: 130, levelName: "Medium" },
+            level3: { levelNumber: 3, gameDuration: 50, gripSensitivity: 100, levelName: "Hard" }
         };
-    }
-    createStartSound() {
-        return () => {
-            if (!this.enabled || !this.audioContext) return;
-            if (this.audioContext.state === 'suspended') this.audioContext.resume();
-            const now = this.audioContext.currentTime;
-            const osc1 = this.audioContext.createOscillator();
-            const gain1 = this.audioContext.createGain();
-            osc1.connect(gain1);
-            gain1.connect(this.audioContext.destination);
-            osc1.frequency.value = 800;
-            gain1.gain.value = 0.12;
-            osc1.start();
-            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
-            osc1.stop(now + 0.1);
-            setTimeout(() => {
-                const osc2 = this.audioContext.createOscillator();
-                const gain2 = this.audioContext.createGain();
-                osc2.connect(gain2);
-                gain2.connect(this.audioContext.destination);
-                osc2.frequency.value = 600;
-                gain2.gain.value = 0.12;
-                osc2.start();
-                gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
-                osc2.stop(now + 0.2);
-            }, 120);
-        };
-    }
-    
-    playButtonClick() { if (this.buttonSound) this.buttonSound(); }
-    playCatchSound() { if (this.catchSound) this.catchSound(); }
-    playStarSound() { if (this.starSound) this.starSound(); }
-    playGameStart() { if (this.startSound) this.startSound(); }
-    resumeAudio() { if (this.audioContext && this.audioContext.state === 'suspended') this.audioContext.resume(); }
-}
 
-const soundManager = new SoundManager();
+        const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
 
         // ============================================================
-        // Angle Math (same as Catching_Stars)
+        // Sound Manager
+        // ============================================================
+        class SoundManager {
+            constructor() {
+                this.enabled = true;
+                this.initSounds();
+            }
+            initSounds() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) { this.enabled = false; return; }
+                this.buttonSound = this.createSound(600, 0.08);
+                this.matchSound = this.createSound(880, 0.15);
+                this.startSound = this.createStartSound();
+                this.levelUpSound = this.createLevelUpSound();
+            }
+            createSound(freq, duration) {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    osc.frequency.value = freq;
+                    gain.gain.value = 0.12;
+                    osc.start();
+                    gain.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+                    osc.stop(now + duration);
+                };
+            }
+            createStartSound() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    const osc1 = this.audioContext.createOscillator();
+                    const gain1 = this.audioContext.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(this.audioContext.destination);
+                    osc1.frequency.value = 800;
+                    gain1.gain.value = 0.12;
+                    osc1.start();
+                    gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                    osc1.stop(now + 0.1);
+                    setTimeout(() => {
+                        const osc2 = this.audioContext.createOscillator();
+                        const gain2 = this.audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(this.audioContext.destination);
+                        osc2.frequency.value = 600;
+                        gain2.gain.value = 0.12;
+                        osc2.start();
+                        gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                        osc2.stop(now + 0.2);
+                    }, 120);
+                };
+            }
+            createLevelUpSound() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    [523.25, 659.25, 783.99].forEach((f, i) => {
+                        setTimeout(() => {
+                            const osc = this.audioContext.createOscillator();
+                            const gain = this.audioContext.createGain();
+                            osc.connect(gain);
+                            gain.connect(this.audioContext.destination);
+                            osc.frequency.value = f;
+                            gain.gain.value = 0.15;
+                            osc.start();
+                            gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                            osc.stop(now + 0.2);
+                        }, i * 100);
+                    });
+                };
+            }
+            playButtonClick() { if (this.buttonSound) this.buttonSound(); }
+            playMatchSound() { if (this.matchSound) this.matchSound(); }
+            playGameStart() { if (this.startSound) this.startSound(); }
+            playLevelUp() { if (this.levelUpSound) this.levelUpSound(); }
+            resumeAudio() { if (this.audioContext && this.audioContext.state === 'suspended') this.audioContext.resume(); }
+        }
+
+        const soundManager = new SoundManager();
+
+        // ============================================================
+        // Angle Math
         // ============================================================
         const AngleMath = {
             calculateAngle(p1, p2, p3) {
@@ -538,165 +518,184 @@ const soundManager = new SoundManager();
         };
 
         // ============================================================
-        // Grip Detection (same logic as Catching_Stars)
+        // UDP WebSocket إلى Unity (مثل لعبة النجوم لكن منفذ 5052)
         // ============================================================
-        function calculateGripFromLandmarks(landmarks) {
-            const fingerTips = [4, 8, 12, 16, 20];
-            const fingerMCPs = [1, 5, 9, 13, 17];
-            let totalAngle = 0;
-            for (let i = 0; i < fingerTips.length; i++) {
-                const angle = AngleMath.calculateAngle(landmarks[0], landmarks[fingerMCPs[i]], landmarks[fingerTips[i]]);
-        totalAngle += angle;
-    }
-    const avgAngle = totalAngle / fingerTips.length;
-    updateSensitivityMeter(avgAngle);
-    return avgAngle < currentGripSensitivity;
+        let ws = null;
+        let wsConnected = false;
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:5052');
+                ws.onopen = () => {
+                    wsConnected = true;
+                    console.log('✅ WebSocket connected on port 5052');
+                };
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.hand_x !== undefined && data.hand_y !== undefined) {
+                            updateHandCursor(data.hand_x, data.hand_y, data.hand_closed || false);
+                            updateStatsDisplay(data.hand_x, data.hand_y, data.hand_closed || false);
+
+                            if (unityInstance && typeof unityInstance.sendMessage === 'function') {
+                                unityInstance.sendMessage('HandController', 'SetHandPosition', data.hand_x.toFixed(3) + ',' + data.hand_y.toFixed(3));
+                                unityInstance.sendMessage('HandController', 'SetGripState', data.hand_closed ? 'true' : 'false');
+                            }
+                        }
+                    } catch (e) { console.error('Parse error:', e); }
+                };
+                ws.onclose = () => {
+                    wsConnected = false;
+                    console.log('WebSocket disconnected, reconnecting...');
+                    setTimeout(connectWebSocket, 1000);
+                };
+                ws.onerror = (err) => console.error('WebSocket error:', err);
+            } catch (e) { console.error('WebSocket creation error:', e); }
         }
 
         // ============================================================
-        // Global State
+        // Game Variables
         // ============================================================
         let unityInstance = null;
         let gameActive = false;
-        let mediaPipeActive = false;
-        let hands = null, camera = null;
-        let gripHistory = [];
         let gameScore = 0;
         let gameTime = 60;
-        let lastTimerValue = 60;
-
-        const handCursor = document.getElementById('handCursor');
+        let currentLevel = 1;
+        let finalLevel = 1;
+        let userId = null;
+        let gripHistory = [];
+        let currentGripSensitivity = 75;
+        let dataSaved = false;
+        let gameEnded = false;
 
         // ============================================================
-        // UI Helpers
+        // UI Functions
         // ============================================================
         function updateUI() {
             document.getElementById('scoreValue').innerText = gameScore;
-            document.getElementById('timerValue').innerText = gameTime;
+            document.getElementById('timerValue').innerText = Math.ceil(gameTime);
+            document.getElementById('levelValue').innerText = currentLevel;
         }
 
-        function showNotification(msg, isSuccess = false) {
-    const panel = document.getElementById('notificationPanel');
-    const div = document.createElement('div');
-    div.className = 'notification';
-    if (isSuccess) div.style.borderLeftColor = '#44ff44';
-    div.innerText = msg;
-    panel.appendChild(div);
-    setTimeout(() => div.remove(), 2500);
-}
-
-        function updateHandCursor(handX, handY, isGripping) {
-            handCursor.style.left = (handX * 100) + '%';
-            handCursor.style.top = (handY * 100) + '%';
-            isGripping ? handCursor.classList.add('gripping')
-                : handCursor.classList.remove('gripping');
+        function showNotification(msg, isLevelUp = false) {
+            const panel = document.getElementById('notificationPanel');
+            const div = document.createElement('div');
+            div.className = 'notification' + (isLevelUp ? ' level-up' : '');
+            div.innerHTML = msg;
+            panel.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
         }
 
         function updateStatsDisplay(handX, handY, isGripping) {
             document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
             document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
             const gripSpan = document.getElementById('gripStatus');
-            if (isGripping) {
-                gripSpan.innerHTML = 'CLOSED ✊';
-                gripSpan.style.color = '#88ff88';
+            if (isGripping) { gripSpan.innerHTML = 'CLOSED ✊'; gripSpan.style.color = '#88ff88'; }
+            else { gripSpan.innerHTML = 'OPEN ✋'; gripSpan.style.color = '#ff8888'; }
+        }
+
+        function updateHandCursor(handX, handY, isGripping) {
+            const cursor = document.getElementById('handCursor');
+            cursor.style.left = (handX * 100) + '%';
+            cursor.style.top = (handY * 100) + '%';
+            if (isGripping) cursor.classList.add('gripping');
+            else cursor.classList.remove('gripping');
+        }
+
+        function updateSensitivityMeter(currentAngle) {
+            const fill = document.getElementById('sensitivityFill');
+            if (!fill) return;
+            const percent = Math.min(100, Math.max(0, (currentAngle / 100) * 100));
+            fill.style.width = percent + '%';
+            if (currentAngle < currentGripSensitivity) {
+                fill.style.background = "linear-gradient(90deg, #ff4444, #ff8844)";
             } else {
-                gripSpan.innerHTML = 'OPEN ✋';
-                gripSpan.style.color = '#ff8888';
+                fill.style.background = "linear-gradient(90deg, #44ff44, #88ff88)";
             }
         }
-        
-function updateSensitivityMeter(currentAngle) {
-    const fill = document.getElementById('sensitivityFill');
-    if (!fill) return;
-    const percent = Math.min(100, Math.max(0, (currentAngle / 100) * 100));
-    fill.style.width = percent + '%';
-    if (currentAngle < currentGripSensitivity) {
-        fill.style.background = "linear-gradient(90deg, #ff4444, #ff8844)";
-    } else {
-        fill.style.background = "linear-gradient(90deg, #44ff44, #88ff88)";
-    }
-}
 
         function calculateGripAccuracy() {
-            if (!gripHistory.length) return 100;
-            const recent = gripHistory.slice(-300);
-            const success = recent.filter(v => v === 1).length;
-            return Math.round((success / recent.length) * 100);
+            if (gripHistory.length === 0) return 100;
+            const success = gripHistory.filter(v => v === 1).length;
+            return Math.round((success / gripHistory.length) * 100);
         }
-        function calculateAvgElbow() {
-    if (elbowHistory.length === 0) return 0;
-    const sum = elbowHistory.reduce((a, b) => a + b, 0);
-    return Math.round(sum / elbowHistory.length);
-}
 
+        function updateGripSensitivityDisplay(sensitivity) {
+            currentGripSensitivity = sensitivity;
+            document.getElementById('sensitivityValue').innerText = sensitivity;
+        }
 
-
-function startGameUnity() {
-    if (!unityInstance || typeof unityInstance.sendMessage !== 'function') {
-        setTimeout(startGameUnity, 500);
-        return;
-    }
-    try {
-        unityInstance.sendMessage('GameManager', 'StartGame');
-        console.log("StartGame sent to Unity");
-    } catch(e) {
-        console.error("StartGame error:", e);
-    }
-}
-
-        // ============================================================
-        // MediaPipe
-        // ============================================================
-        async function initMediaPipe() {
-            const video = document.createElement('video');
-            video.style.display = 'none';
-            document.body.appendChild(video);
-
-            hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-            hands.setOptions({
-                maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-
-            hands.onResults(results => {
-                if (!mediaPipeActive || !gameActive) return;
-
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    const landmarks = results.multiHandLandmarks[0];
-                    const wrist = landmarks[0];
-
-                    // Mirror X same as Catching_Stars
-                    const handX = 1 - wrist.x;
-                    const handY = wrist.y;
-
-                    const isGripping = calculateGripFromLandmarks(landmarks);
-
-                    gripHistory.push(isGripping ? 1 : 0);
-                    if (gripHistory.length > 500) gripHistory.shift();
-
-                    // Send to Unity HandController (same method names as Catching_Stars)
-                    sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + ',' + handY.toFixed(3));
-                    sendToUnity('HandController', 'SetGripState', isGripping ? 'true' : 'false');
-
-                    updateHandCursor(handX, handY, isGripping);
-                    updateStatsDisplay(handX, handY, isGripping);
-                }
-            });
-
-            camera = new Camera(video, {
-        onFrame: async () => { if (mediaPipeActive && hands) await hands.send({ image: video }); },
-        width: 640, height: 480
-    });
-    await camera.start();
-    mediaPipeActive = true;
-    console.log("MediaPipe started");
-}
+        function calculateGripFromLandmarks(landmarks) {
+            const tips = [4, 8, 12, 16, 20];
+            const mcps = [1, 5, 9, 13, 17];
+            let totalAngle = 0;
+            for (let i = 0; i < tips.length; i++) {
+                totalAngle += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
+            }
+            const avgAngle = totalAngle / tips.length;
+            updateSensitivityMeter(avgAngle);
+            return avgAngle < currentGripSensitivity;
+        }
 
         // ============================================================
         // Game Control
         // ============================================================
+        function levelUp(newLevel) {
+            currentLevel = newLevel;
+            finalLevel = newLevel;
+            updateUI();
+            updateGripSensitivityDisplay(GAME_CONFIG[`level${newLevel}`]?.gripSensitivity || 75);
+            showNotification(`🎉 LEVEL UP! Now at Level ${newLevel} 🎉`, true);
+            soundManager.playLevelUp();
+        }
+
+        function endGame(score) {
+            gameActive = false;
+            gameEnded = true;
+
+            const gripAcc = calculateGripAccuracy();
+
+            document.getElementById('finalScore').innerHTML = score;
+            document.getElementById('gripAccuracy').innerHTML = gripAcc;
+            document.getElementById('finalLevel').innerHTML = finalLevel;
+
+            let canAdvance = false;
+            if (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2) canAdvance = true;
+            else if (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3) canAdvance = true;
+
+            const nextBtn = document.getElementById('nextLevelBtn');
+            if (canAdvance && finalLevel < 3) {
+                nextBtn.style.display = 'block';
+                showNotification(`🎉 Congratulations! You reached Level ${finalLevel + 1}!`, true);
+            } else {
+                nextBtn.style.display = 'none';
+            }
+
+            document.getElementById('endPanel').style.display = 'flex';
+
+            if (userId && !dataSaved) {
+                dataSaved = true;
+                const saveData = {
+                    user_id: userId,
+                    game: 'catching-stars',
+                    level: finalLevel,
+                    score: score,
+                    stars_caught: score,
+                    grip_accuracy: gripAcc,
+                    avg_elbow: avgElbow
+                };
+                console.log("💾 Saving:", saveData);
+                fetch('/api/save-game-result/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(saveData)
+                }).then(r => r.json()).then(data => {
+                    if (data.success) console.log("✅ Saved successfully");
+                    else console.log("❌ Save failed:", data.error);
+                }).catch(err => console.log("Save error:", err));
+            }
+        }
+
         function startGame() {
             if (!unityInstance) {
                 showNotification('⏳ Loading game...');
@@ -704,29 +703,29 @@ function startGameUnity() {
                 return;
             }
 
+            gameEnded = false;
+            dataSaved = false;
             soundManager.playGameStart();
 
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
                     stream.getTracks().forEach(t => t.stop());
-
                     document.getElementById('startPanel').style.display = 'none';
                     document.getElementById('endPanel').style.display = 'none';
 
                     gameActive = true;
                     gameScore = 0;
-                    matchCount = 0;
-                    gameTime = 60;
+                    gameTime = GAME_CONFIG[`level${currentLevel}`]?.gameDuration || 60;
+                    finalLevel = currentLevel;
                     gripHistory = [];
                     updateUI();
 
-                    sendToUnity('GameManager', 'StartGameFromHTML', '');
-
-                    if (!mediaPipeActive) initMediaPipe();
-                    else mediaPipeActive = true;
+                    if (unityInstance && typeof unityInstance.sendMessage === 'function') {
+                        unityInstance.sendMessage('GameManager', 'StartGameFromHTML', '');
+                    }
 
                     soundManager.resumeAudio();
-                    showNotification('🎮 GAME STARTED! Grab cars and match colors!');
+                    showNotification('🎮 GAME STARTED! Close hand to grab cars!');
                 })
                 .catch(err => {
                     console.error('Camera error:', err);
@@ -734,95 +733,28 @@ function startGameUnity() {
                 });
         }
 
-        function exitToGames() {
-        soundManager.playButtonClick();
-        setTimeout(() => {
-            window.location.href = "/patient/";
-        }, 100);
-    }
-    
-    function restartGame() {
-        soundManager.playButtonClick();
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
-    }
-
         // ============================================================
-        // Unity → JS Callbacks
+        // Unity Callbacks
         // ============================================================
-        window.UpdateScoreFromUnity = function(score) {
-        if (score > gameScore) {
-            soundManager.playStarSound();
-        }
-        gameScore = score;
-        updateUI();
-        console.log(`📊 Score: ${gameScore}`);
-    };
-
-
-       window.UpdateTimerFromUnity = function(timer) {
-        let rounded = Math.ceil(timer);
-        if (rounded !== lastTimerValue && rounded >= 0) {
-            gameTime = rounded;
+        window.UpdateScoreFromUnity = function (score) {
+            if (score > gameScore) soundManager.playMatchSound();
+            gameScore = score;
             updateUI();
-            lastTimerValue = rounded;
-        }
-    };
-
-        window.OnCarGrabbed = function () {
-            soundManager.playGrab();
         };
 
-        window.OnWrongBasket = function () {
-            soundManager.playError();
-            showNotification('❌ Wrong basket! Try again!');
+
+
+        window.UpdateTimerFromUnity = function (timer) {
+            gameTime = parseFloat(timer) || 0;
+            updateUI();
         };
 
-       window.EndGameFromUnity = function(score) {
-        gameActive = false;
-        
-        const avgElbow = poseTracker ? poseTracker.getAverageElbow() : 0;
-        const gripAcc = calculateGripAccuracy();
-        
-        document.getElementById('finalScore').innerHTML = score;
-        document.getElementById('finalScoreDetail').innerHTML = score;
-        document.getElementById('avgElbow').innerHTML = avgElbow;
-        document.getElementById('gripAccuracy').innerHTML = gripAcc;
-        
-        document.getElementById('endPanel').style.display = 'flex';
-        
-        if (camera) {
-            mediaPipeActive = false;
-            camera.stop();
-        }
-
-            // Save result
-             const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get("user_id");
-        if (userId) {
-            fetch('/api/save-game-result/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: userId,
-                    game: "Matching_Game",
-                    score: score,
-                    stars_caught: score,
-                    avg_elbow: avgElbow,
-                    grip_accuracy: gripAcc
-                })
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      console.log("Result saved for patient");
-                  }
-              }).catch(err => console.log("Save error:", err));
-        }
+        window.EndGameFromUnity = function (score) {
+            if (!gameEnded) endGame(score);
         };
 
         // ============================================================
-        // Unity Loader (same pattern as Catching_Stars)
+        // Unity Loader
         // ============================================================
         const canvas = document.querySelector('#unity-canvas');
 
@@ -843,46 +775,48 @@ function startGameUnity() {
             }).then(instance => {
                 unityInstance = instance;
                 window.unityInstance = instance;
-
-                // Normalize sendMessage casing (same fix as Catching_Stars)
-                if (typeof unityInstance.sendMessage !== 'function') {
-                    if (unityInstance.Module?.SendMessage) {
-                        unityInstance.sendMessage = (obj, method, val) =>
-                            unityInstance.Module.SendMessage(obj, method, val);
-                    }
+                if (typeof unityInstance.sendMessage !== 'function' && instance.Module?.SendMessage) {
+                    unityInstance.sendMessage = (obj, method, val) => instance.Module.SendMessage(obj, method, val);
                 }
-
                 console.log('✅ Unity Matching Game ready');
-                showNotification('✅ Game ready! Click START');
+                showNotification('✅ Game ready! Click START!');
             }).catch(err => {
                 console.error('Unity error:', err);
                 showNotification('❌ Error loading game: ' + err.message);
             });
         }
 
+        // ============================================================
+        // Initialization
+        // ============================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('user_id') ? parseInt(urlParams.get('user_id')) : 1;
+        const forceLevel = urlParams.get('force_level');
+        if (forceLevel) currentLevel = parseInt(forceLevel);
+
+        document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
+        document.getElementById('levelValue').innerText = currentLevel;
+        updateGripSensitivityDisplay(GAME_CONFIG[`level${currentLevel}`]?.gripSensitivity || 75);
+
         waitForUnity();
 
         // ============================================================
-        // Button Events
+        // Event Listeners
         // ============================================================
-        document.getElementById('startBtn').onclick = function() {
-        soundManager.playButtonClick();
-        startGame();
-    };
-    
-    document.getElementById('restartBtn').onclick = function() {
-        soundManager.playButtonClick();
-        restartGame();
-    };
-    
-    document.getElementById('exitBtn').onclick = function() {
-        exitToGames();
-    };
-    
-    document.body.addEventListener('click', function() {
-        soundManager.resumeAudio();
-    }, { once: true });
-        console.log('🚗 Matching Game - Ready!');
+        document.getElementById('startBtn').onclick = () => { soundManager.playButtonClick(); startGame(); };
+        document.getElementById('nextLevelBtn').onclick = () => {
+            soundManager.playButtonClick();
+            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel + 1}`;
+        };
+        document.getElementById('restartBtn').onclick = () => {
+            soundManager.playButtonClick();
+            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}`;
+        };
+        document.getElementById('exitBtn').onclick = () => {
+            soundManager.playButtonClick();
+            setTimeout(() => window.location.href = "/patient/", 100);
+        };
+        document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });
     </script>
 </body>
 
