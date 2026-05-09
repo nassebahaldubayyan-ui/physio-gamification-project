@@ -2,65 +2,87 @@
 
 public class DraggableCar : MonoBehaviour
 {
-    private bool isDragging = false;
-    private HandController handController;
-    private SpriteRenderer spriteRenderer;
     public ColorType color;
+
+    [Header("Grab Settings")]
+    public float grabDistance = 2.5f;   
+    public float dropDistance = 2.5f;     // مسافة الإيداع في السلة
+
+    private bool isHolding = false;
+    private bool handClosed = false;
+    private Transform handPoint;
+    private BoxCollider2D carCollider;
 
     void Start()
     {
-        handController = HandController.Instance;
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        carCollider = GetComponent<BoxCollider2D>();
+        if (carCollider == null)
+            carCollider = gameObject.AddComponent<BoxCollider2D>();
+
+
+        if (!gameObject.CompareTag("Car"))
+            gameObject.tag = "Car";
+
+        FindHand();
+    }
+
+    void FindHand()
+    {
+        GameObject hand = GameObject.FindGameObjectWithTag("Hand");
+        if (hand != null) handPoint = hand.transform;
     }
 
     void Update()
     {
-        if (handController == null) return;
-        if (!handController.IsGameRunning()) return;
-
-        Vector3 handPos = handController.GetHandWorldPosition();
-        bool isPinching = handController.IsPinching();
-
-        // طباعة المسافة فقط عندما تحاول الإمساك (لتجنب زحمة الـ Console)
-        if (isPinching)
+        if (handPoint == null)
         {
-            float dist = Vector3.Distance(handPos, transform.position);
-            Debug.Log($"Hand at: {handPos} | Car at: {transform.position} | Distance: {dist}");
+            FindHand();
+            if (handPoint == null) return;
         }
 
-        if (isPinching && !isDragging)
-        {
-            float distance = Vector3.Distance(handPos, transform.position);
+        float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
 
-            if (distance < 3.5f && handController.IsPinching())
+        // حالة 1: اليد مقفلة + قريبة → امسك
+        if (handClosed && distanceToHand < grabDistance && !isHolding)
+        {
+            isHolding = true;
+            if (carCollider != null) carCollider.enabled = false;
+            Debug.Log($"[DraggableCar] Grabbed {color} car. dist={distanceToHand:F2}");
+        }
+
+        // حالة 2: اليد فُتحت + ممسوكة → جرّب الإيداع
+        if (!handClosed && isHolding)
+        {
+            isHolding = false;
+            if (carCollider != null) carCollider.enabled = true;
+
+            if (IsOverMatchingBasket())
             {
-                isDragging = true;
-                if (spriteRenderer != null)
-                    spriteRenderer.color = Color.yellow;
+                if (GameManager.instance != null)
+                    GameManager.instance.AddScore(10);
+                Destroy(gameObject);
             }
         }
-        else if (isDragging && isPinching)
+
+        // تحريك السيارة مع اليد
+        if (isHolding)
         {
-            // جعل السيارة تتبع اليد مباشرة
-            transform.position = new Vector3(handPos.x, handPos.y, 0f);
-        }
-        else if (isDragging && !isPinching)
-        {
-            isDragging = false;
-            if (spriteRenderer != null)
-                spriteRenderer.color = Color.white;
+            transform.position = handPoint.position;
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (isDragging) return;
+    public void SetHandClosed(bool closed) { handClosed = closed; }
+    public bool IsHolding() { return isHolding; }
 
-        Basket basket = other.GetComponent<Basket>();
-        if (basket != null && basket.color == color)
+    bool IsOverMatchingBasket()
+    {
+        Basket[] allBaskets = FindObjectsOfType<Basket>();
+        foreach (Basket basket in allBaskets)
         {
-            GameManager.instance.AddScore(10);
-            Destroy(gameObject);
+            float dist = Vector2.Distance(transform.position, basket.transform.position);
+            if (dist < dropDistance && basket.color == color)
+                return true;
         }
+        return false;
     }
 }

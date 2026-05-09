@@ -8,21 +8,22 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     public int score = 0;
-    public int matches = 0;           // <--  للمطابقات
+    
     public TMP_Text scoreText;
-    public TMP_Text matchesText;       
+    
 
-    public float gameTime = 60f;       
+    public float gameTime = 60f;
     public TMP_Text timerText;
 
     public GameObject startPanel;
     public GameObject endPanel;
 
     public TMP_Text finalScoreText;
-    public TMP_Text finalMatchesText;   
+ 
 
     private bool isGameRunning = false;
     private bool gameEnded = false;
+    private int userID = 1;
 
     void Awake()
     {
@@ -32,66 +33,67 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    void Start()
+    {
+        UpdateScoreUI();
+        if (endPanel != null)
+            endPanel.SetActive(false);
+
+        // ������� userID �� Django (��� WebGL)
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // ���� �������� �� JavaScript
+#endif
+    }
+    public void SetUserID(int id)
+    {
+        userID = id;
+        Debug.Log("User ID set: " + userID);
+    }
+     void UpdateScoreUI()
+    {
+        if (scoreText != null)
+            scoreText.text = "Score: " + score;
+    }
+
     void Update()
     {
-        if (!isGameRunning) return;
+        if (!isGameRunning || gameEnded)
+            return;
 
         gameTime -= Time.deltaTime;
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-    Application.ExternalCall("UpdateTimerFromUnity", gameTime);
-#endif
-
+        // تحديث UI داخل Unity
         if (timerText != null)
             timerText.text = "Time: " + Mathf.Ceil(gameTime);
 
-        if (gameTime <= 0 && !gameEnded)
+#if UNITY_WEBGL && !UNITY_EDITOR
+    Application.ExternalCall("UpdateTimerFromUnity", Mathf.Ceil(gameTime));
+#endif
+
+        if (gameTime <= 0f)
         {
+            gameTime = 0f;
             EndGame();
         }
     }
 
-    // ============================================
-    // دوال تُنادى من JavaScript
-    // ============================================
-
-    public void StartGameFromHTML()
-    {
-        StartGame();
-    }
-
-    public void ForceEndGame()
-    {
-        if (!gameEnded)
-            EndGame();
-    }
-
-    // ============================================
-    // دوال اللعبة الأساسية
-    // ============================================
 
     public void StartGame()
     {
+        Time.timeScale = 1f;
+
         score = 0;
-        matches = 0;
         gameTime = 60f;
         gameEnded = false;
         isGameRunning = true;
 
         if (startPanel != null)
             startPanel.SetActive(false);
+
         if (endPanel != null)
             endPanel.SetActive(false);
 
-        UpdateUI();
-
-        // إعلام HandController أن اللعبة بدأت
-        if (HandController.Instance != null)
-        {
-#if !UNITY_EDITOR && UNITY_WEBGL
-            HandController.Instance.SetGameRunning("1");
-#endif
-        }
+        
     }
 
     public void EndGame()
@@ -101,80 +103,63 @@ public class GameManager : MonoBehaviour
         isGameRunning = false;
         gameEnded = true;
 
+        Time.timeScale = 0f;
+
         if (endPanel != null)
             endPanel.SetActive(true);
 
         if (finalScoreText != null)
             finalScoreText.text = "Final Score: " + score;
-        if (finalMatchesText != null)
-            finalMatchesText.text = "Matches: " + matches;
 
-        // إرسال النتيجة إلى JavaScript
-#if !UNITY_EDITOR && UNITY_WEBGL
-        SendResultsToJS();
+       
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    Application.ExternalCall("EndGameFromUnity", score);
 #endif
 
-        // إعلام HandController أن اللعبة انتهت
-        if (HandController.Instance != null)
-        {
-            HandController.Instance.SetGameRunning("0");
-        }
+        StartCoroutine(SendFinalScoreToDjango());
     }
 
     public void AddScore(int value)
     {
-        if (!isGameRunning) return;
-
         score += value;
-        matches += 1;  // كل مرة نضيف سكور، يعني مطابقة صحيحة
-        UpdateUI();
+        
+        UpdateScoreUI();
+        StartCoroutine(SendScoreToDjango(score));
+
     }
 
-    // للمطابقة الخاطئة
-    public void AddMiss()
+    
+
+
+    IEnumerator SendScoreToDjango(int currentScore)
     {
-        if (!isGameRunning) return;
-        // 
-    }
+        string url = "http://127.0.0.1:8000/api/update-score/";
+        WWWForm form = new WWWForm();
+        form.AddField("score", currentScore);
+        form.AddField("user_id", userID);
 
-    private void UpdateUI()
-    {
-        if (scoreText != null)
-            scoreText.text = "Score: " + score;
-
-        if (matchesText != null)
-            matchesText.text = "Matches: " + matches;
-
-#if !UNITY_EDITOR && UNITY_WEBGL
-        try {
-            Application.ExternalCall("UpdateScoreFromUnity", 0);
-            Application.ExternalCall("UpdateTimerFromUnity", 60);
-        } catch { }
-#endif
-    }
-
-    // ============================================
-    // إرسال النتائج إلى JavaScript
-    // ============================================
-
-    private void SendResultsToJS()
-    {
-#if !UNITY_EDITOR && UNITY_WEBGL
-        try
+        using (UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Post(url, form))
         {
-            // استدعاء دوال JavaScript
-            WebGLBridge.SendResults(score, matches);
+            yield return www.SendWebRequest();
+            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                Debug.LogError("Error sending score: " + www.error);
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error sending results to JS: " + e.Message);
-        }
-#endif
     }
 
-    public bool IsGameRunning()
+    IEnumerator SendFinalScoreToDjango()
     {
-        return isGameRunning;
+        string url = "http://127.0.0.1:8000/api/final-score/";
+        WWWForm form = new WWWForm();
+        form.AddField("final_score", score);
+        form.AddField("user_id", userID);
+        form.AddField("time", Mathf.Ceil(gameTime).ToString());
+
+        using (UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Post(url, form))
+        {
+            yield return www.SendWebRequest();
+            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                Debug.LogError("Error sending final score: " + www.error);
+        }
     }
-   
 }
