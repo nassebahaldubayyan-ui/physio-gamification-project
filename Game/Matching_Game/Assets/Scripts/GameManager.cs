@@ -20,9 +20,6 @@ public class GameManager : MonoBehaviour
 
     public TMP_Text finalScoreText;
  
-
-    private bool isGameRunning = false;
-    private bool gameEnded = false;
     private int userID = 1;
 
     void Awake()
@@ -57,68 +54,25 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (!isGameRunning || gameEnded)
-            return;
+        if (Time.timeScale == 0f) return;
 
         gameTime -= Time.deltaTime;
 
-        // تحديث UI داخل Unity
         if (timerText != null)
             timerText.text = "Time: " + Mathf.Ceil(gameTime);
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-    Application.ExternalCall("UpdateTimerFromUnity", Mathf.Ceil(gameTime));
-#endif
-
         if (gameTime <= 0f)
         {
-            gameTime = 0f;
-            EndGame();
+            Time.timeScale = 0f;
+            if (endPanel != null)
+                endPanel.SetActive(true);
+
+            // ÅÑÓÇá ÇáäÊíÌÉ ÇáäåÇÆíÉ Åáì Django
+            StartCoroutine(SendFinalScoreToDjango());
         }
     }
 
 
-    public void StartGame()
-    {
-        Time.timeScale = 1f;
-
-        score = 0;
-        gameTime = 60f;
-        gameEnded = false;
-        isGameRunning = true;
-
-        if (startPanel != null)
-            startPanel.SetActive(false);
-
-        if (endPanel != null)
-            endPanel.SetActive(false);
-
-        
-    }
-
-    public void EndGame()
-    {
-        if (gameEnded) return;
-
-        isGameRunning = false;
-        gameEnded = true;
-
-        Time.timeScale = 0f;
-
-        if (endPanel != null)
-            endPanel.SetActive(true);
-
-        if (finalScoreText != null)
-            finalScoreText.text = "Final Score: " + score;
-
-       
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-    Application.ExternalCall("EndGameFromUnity", score);
-#endif
-
-        StartCoroutine(SendFinalScoreToDjango());
-    }
 
     public void AddScore(int value)
     {
