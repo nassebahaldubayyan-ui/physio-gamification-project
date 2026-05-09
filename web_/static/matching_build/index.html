@@ -468,7 +468,6 @@
         this.catchSound = this.createSound(400, 0.12);
         this.starSound = this.createSound(880, 0.1);
         this.startSound = this.createStartSound();
-        this.levelUpSound = this.createLevelUpSound();
     }
     createSound(freq, duration) {
         return () => {
@@ -518,7 +517,6 @@
     playCatchSound() { if (this.catchSound) this.catchSound(); }
     playStarSound() { if (this.starSound) this.starSound(); }
     playGameStart() { if (this.startSound) this.startSound(); }
-    playLevelUp() { if (this.levelUpSound) this.levelUpSound(); }
     resumeAudio() { if (this.audioContext && this.audioContext.state === 'suspended') this.audioContext.resume(); }
 }
 
@@ -808,8 +806,7 @@ function startGameUnity() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     user_id: userId,
-                    level: 1,
-                    game: "catching_stars",
+                    game: "Matching_Game",
                     score: score,
                     stars_caught: score,
                     avg_elbow: avgElbow,
