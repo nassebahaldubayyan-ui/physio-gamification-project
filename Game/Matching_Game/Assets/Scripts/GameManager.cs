@@ -3,9 +3,9 @@ using TMPro;
 [System.Serializable]
 public class LevelConfig
 {
-    public int    levelNumber;
-    public float  gameDuration;
-    public int    gripSensitivity;
+    public int levelNumber;
+    public float gameDuration;
+    public int gripSensitivity;
     public string levelName;
 }
 public class GameManager : MonoBehaviour
@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
     private int userID = 1;
     private bool gameStarted = false;
 
-    
+
 
     void Awake()
     {
@@ -67,12 +67,17 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (!gameStarted || Time.timeScale == 0f) return; 
+        if (!gameStarted || Time.timeScale == 0f) return;
 
         timeLeft -= Time.deltaTime;
 
         if (timerText != null)
             timerText.text = "Time: " + Mathf.Ceil(timeLeft);
+
+        // ✅ أبلغ HTML بالتايمر
+#if UNITY_WEBGL && !UNITY_EDITOR
+    SendTimerToHTML(timeLeft);
+#endif
 
         if (timeLeft <= 0f)
         {
@@ -84,19 +89,20 @@ public class GameManager : MonoBehaviour
         SendEndGameToHTML(score);
 #endif
 
-            if (endPanel != null)
-                endPanel.SetActive(true);
+            if (endPanel != null) endPanel.SetActive(true);
         }
     }
+
+
 
     public void AddScore(int value)
     {
         score += value;
         UpdateUI();
         // ✅ أبلغ HTML بالسكور الجديد
-        #if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
         SendScoreToHTML(score);
-        #endif
+#endif
     }
 
     void UpdateUI()
@@ -110,4 +116,7 @@ public class GameManager : MonoBehaviour
 
     [System.Runtime.InteropServices.DllImport("__Internal")]
     private static extern void SendEndGameToHTML(int score);
+
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void SendTimerToHTML(float timer);
 }

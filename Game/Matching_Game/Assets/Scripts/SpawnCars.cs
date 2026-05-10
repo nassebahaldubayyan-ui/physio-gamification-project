@@ -17,7 +17,7 @@ public class SpawnCars : MonoBehaviour
     public float carLifeTime = 20f;
 
     [Header("Spawn Position")]
-    public float spawnX = 10f;      
+    public float spawnX = 0f;      
 
     [Header("Movement Speed")]
     public float carSpeed = 1.0f;   

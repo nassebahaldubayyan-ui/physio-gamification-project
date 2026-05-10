@@ -1,799 +1,953 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>🚗 Matching Game - Rehab</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             background: linear-gradient(135deg, #0a2a1a, #1a3a2a);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
+
         #unity-canvas {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: block;
         }
+
         .hand-cursor {
             position: fixed;
-            width: 55px; height: 55px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(100,200,100,0.7), rgba(50,150,50,0.4));
+            background: radial-gradient(circle, rgba(100, 200, 100, 0.7), rgba(50, 150, 50, 0.4));
             border: 3px solid #44ff88;
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 1000;
             transition: all 0.05s ease;
-            box-shadow: 0 0 20px rgba(68,255,136,0.6);
+            box-shadow: 0 0 20px rgba(68, 255, 136, 0.6);
         }
+
         .hand-cursor.gripping {
-            background: radial-gradient(circle, rgba(255,100,50,0.9), rgba(200,80,30,0.7));
+            background: radial-gradient(circle, rgba(255, 100, 50, 0.9), rgba(200, 80, 30, 0.7));
             border-color: #ff6633;
             transform: translate(-50%, -50%) scale(1.2);
-            box-shadow: 0 0 30px rgba(255,102,51,0.9);
+            box-shadow: 0 0 30px rgba(255, 102, 51, 0.9);
         }
+
         .hand-cursor.gripping::after {
             content: "✊";
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 26px; color: white;
+            font-size: 26px;
+            color: white;
             text-shadow: 0 0 5px black;
         }
+
         .hand-cursor::before {
             content: "✋";
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 26px; color: white;
+            font-size: 26px;
+            color: white;
             text-shadow: 0 0 5px black;
         }
+
         .ui-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 100;
             pointer-events: none;
         }
+
         .game-info {
             position: fixed;
-            top: 20px; left: 20px;
-            background: rgba(0,0,0,0.7);
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(10px);
             padding: 8px 16px;
             border-radius: 15px;
             font-family: monospace;
-            font-size: 14px; font-weight: bold;
+            font-size: 14px;
+            font-weight: bold;
             color: #88ffaa;
             z-index: 101;
-            border: 1px solid rgba(68,255,136,0.3);
+            border: 1px solid rgba(68, 255, 136, 0.3);
             pointer-events: none;
         }
-        .game-info span { color: #44ff88; font-size: 16px; }
+
+        .game-info span {
+            color: #44ff88;
+            font-size: 16px;
+        }
+
         .stats-panel {
             position: fixed;
-            bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.8);
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
             padding: 8px 14px;
             border-radius: 12px;
             font-family: monospace;
-            font-size: 11px; color: #aaaaff;
+            font-size: 11px;
+            color: #aaaaff;
             z-index: 101;
             border-left: 3px solid #44ff88;
             pointer-events: none;
         }
-        .stats-panel div { margin: 3px 0; }
+
+        .stats-panel div {
+            margin: 3px 0;
+        }
+
         .sensitivity-bar {
             position: fixed;
-            bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.7);
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
             padding: 6px 10px;
             border-radius: 8px;
             font-family: monospace;
-            font-size: 10px; color: #ffaa44;
-            z-index: 101; text-align: center;
+            font-size: 10px;
+            color: #ffaa44;
+            z-index: 101;
+            text-align: center;
         }
+
         .sensitivity-meter {
-            width: 80px; height: 4px;
+            width: 80px;
+            height: 4px;
             background: #333;
             border-radius: 2px;
-            margin-top: 4px; overflow: hidden;
+            margin-top: 4px;
+            overflow: hidden;
         }
+
         .notification-panel {
             position: fixed;
-            top: 20px; right: 20px;
+            top: 20px;
+            right: 20px;
             z-index: 101;
-            display: flex; flex-direction: column;
-            gap: 6px; max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 280px;
             pointer-events: none;
         }
+
         .notification {
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
             padding: 8px 14px;
             border-radius: 8px;
             border-left: 3px solid #44ff88;
             color: #88ffaa;
-            font-weight: bold; font-size: 12px;
+            font-weight: bold;
+            font-size: 12px;
             animation: slideIn 0.3s ease;
         }
-        .notification.level-up { border-left-color: #ffaa44; color: #ffdd88; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to   { transform: translateX(0);    opacity: 1; }
+
+        .notification.level-up {
+            border-left-color: #ffaa44;
+            color: #ffdd88;
         }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         .start-panel {
             position: fixed;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
             padding: 25px 40px;
-            border-radius: 30px; text-align: center;
+            border-radius: 30px;
+            text-align: center;
             z-index: 200;
             border: 2px solid #44ff88;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(20px);
-            pointer-events: auto; min-width: 380px;
+            pointer-events: auto;
+            min-width: 380px;
         }
-        .start-panel h1 { color: #88ffaa; font-size: 28px; margin-bottom: 8px; }
-        .start-panel p  { color: #aaaaff; margin-bottom: 15px; font-size: 12px; }
+
+        .start-panel h1 {
+            color: #88ffaa;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .start-panel p {
+            color: #aaaaff;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
         .start-panel button {
             background: linear-gradient(135deg, #44ff88, #22aa55);
-            border: none; padding: 10px 35px;
-            font-size: 18px; font-weight: bold;
-            border-radius: 40px; cursor: pointer;
-            color: #1a2a1a; transition: all 0.2s ease;
+            border: none;
+            padding: 10px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #1a2a1a;
+            transition: all 0.2s ease;
         }
-        .start-panel button:hover { transform: scale(1.02); }
+
+        .start-panel button:hover {
+            transform: scale(1.02);
+        }
+
         .instruction-line {
-            display: flex; align-items: center;
-            gap: 10px; margin: 8px 0;
-            color: #eee; font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            color: #eee;
+            font-size: 12px;
         }
-        .level-info { color: #44ff88; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+
+        .level-info {
+            color: #44ff88;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
         .instructions-box {
-            background: rgba(0,0,0,0.4);
-            border-radius: 16px; padding: 12px 16px;
-            margin: 12px 0; text-align: left;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            text-align: left;
         }
+
         .end-panel {
             position: fixed;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
             padding: 25px 35px;
-            border-radius: 30px; text-align: center;
+            border-radius: 30px;
+            text-align: center;
             z-index: 200;
             border: 2px solid #44ff88;
             min-width: 320px;
-            display: none; flex-direction: column;
+            display: none;
+            flex-direction: column;
             gap: 12px;
             backdrop-filter: blur(20px);
             pointer-events: auto;
         }
-        .end-panel h2 { color: #88ffaa; font-size: 26px; }
-        .final-score { font-size: 48px; color: #44ff88; font-weight: bold; }
-        .accuracy-data {
-            background: rgba(0,0,0,0.4);
-            border-radius: 14px; padding: 10px 16px; text-align: left;
+
+        .end-panel h2 {
+            color: #88ffaa;
+            font-size: 26px;
         }
+
+        .final-score {
+            font-size: 48px;
+            color: #44ff88;
+            font-weight: bold;
+        }
+
+        .accuracy-data {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 14px;
+            padding: 10px 16px;
+            text-align: left;
+        }
+
         .data-row {
-            display: flex; justify-content: space-between;
+            display: flex;
+            justify-content: space-between;
             padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 13px;
         }
-        .data-row:last-child { border-bottom: none; }
-        .data-label  { color: #88ffaa; font-weight: bold; }
-        .data-value  { color: white; font-family: monospace; }
-        .data-value span { color: #44ff88; }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            color: #88ffaa;
+            font-weight: bold;
+        }
+
+        .data-value {
+            color: white;
+            font-family: monospace;
+        }
+
+        .data-value span {
+            color: #44ff88;
+        }
+
         .button-group {
-            display: flex; gap: 12px;
-            justify-content: center; margin-top: 5px; flex-wrap: wrap;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 5px;
+            flex-wrap: wrap;
         }
+
         .end-panel button {
-            background: #44ff88; border: none;
-            padding: 8px 18px; font-size: 13px; font-weight: bold;
-            border-radius: 30px; cursor: pointer; color: #1a2a1a;
+            background: #44ff88;
+            border: none;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            color: #1a2a1a;
         }
-        .end-panel button:hover { background: #88ffaa; }
-        #nextLevelBtn { background: #ffaa44; color: #1a2a1a; display: none; }
-        #nextLevelBtn:hover { background: #ffcc66; }
+
+        .end-panel button:hover {
+            background: #88ffaa;
+        }
+
+        #nextLevelBtn {
+            background: #ffaa44;
+            color: #1a2a1a;
+            display: none;
+        }
+
+        #nextLevelBtn:hover {
+            background: #ffcc66;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
+
 <body>
 
-<canvas id="unity-canvas"></canvas>
-<div class="hand-cursor" id="handCursor"></div>
+    <canvas id="unity-canvas"></canvas>
+    <div class="hand-cursor" id="handCursor"></div>
 
-<div class="ui-overlay">
-    <div class="game-info">
-        🎮 LVL: <span id="levelValue">1</span> &nbsp;|
-        🚗 SCORE: <span id="scoreValue">0</span> &nbsp;|
-        ⏱️ TIME: <span id="timerValue">60</span>s
-    </div>
-    <div class="notification-panel" id="notificationPanel"></div>
-    <div class="stats-panel">
-        <div>🖐️ X: <span id="handXPos">--</span>% | Y: <span id="handYPos">--</span>%</div>
-        <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN ✋</span></div>
-        <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
-    </div>
-    <div class="sensitivity-bar">
-        🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
-        <div class="sensitivity-meter">
-            <div class="sensitivity-fill" id="sensitivityFill"></div>
+    <div class="ui-overlay">
+        <div class="game-info">
+            🎮 LVL: <span id="levelValue">1</span> &nbsp;|
+            🚗 SCORE: <span id="scoreValue">0</span> &nbsp;|
+            ⏱️ TIME: <span id="timerValue">60</span>s
         </div>
-        <span style="font-size:9px">↓ easier &nbsp;&nbsp;&nbsp;&nbsp; harder →</span>
-    </div>
-</div>
-
-<div class="start-panel" id="startPanel">
-    <h1>🚗 MATCHING GAME 🧩</h1>
-    <div class="level-info" id="startLevelInfo">⭐ Level 1 - Easy</div>
-    <p>Match each colored car to its box!</p>
-    <div class="instructions-box">
-        <div class="instruction-line"><span>✊</span><span>Close hand → GRAB car</span></div>
-        <div class="instruction-line"><span>🤚</span><span>Move hand → DRAG car</span></div>
-        <div class="instruction-line"><span>✋</span><span>Open hand over box → RELEASE</span></div>
-    </div>
-    <button id="startBtn">▶️ START GAME</button>
-</div>
-
-<div class="end-panel" id="endPanel">
-    <h2>🏆 GAME OVER 🏆</h2>
-    <div class="final-score" id="finalScore">0</div>
-    <div class="accuracy-data">
-        <div class="data-row">
-            <span class="data-label">🏆 Final Level</span>
-            <span class="data-value"><span id="finalLevel">1</span></span>
+        <div class="notification-panel" id="notificationPanel"></div>
+        <div class="stats-panel">
+            <div>🖐️ X: <span id="handXPos">--</span>% | Y: <span id="handYPos">--</span>%</div>
+            <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN ✋</span></div>
+            <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
         </div>
-        <div class="data-row">
-            <span class="data-label">📐 Avg Elbow Angle</span>
-            <span class="data-value"><span id="avgElbowDisplay">--</span>°</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">✊ Grip Accuracy</span>
-            <span class="data-value"><span id="gripAccuracy">--</span>%</span>
+        <div class="sensitivity-bar">
+            🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
+            <div class="sensitivity-meter">
+                <div class="sensitivity-fill" id="sensitivityFill"></div>
+            </div>
+            <span style="font-size:9px">↓ easier &nbsp;&nbsp;&nbsp;&nbsp; harder →</span>
         </div>
     </div>
-    <div class="button-group">
-        <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
-        <button id="restartBtn">🔄 PLAY AGAIN</button>
-        <button id="exitBtn">🚪 EXIT</button>
+
+    <div class="start-panel" id="startPanel">
+        <h1>🚗 MATCHING GAME 🧩</h1>
+        <div class="level-info" id="startLevelInfo">⭐ Level 1 - Easy</div>
+        <p>Match each colored car to its box!</p>
+        <div class="instructions-box">
+            <div class="instruction-line"><span>✊</span><span>Close hand → GRAB car</span></div>
+            <div class="instruction-line"><span>🤚</span><span>Move hand → DRAG car</span></div>
+            <div class="instruction-line"><span>✋</span><span>Open hand over box → RELEASE</span></div>
+        </div>
+        <button id="startBtn">▶️ START GAME</button>
     </div>
-</div>
 
-<script src="/static/matching_build/Build/matching_build.loader.js"></script>
+    <div class="end-panel" id="endPanel">
+        <h2>🏆 GAME OVER 🏆</h2>
+        <div class="final-score" id="finalScore">0</div>
+        <div class="accuracy-data">
+            <div class="data-row">
+                <span class="data-label">🏆 Final Level</span>
+                <span class="data-value"><span id="finalLevel">1</span></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">📐 Avg Elbow Angle</span>
+                <span class="data-value"><span id="avgElbowDisplay">--</span>°</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">✊ Grip Accuracy</span>
+                <span class="data-value"><span id="gripAccuracy">--</span>%</span>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
+            <button id="restartBtn">🔄 PLAY AGAIN</button>
+            <button id="exitBtn">🚪 EXIT</button>
+        </div>
+    </div>
 
-<script>
-// ============================================================
-// 🎮 Game Config
-// ============================================================
-const GAME_CONFIG = {
-    level1: { levelNumber: 1, gameDuration: 60, gripSensitivity: 160, levelName: "Easy"   },
-    level2: { levelNumber: 2, gameDuration: 55, gripSensitivity: 130, levelName: "Medium" },
-    level3: { levelNumber: 3, gameDuration: 50, gripSensitivity: 100, levelName: "Hard"   }
-};
-const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
+    <script src="/static/matching_build/Build/matching_build.loader.js"></script>
 
-// ============================================================
-// Sound Manager  
-// ============================================================
-class SoundManager {
-    constructor() { this.enabled = true; this.initSounds(); }
-    initSounds() {
-        try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-        catch(e) { this.enabled = false; return; }
-        this.buttonSound  = this.createSound(600, 0.08);
-        this.matchSound   = this.createSound(880, 0.15);
-        this.startSound   = this.createStartSound();
-        this.levelUpSound = this.createLevelUpSound();
-    }
-    createSound(freq, duration) {
-        return () => {
-            if (!this.enabled || !this.audioContext) return;
-            if (this.audioContext.state === 'suspended') this.audioContext.resume();
-            const now = this.audioContext.currentTime;
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-            osc.connect(gain); gain.connect(this.audioContext.destination);
-            osc.frequency.value = freq; gain.gain.value = 0.12;
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, now + duration);
-            osc.stop(now + duration);
+    <script>
+        // ============================================================
+        // 🎮 Game Config
+        // ============================================================
+        const GAME_CONFIG = {
+            level1: { levelNumber: 1, gameDuration: 60, gripSensitivity: 160, levelName: "Easy" },
+            level2: { levelNumber: 2, gameDuration: 55, gripSensitivity: 130, levelName: "Medium" },
+            level3: { levelNumber: 3, gameDuration: 50, gripSensitivity: 100, levelName: "Hard" }
         };
-    }
-    createStartSound() {
-        return () => {
-            if (!this.enabled || !this.audioContext) return;
-            if (this.audioContext.state === 'suspended') this.audioContext.resume();
-            const now = this.audioContext.currentTime;
-            const osc1 = this.audioContext.createOscillator();
-            const gain1 = this.audioContext.createGain();
-            osc1.connect(gain1); gain1.connect(this.audioContext.destination);
-            osc1.frequency.value = 800; gain1.gain.value = 0.12;
-            osc1.start();
-            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
-            osc1.stop(now + 0.1);
-            setTimeout(() => {
-                const osc2 = this.audioContext.createOscillator();
-                const gain2 = this.audioContext.createGain();
-                osc2.connect(gain2); gain2.connect(this.audioContext.destination);
-                osc2.frequency.value = 600; gain2.gain.value = 0.12;
-                osc2.start();
-                gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
-                osc2.stop(now + 0.2);
-            }, 120);
-        };
-    }
-    createLevelUpSound() {
-        return () => {
-            if (!this.enabled || !this.audioContext) return;
-            if (this.audioContext.state === 'suspended') this.audioContext.resume();
-            const now = this.audioContext.currentTime;
-            [523.25, 659.25, 783.99].forEach((f, i) => {
-                setTimeout(() => {
+        const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
+
+        // ============================================================
+        // Sound Manager  
+        // ============================================================
+        class SoundManager {
+            constructor() { this.enabled = true; this.initSounds(); }
+            initSounds() {
+                try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+                catch (e) { this.enabled = false; return; }
+                this.buttonSound = this.createSound(600, 0.08);
+                this.matchSound = this.createSound(880, 0.15);
+                this.startSound = this.createStartSound();
+                this.levelUpSound = this.createLevelUpSound();
+            }
+            createSound(freq, duration) {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
                     const osc = this.audioContext.createOscillator();
                     const gain = this.audioContext.createGain();
                     osc.connect(gain); gain.connect(this.audioContext.destination);
-                    osc.frequency.value = f; gain.gain.value = 0.15;
+                    osc.frequency.value = freq; gain.gain.value = 0.12;
                     osc.start();
-                    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
-                    osc.stop(now + 0.2);
-                }, i * 100);
-            });
-        };
-    }
-    playButtonClick() { if (this.buttonSound)  this.buttonSound();  }
-    playMatchSound()  { if (this.matchSound)    this.matchSound();   }
-    playGameStart()   { if (this.startSound)    this.startSound();   }
-    playLevelUp()     { if (this.levelUpSound)  this.levelUpSound(); }
-    resumeAudio() {
-        if (this.audioContext && this.audioContext.state === 'suspended')
-            this.audioContext.resume();
-    }
-}
-const soundManager = new SoundManager();
-
-// ============================================================
-// Angle Math  
-// ============================================================
-const AngleMath = {
-    calculateAngle(p1, p2, p3) {
-        const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z||0) - (p2.z||0) };
-        const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z||0) - (p2.z||0) };
-        const dot  = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
-        const mag1 = Math.hypot(v1.x, v1.y, v1.z);
-        const mag2 = Math.hypot(v2.x, v2.y, v2.z);
-        if (!mag1 || !mag2) return 0;
-        return Math.acos(Math.min(1, Math.max(-1, dot / (mag1 * mag2)))) * 180 / Math.PI;
-    }
-};
-
-// ============================================================
-// Game Variables
-// ============================================================
-let unityInstance       = null;
-let gameActive          = false;
-let gameScore           = 0;
-let gameTime            = 60;
-let currentLevel        = 1;
-let finalLevel          = 1;
-let userId              = null;
-let patientName         = "Guest";
-let gripHistory         = [];
-let elbowHistory        = [];           
-let currentGripSensitivity = 75;
-let mediaPipeActive     = false;
-let hands               = null;
-let camera              = null;
-let dataSaved           = false;
-let gameEnded           = false;
-
-// ============================================================
-// Unity Callbacks  
-// ============================================================
-window.unityCallbacks = {
-    onScore(score) {
-        if (score > gameScore) soundManager.playMatchSound();
-        gameScore = score;
-        updateUI();
-    },
-    onTimer(timer) {
-        gameTime = Math.ceil(parseFloat(timer) || 0);
-        updateUI();
-    },
-    onGameEnd(score) {
-        if (gameEnded) return;
-        gameEnded = true;
-        endGame(score);
-    },
-    onLevelChange(level) {
-        currentLevel = level;
-        updateUI();
-    }
-};
-
-// دعم الدوال المباشرة التي يناديها Unity
-window.UpdateScoreFromUnity = s  => window.unityCallbacks.onScore(s);
-window.UpdateTimerFromUnity = t  => window.unityCallbacks.onTimer(t);
-window.EndGameFromUnity     = s  => { if (!gameEnded) window.unityCallbacks.onGameEnd(s); };
-window.UpdateLevelFromUnity = l  => window.unityCallbacks.onLevelChange(l);
-window.OnLevelUp = level => {
-    currentLevel = level; finalLevel = level;
-    updateUI();
-    updateGripSensitivityDisplay(GAME_CONFIG[`level${level}`]?.gripSensitivity || 75);
-    showNotification(`🎉 LEVEL UP! Now at Level ${level} 🎉`, true);
-    soundManager.playLevelUp();
-};
-
-// ============================================================
-// UI Functions
-// ============================================================
-function updateUI() {
-    document.getElementById('scoreValue').innerText = gameScore;
-    document.getElementById('timerValue').innerText = gameTime;
-    document.getElementById('levelValue').innerText = currentLevel;
-}
-
-function showNotification(msg, isLevelUp = false) {
-    const panel = document.getElementById('notificationPanel');
-    const div = document.createElement('div');
-    div.className = 'notification' + (isLevelUp ? ' level-up' : '');
-    div.innerHTML = msg;
-    panel.appendChild(div);
-    setTimeout(() => div.remove(), 2500);
-}
-
-function updateHandCursor(handX, handY, isGripping) {
-    const cursor = document.getElementById('handCursor');
-    cursor.style.left = (handX * 100) + '%';
-    cursor.style.top  = (handY * 100) + '%';
-    if (isGripping) cursor.classList.add('gripping');
-    else            cursor.classList.remove('gripping');
-}
-
-function updateStatsDisplay(handX, handY, elbowAngle, isGripping) {
-    document.getElementById('handXPos').innerHTML    = Math.round(handX * 100);
-    document.getElementById('handYPos').innerHTML    = Math.round(handY * 100);
-    document.getElementById('elbowAngle').innerHTML  = Math.round(elbowAngle || 0);
-    const gripSpan = document.getElementById('gripStatus');
-    if (isGripping) { gripSpan.innerHTML = 'CLOSED ✊'; gripSpan.style.color = '#88ff88'; }
-    else            { gripSpan.innerHTML = 'OPEN ✋';   gripSpan.style.color = '#ff8888'; }
-}
-
-function updateGripSensitivityDisplay(sensitivity) {
-    currentGripSensitivity = sensitivity;
-    document.getElementById('sensitivityValue').innerText = sensitivity;
-}
-
-function updateSensitivityMeter(currentAngle) {
-    const fill = document.getElementById('sensitivityFill');
-    if (!fill) return;
-    const percent = Math.min(100, Math.max(0, (currentAngle / 100) * 100));
-    fill.style.width = percent + '%';
-    fill.style.background = currentAngle < currentGripSensitivity
-        ? "linear-gradient(90deg, #ff4444, #ff8844)"
-        : "linear-gradient(90deg, #44ff44, #88ff88)";
-}
-
-function calculateGripAccuracy() {
-    if (gripHistory.length === 0) return 100;
-    const recent  = gripHistory.slice(-300);
-    const success = recent.filter(v => v === 1).length;
-    return Math.round((success / recent.length) * 100);
-}
-
-function calculateAvgElbow() {
-    if (elbowHistory.length === 0) return 0;
-    const sum = elbowHistory.reduce((a, b) => a + b, 0);
-    return Math.round(sum / elbowHistory.length);
-}
-
-function calculateGripFromLandmarks(landmarks) {
-    const tips = [4, 8, 12, 16, 20];
-    const mcps = [1, 5,  9, 13, 17];
-    let total = 0;
-    for (let i = 0; i < tips.length; i++)
-        total += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
-    const avg = total / tips.length;
-    updateSensitivityMeter(avg);
-    return avg < currentGripSensitivity;
-}
-
-// ============================================================
-// Send to Unity  
-// ============================================================
-function sendToUnity(obj, method, value) {
-    if (!unityInstance || typeof unityInstance.sendMessage !== 'function') return;
-    try {
-        if (value !== undefined) unityInstance.sendMessage(obj, method, String(value));
-        else                     unityInstance.sendMessage(obj, method);
-    } catch(e) { console.error(`SendMessage error [${obj}.${method}]:`, e); }
-}
-
-function sendConfigToUnity(level) {
-    if (!unityInstance || typeof unityInstance.sendMessage !== 'function') {
-        setTimeout(() => sendConfigToUnity(level), 500);
-        return;
-    }
-    const config = GAME_CONFIG[`level${level}`];
-    if (config) {
-        try {
-            unityInstance.sendMessage('GameManager', 'ApplyLevelConfig', JSON.stringify(config));
-            updateGripSensitivityDisplay(config.gripSensitivity);
-            console.log("Config sent for level", level);
-        } catch(e) { console.error("Config send error:", e); }
-    }
-}
-
-function startGameUnity() {
-    if (!unityInstance || typeof unityInstance.sendMessage !== 'function') {
-        setTimeout(startGameUnity, 500);
-        return;
-    }
-    try {
-        // ✅ الدالة الصحيحة المطلوبة في GameManager.cs
-        unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
-        console.log("StartGameFromHTML sent to Unity");
-    } catch(e) { console.error("StartGameFromHTML error:", e); }
-}
-
-// ============================================================
-// MediaPipe  
-// ============================================================
-async function initMediaPipe() {
-    const video = document.createElement('video');
-    video.style.display = 'none';
-    document.body.appendChild(video);
-
-    hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-    hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
-
-    hands.onResults(results => {
-        if (!mediaPipeActive || !gameActive) return;
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0];
-            const wrist     = landmarks[0];
-            const handX     = 1 - wrist.x;   // عكس المحور الأفقي (mirror)
-            const handY     = wrist.y;
-            const isGripping = calculateGripFromLandmarks(landmarks);
-
-            gripHistory.push(isGripping ? 1 : 0);
-            if (gripHistory.length > 500) gripHistory.shift();
-
-            // ✅ محاكاة زاوية الكوع (يمكن استبدالها بـ pose لاحقاً)
-            const elbowAngle = 80 + Math.sin(Date.now() / 1000) * 10;
-            elbowHistory.push(elbowAngle);
-            if (elbowHistory.length > 500) elbowHistory.shift();
-
-            sendToUnity('HandController', 'SetHandPosition', handX.toFixed(3) + ',' + handY.toFixed(3));
-            sendToUnity('HandController', 'SetGripState', isGripping ? 'true' : 'false');
-
-            updateHandCursor(handX, handY, isGripping);
-            updateStatsDisplay(handX, handY, elbowAngle, isGripping);
+                    gain.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+                    osc.stop(now + duration);
+                };
+            }
+            createStartSound() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    const osc1 = this.audioContext.createOscillator();
+                    const gain1 = this.audioContext.createGain();
+                    osc1.connect(gain1); gain1.connect(this.audioContext.destination);
+                    osc1.frequency.value = 800; gain1.gain.value = 0.12;
+                    osc1.start();
+                    gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.1);
+                    osc1.stop(now + 0.1);
+                    setTimeout(() => {
+                        const osc2 = this.audioContext.createOscillator();
+                        const gain2 = this.audioContext.createGain();
+                        osc2.connect(gain2); gain2.connect(this.audioContext.destination);
+                        osc2.frequency.value = 600; gain2.gain.value = 0.12;
+                        osc2.start();
+                        gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                        osc2.stop(now + 0.2);
+                    }, 120);
+                };
+            }
+            createLevelUpSound() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    [523.25, 659.25, 783.99].forEach((f, i) => {
+                        setTimeout(() => {
+                            const osc = this.audioContext.createOscillator();
+                            const gain = this.audioContext.createGain();
+                            osc.connect(gain); gain.connect(this.audioContext.destination);
+                            osc.frequency.value = f; gain.gain.value = 0.15;
+                            osc.start();
+                            gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.2);
+                            osc.stop(now + 0.2);
+                        }, i * 100);
+                    });
+                };
+            }
+            playButtonClick() { if (this.buttonSound) this.buttonSound(); }
+            playMatchSound() { if (this.matchSound) this.matchSound(); }
+            playGameStart() { if (this.startSound) this.startSound(); }
+            playLevelUp() { if (this.levelUpSound) this.levelUpSound(); }
+            resumeAudio() {
+                if (this.audioContext && this.audioContext.state === 'suspended')
+                    this.audioContext.resume();
+            }
         }
-    });
+        const soundManager = new SoundManager();
 
-    camera = new Camera(video, {
-        onFrame: async () => { if (mediaPipeActive && hands) await hands.send({ image: video }); },
-        width: 640, height: 480
-    });
-    await camera.start();
-    mediaPipeActive = true;
-    console.log("✅ MediaPipe started");
-}
-
-// ============================================================
-// Game Control
-// ============================================================
-function endGame(score) {
-    gameActive = false;
-    if (camera) {
-        try { camera.stop(); } catch(e) {}
-        mediaPipeActive = false;
-    }
-
-    // ✅ الآن avgElbow معرّف بشكل صحيح
-    const avgElbow  = calculateAvgElbow();
-    const gripAcc   = calculateGripAccuracy();
-
-    document.getElementById('finalScore').innerHTML      = score;
-    document.getElementById('gripAccuracy').innerHTML    = gripAcc;
-    document.getElementById('finalLevel').innerHTML      = finalLevel;
-    document.getElementById('avgElbowDisplay').innerHTML = avgElbow;
-
-    let canAdvance = false;
-    if (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2) canAdvance = true;
-    if (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3) canAdvance = true;
-
-    const nextBtn = document.getElementById('nextLevelBtn');
-    if (canAdvance && finalLevel < 3) {
-        nextBtn.style.display = 'block';
-        showNotification(`🎉 Congratulations! You reached Level ${finalLevel + 1}!`, true);
-    } else {
-        nextBtn.style.display = 'none';
-    }
-
-    document.getElementById('endPanel').style.display = 'flex';
-
-    if (userId && !dataSaved) {
-        dataSaved = true;
-        const saveData = {
-            user_id:       userId,
-            game:          'matching-game',  
-            level:         finalLevel,
-            score:         score,
-            grip_accuracy: gripAcc,
-            avg_elbow:     avgElbow           
+        // ============================================================
+        // Angle Math  
+        // ============================================================
+        const AngleMath = {
+            calculateAngle(p1, p2, p3) {
+                const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z || 0) - (p2.z || 0) };
+                const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z || 0) - (p2.z || 0) };
+                const dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+                const mag1 = Math.hypot(v1.x, v1.y, v1.z);
+                const mag2 = Math.hypot(v2.x, v2.y, v2.z);
+                if (!mag1 || !mag2) return 0;
+                return Math.acos(Math.min(1, Math.max(-1, dot / (mag1 * mag2)))) * 180 / Math.PI;
+            }
         };
-        console.log("💾 Saving:", saveData);
-        fetch('/api/save-game-result/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(saveData)
-        }).then(r => r.json()).then(data => {
-            if (data.success) console.log("✅ Saved successfully");
-            else              console.log("❌ Save failed:", data.error);
-        }).catch(err => console.log("Save error:", err));
-    }
-}
 
-function startGame() {
-    if (!unityInstance) {
-        showNotification('⏳ Loading game...');
-        setTimeout(startGame, 500);
-        return;
-    }
+        // ============================================================
+        // Game Variables
+        // ============================================================
+        let unityInstance = null;
+        let gameActive = false;
+        let gameScore = 0;
+        let gameTime = 60;
+        let currentLevel = 1;
+        let finalLevel = 1;
+        let userId = null;
+        let patientName = "Guest";
+        let gripHistory = [];
+        let elbowHistory = [];
+        let currentGripSensitivity = 75;
+        let mediaPipeActive = false;
+        let hands = null;
+        let camera = null;
+        let dataSaved = false;
+        let gameEnded = false;
 
-    gameEnded  = false;
-    dataSaved  = false;
-    soundManager.playGameStart();
+        // ============================================================
+        // Unity Callbacks  
+        // ============================================================
+        window.unityCallbacks = {
+            onScore(score) {
+                if (score > gameScore) soundManager.playMatchSound();
+                gameScore = score;
+                updateUI();
+            },
+            onTimer(timer) {
+                gameTime = Math.ceil(parseFloat(timer) || 0);
+                updateUI();
+            },
+            onGameEnd(score) {
+                if (gameEnded) return;
+                gameEnded = true;
+                endGame(score);
+            },
+            onLevelChange(level) {
+                currentLevel = level;
+                updateUI();
+            }
+        };
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            stream.getTracks().forEach(t => t.stop());
-            document.getElementById('startPanel').style.display = 'none';
-            document.getElementById('endPanel').style.display   = 'none';
-
-            gameActive   = true;
-            gameScore    = 0;
-            gameTime     = GAME_CONFIG[`level${currentLevel}`]?.gameDuration || 60;
-            finalLevel   = currentLevel;
-            gripHistory  = [];
-            elbowHistory = [];
+        // دعم الدوال المباشرة التي يناديها Unity
+        window.UpdateScoreFromUnity = s => window.unityCallbacks.onScore(s);
+        window.UpdateTimerFromUnity = t => window.unityCallbacks.onTimer(t);
+        window.EndGameFromUnity = s => { if (!gameEnded) window.unityCallbacks.onGameEnd(s); };
+        window.UpdateLevelFromUnity = l => window.unityCallbacks.onLevelChange(l);
+        window.OnLevelUp = level => {
+            currentLevel = level; finalLevel = level;
             updateUI();
+            updateGripSensitivityDisplay(GAME_CONFIG[`level${level}`]?.gripSensitivity || 75);
+            showNotification(`🎉 LEVEL UP! Now at Level ${level} 🎉`, true);
+            soundManager.playLevelUp();
+        };
 
-            sendConfigToUnity(currentLevel);
-            startGameUnity();
+        // ============================================================
+        // UI Functions
+        // ============================================================
+        function updateUI() {
+            document.getElementById('scoreValue').innerText = gameScore;
+            document.getElementById('timerValue').innerText = gameTime;
+            document.getElementById('levelValue').innerText = currentLevel;
+        }
 
-            if (!mediaPipeActive) initMediaPipe();
-            else mediaPipeActive = true;
+        function showNotification(msg, isLevelUp = false) {
+            const panel = document.getElementById('notificationPanel');
+            const div = document.createElement('div');
+            div.className = 'notification' + (isLevelUp ? ' level-up' : '');
+            div.innerHTML = msg;
+            panel.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
 
-            soundManager.resumeAudio();
-            showNotification('🎮 GAME STARTED! Close hand to grab cars!');
-        })
-        .catch(err => {
-            console.error('Camera error:', err);
-            showNotification('❌ Please allow camera access!');
+        function updateHandCursor(handX, handY, isGripping) {
+            const cursor = document.getElementById('handCursor');
+            cursor.style.left = (handX * 100) + '%';
+            cursor.style.top = (handY * 100) + '%';
+            if (isGripping) cursor.classList.add('gripping');
+            else cursor.classList.remove('gripping');
+        }
+
+        function updateStatsDisplay(handX, handY, elbowAngle, isGripping) {
+            document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
+            document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
+            document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
+            const gripSpan = document.getElementById('gripStatus');
+            if (isGripping) { gripSpan.innerHTML = 'CLOSED ✊'; gripSpan.style.color = '#88ff88'; }
+            else { gripSpan.innerHTML = 'OPEN ✋'; gripSpan.style.color = '#ff8888'; }
+        }
+
+        function updateGripSensitivityDisplay(sensitivity) {
+            currentGripSensitivity = sensitivity;
+            document.getElementById('sensitivityValue').innerText = sensitivity;
+        }
+
+        function updateSensitivityMeter(currentAngle) {
+            const fill = document.getElementById('sensitivityFill');
+            if (!fill) return;
+            const percent = Math.min(100, Math.max(0, (currentAngle / 100) * 100));
+            fill.style.width = percent + '%';
+            fill.style.background = currentAngle < currentGripSensitivity
+                ? "linear-gradient(90deg, #ff4444, #ff8844)"
+                : "linear-gradient(90deg, #44ff44, #88ff88)";
+        }
+
+        function calculateGripAccuracy() {
+            if (gripHistory.length === 0) return 100;
+            const recent = gripHistory.slice(-300);
+            const success = recent.filter(v => v === 1).length;
+            return Math.round((success / recent.length) * 100);
+        }
+
+        function calculateAvgElbow() {
+            if (elbowHistory.length === 0) return 0;
+            const sum = elbowHistory.reduce((a, b) => a + b, 0);
+            return Math.round(sum / elbowHistory.length);
+        }
+
+        function calculateGripFromLandmarks(landmarks) {
+            const tips = [4, 8, 12, 16, 20];
+            const mcps = [1, 5, 9, 13, 17];
+            let total = 0;
+            for (let i = 0; i < tips.length; i++)
+                total += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
+            const avg = total / tips.length;
+            updateSensitivityMeter(avg);
+            return avg < currentGripSensitivity;
+        }
+
+        // ============================================================
+        // Send to Unity  
+        // ============================================================
+        function sendToUnity(obj, method, value) {
+            if (!unityInstance || typeof unityInstance.sendMessage !== 'function') return;
+            try {
+                if (value !== undefined) unityInstance.sendMessage(obj, method, String(value));
+                else unityInstance.sendMessage(obj, method);
+            } catch (e) { console.error(`SendMessage error [${obj}.${method}]:`, e); }
+        }
+
+        function sendConfigToUnity(level) {
+            if (!unityInstance || typeof unityInstance.sendMessage !== 'function') {
+                setTimeout(() => sendConfigToUnity(level), 500);
+                return;
+            }
+            const config = GAME_CONFIG[`level${level}`];
+            if (config) {
+                try {
+                    unityInstance.sendMessage('GameManager', 'ApplyLevelConfig', JSON.stringify(config));
+                    updateGripSensitivityDisplay(config.gripSensitivity);
+                    console.log("Config sent for level", level);
+                } catch (e) { console.error("Config send error:", e); }
+            }
+        }
+
+        function startGameUnity() {
+            if (!unityInstance || typeof unityInstance.sendMessage !== 'function') {
+                setTimeout(startGameUnity, 500);
+                return;
+            }
+            try {
+                // ✅ يطابق GameManager.cs
+                unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
+                console.log("StartGameFromHTML sent to Unity");
+            } catch (e) { console.error("StartGameFromHTML error:", e); }
+        }
+
+        // ============================================================
+        // MediaPipe  
+        // ============================================================
+        async function initMediaPipe() {
+            const video = document.createElement('video');
+            video.style.display = 'none';
+            document.body.appendChild(video);
+
+            hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(results => {
+                if (!mediaPipeActive || !gameActive) return;
+
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    const landmarks = results.multiHandLandmarks[0];
+                    const wrist = landmarks[0];
+                    const handX = 1 - wrist.x;
+                    const handY = wrist.y;
+                    const isGripping = calculateGripFromLandmarks(landmarks);
+
+                    gripHistory.push(isGripping ? 1 : 0);
+                    if (gripHistory.length > 500) gripHistory.shift();
+
+                    const elbowAngle = 80 + Math.sin(Date.now() / 1000) * 10;
+                    elbowHistory.push(elbowAngle);
+                    if (elbowHistory.length > 500) elbowHistory.shift();
+
+                    const packet = JSON.stringify({
+                        palm_x: handX,
+                        palm_y: 1 - handY,   // ✅ Unity يعكس Y
+                        hand_closed: isGripping,
+                        timestamp: Date.now() / 1000
+                    });
+                    sendToUnity('MatchingReceiver', 'ReceivePacketFromJS', packet);
+
+                    updateHandCursor(handX, handY, isGripping);
+                    updateStatsDisplay(handX, handY, elbowAngle, isGripping);
+                }
+            });
+
+            camera = new Camera(video, {
+                onFrame: async () => { if (mediaPipeActive && hands) await hands.send({ image: video }); },
+                width: 640, height: 480
+            });
+            await camera.start();
+            mediaPipeActive = true;
+            console.log("✅ MediaPipe started");
+        }
+
+        // ============================================================
+        // Game Control
+        // ============================================================
+        function endGame(score) {
+            gameActive = false;
+            if (camera) {
+                try { camera.stop(); } catch (e) { }
+                mediaPipeActive = false;
+            }
+
+            // ✅ الآن avgElbow معرّف بشكل صحيح
+            const avgElbow = calculateAvgElbow();
+            const gripAcc = calculateGripAccuracy();
+
+            document.getElementById('finalScore').innerHTML = score;
+            document.getElementById('gripAccuracy').innerHTML = gripAcc;
+            document.getElementById('finalLevel').innerHTML = finalLevel;
+            document.getElementById('avgElbowDisplay').innerHTML = avgElbow;
+
+            let canAdvance = false;
+            if (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2) canAdvance = true;
+            if (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3) canAdvance = true;
+
+            const nextBtn = document.getElementById('nextLevelBtn');
+            if (canAdvance && finalLevel < 3) {
+                nextBtn.style.display = 'block';
+                showNotification(`🎉 Congratulations! You reached Level ${finalLevel + 1}!`, true);
+            } else {
+                nextBtn.style.display = 'none';
+            }
+
+            document.getElementById('endPanel').style.display = 'flex';
+
+            if (userId && !dataSaved) {
+                dataSaved = true;
+                const saveData = {
+                    user_id: userId,
+                    game: 'matching-game',
+                    level: finalLevel,
+                    score: score,
+                    grip_accuracy: gripAcc,
+                    avg_elbow: avgElbow
+                };
+                console.log("💾 Saving:", saveData);
+                fetch('/api/save-game-result/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(saveData)
+                }).then(r => r.json()).then(data => {
+                    if (data.success) console.log("✅ Saved successfully");
+                    else console.log("❌ Save failed:", data.error);
+                }).catch(err => console.log("Save error:", err));
+            }
+        }
+
+        function startGame() {
+            if (!unityInstance) {
+                showNotification('⏳ Loading game...');
+                setTimeout(startGame, 500);
+                return;
+            }
+
+            gameEnded = false;
+            dataSaved = false;
+            soundManager.playGameStart();
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    stream.getTracks().forEach(t => t.stop());
+                    document.getElementById('startPanel').style.display = 'none';
+                    document.getElementById('endPanel').style.display = 'none';
+
+                    gameActive = true;
+                    gameScore = 0;
+                    gameTime = GAME_CONFIG[`level${currentLevel}`]?.gameDuration || 60;
+                    finalLevel = currentLevel;
+                    gripHistory = [];
+                    elbowHistory = [];
+                    updateUI();
+
+                    sendConfigToUnity(currentLevel);
+                    startGameUnity();
+
+                    if (!mediaPipeActive) initMediaPipe();
+                    else mediaPipeActive = true;
+
+                    soundManager.resumeAudio();
+                    showNotification('🎮 GAME STARTED! Close hand to grab cars!');
+                })
+                .catch(err => {
+                    console.error('Camera error:', err);
+                    showNotification('❌ Please allow camera access!');
+                });
+        }
+
+        // ============================================================
+        // Unity Loader  
+        // ============================================================
+        const canvas = document.querySelector('#unity-canvas');
+
+        function waitForUnity() {
+            if (typeof createUnityInstance === 'undefined') {
+                setTimeout(waitForUnity, 100);
+                return;
+            }
+            createUnityInstance(canvas, {
+                dataUrl: '/static/matching_build/Build/matching_build.data',
+                frameworkUrl: '/static/matching_build/Build/matching_build.framework.js',
+                codeUrl: '/static/matching_build/Build/matching_build.wasm',
+                streamingAssetsUrl: 'StreamingAssets',
+                companyName: 'RehabGames',
+                productName: 'MatchingGame',
+                productVersion: '1.0'
+            }).then(instance => {
+                if (typeof instance.sendMessage === 'function') {
+                    unityInstance = instance;
+                    console.log("✅ Unity ready - sendMessage direct");
+                } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
+                    unityInstance = {
+                        sendMessage: (obj, fn, val) => instance.Module.SendMessage(obj, fn, val)
+                    };
+                    console.log("✅ Unity ready - sendMessage via Module");
+                } else if (typeof instance.SendMessage === 'function') {
+                    unityInstance = {
+                        sendMessage: instance.SendMessage.bind(instance)
+                    };
+                    console.log("✅ Unity ready - sendMessage via SendMessage");
+                } else {
+                    console.error("❌ Cannot find sendMessage function");
+                    showNotification("❌ Unity loaded but sendMessage missing");
+                    return;
+                }
+
+                window.unityInstance = unityInstance;
+
+                // إرسال الإعدادات الأولية بعد تحميل Unity
+                setTimeout(() => {
+                    sendConfigToUnity(currentLevel);
+                    console.log("✅ Initial config sent to Unity");
+                }, 500);
+
+                showNotification('✅ Game ready! Click START!');
+            }).catch(err => {
+                console.error('Unity error:', err);
+                showNotification('❌ Error loading game: ' + err.message);
+            });
+        }
+
+        // ============================================================
+        // waitForDjango  
+        // ============================================================
+        function waitForDjango(callback) {
+            if (window.DJANGO_USER_ID) {
+                userId = window.DJANGO_USER_ID;
+                patientName = window.DJANGO_PATIENT_NAME || "Guest";
+                currentLevel = window.DJANGO_LEVEL || 1;
+                callback();
+            } else {
+                const params = new URLSearchParams(window.location.search);
+                const urlUserId = params.get('user_id');
+                const forceLevel = params.get('force_level');
+                if (urlUserId) {
+                    userId = parseInt(urlUserId);
+                    if (forceLevel) currentLevel = parseInt(forceLevel);
+                    callback();
+                } else {
+                    setTimeout(() => waitForDjango(callback), 100);
+                }
+            }
+        }
+
+        // ============================================================
+        // Initialization
+        // ============================================================
+        waitForDjango(() => {
+            console.log("User:", userId, "Level:", currentLevel);
+            updateGripSensitivityDisplay(GAME_CONFIG[`level${currentLevel}`]?.gripSensitivity || 75);
+            document.getElementById('startLevelInfo').innerHTML =
+                `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
+            document.getElementById('levelValue').innerText = currentLevel;
+            waitForUnity();
         });
-}
 
-// ============================================================
-// Unity Loader  
-// ============================================================
-const canvas = document.querySelector('#unity-canvas');
-
-function waitForUnity() {
-    if (typeof createUnityInstance === 'undefined') {
-        setTimeout(waitForUnity, 100);
-        return;
-    }
-    createUnityInstance(canvas, {
-        dataUrl:             '/static/matching_build/Build/matching_build.data',
-        frameworkUrl:        '/static/matching_build/Build/matching_build.framework.js',
-        codeUrl:             '/static/matching_build/Build/matching_build.wasm',
-        streamingAssetsUrl:  'StreamingAssets',
-        companyName:         'RehabGames',
-        productName:         'MatchingGame',
-        productVersion:      '1.0'
-    }).then(instance => {
-        if (typeof instance.sendMessage === 'function') {
-            unityInstance = instance;
-            console.log("✅ Unity ready - sendMessage direct");
-        } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
-            unityInstance = {
-                sendMessage: (obj, fn, val) => instance.Module.SendMessage(obj, fn, val)
-            };
-            console.log("✅ Unity ready - sendMessage via Module");
-        } else if (typeof instance.SendMessage === 'function') {
-            unityInstance = {
-                sendMessage: instance.SendMessage.bind(instance)
-            };
-            console.log("✅ Unity ready - sendMessage via SendMessage");
-        } else {
-            console.error("❌ Cannot find sendMessage function");
-            showNotification("❌ Unity loaded but sendMessage missing");
-            return;
-        }
-
-        window.unityInstance = unityInstance;
-
-        // إرسال الإعدادات الأولية بعد تحميل Unity
-        setTimeout(() => {
-            sendConfigToUnity(currentLevel);
-            console.log("✅ Initial config sent to Unity");
-        }, 500);
-
-        showNotification('✅ Game ready! Click START!');
-    }).catch(err => {
-        console.error('Unity error:', err);
-        showNotification('❌ Error loading game: ' + err.message);
-    });
-}
-
-// ============================================================
-// waitForDjango  
-// ============================================================
-function waitForDjango(callback) {
-    if (window.DJANGO_USER_ID) {
-        userId       = window.DJANGO_USER_ID;
-        patientName  = window.DJANGO_PATIENT_NAME || "Guest";
-        currentLevel = window.DJANGO_LEVEL || 1;
-        callback();
-    } else {
-        const params     = new URLSearchParams(window.location.search);
-        const urlUserId  = params.get('user_id');
-        const forceLevel = params.get('force_level');
-        if (urlUserId) {
-            userId = parseInt(urlUserId);
-            if (forceLevel) currentLevel = parseInt(forceLevel);
-            callback();
-        } else {
-            setTimeout(() => waitForDjango(callback), 100);
-        }
-    }
-}
-
-// ============================================================
-// Initialization
-// ============================================================
-waitForDjango(() => {
-    console.log("User:", userId, "Level:", currentLevel);
-    updateGripSensitivityDisplay(GAME_CONFIG[`level${currentLevel}`]?.gripSensitivity || 75);
-    document.getElementById('startLevelInfo').innerHTML =
-        `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
-    document.getElementById('levelValue').innerText = currentLevel;
-    waitForUnity();
-});
-
-// ============================================================
-// Event Listeners
-// ============================================================
-document.getElementById('startBtn').onclick   = () => { soundManager.playButtonClick(); startGame(); };
-document.getElementById('nextLevelBtn').onclick = () => {
-    soundManager.playButtonClick();
-    window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel + 1}`;
-};
-document.getElementById('restartBtn').onclick = () => {
-    soundManager.playButtonClick();
-    window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}`;
-};
-document.getElementById('exitBtn').onclick    = () => {
-    soundManager.playButtonClick();
-    setTimeout(() => window.location.href = "/patient/", 100);
-};
-document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });
-</script>
+        // ============================================================
+        // Event Listeners
+        // ============================================================
+        document.getElementById('startBtn').onclick = () => { soundManager.playButtonClick(); startGame(); };
+        document.getElementById('nextLevelBtn').onclick = () => {
+            soundManager.playButtonClick();
+            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel + 1}`;
+        };
+        document.getElementById('restartBtn').onclick = () => {
+            soundManager.playButtonClick();
+            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}`;
+        };
+        document.getElementById('exitBtn').onclick = () => {
+            soundManager.playButtonClick();
+            setTimeout(() => window.location.href = "/patient/", 100);
+        };
+        document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });
+    </script>
 </body>
+
 </html>
