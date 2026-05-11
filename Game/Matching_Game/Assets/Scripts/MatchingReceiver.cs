@@ -23,10 +23,11 @@ public class MatchingReceiver : MonoBehaviour
     {
         if (handPoint == null)
         {
-            GameObject hand = GameObject.FindGameObjectWithTag("Hand");
+            GameObject hand = GameObject.Find("Hand");
+            if (hand == null) hand = GameObject.FindGameObjectWithTag("Hand");
             if (hand == null)
             {
-                hand = new GameObject("HandPoint");
+                hand = new GameObject("Hand");
                 hand.tag = "Hand";
             }
             handPoint = hand.transform;

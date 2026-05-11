@@ -4,6 +4,10 @@ public class DraggableCar : MonoBehaviour
 {
     public ColorType color;
 
+    [Header("Drag thresholds (world units)")]
+    public float grabDistance = 1.5f;
+    public float dropDistance = 1.5f;
+
     private bool isHolding = false;
     private bool handClosed = false;
     private Transform handPoint;
@@ -18,30 +22,28 @@ public class DraggableCar : MonoBehaviour
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
 
-        GameObject hand = GameObject.FindGameObjectWithTag("Hand");
-        if (hand != null) handPoint = hand.transform;
+        handPoint = FindHandPoint();
     }
 
     void Update()
     {
         if (handPoint == null)
         {
-            GameObject hand = GameObject.FindGameObjectWithTag("Hand");
-            if (hand != null) handPoint = hand.transform;
-            return;
+            handPoint = FindHandPoint();
+            if (handPoint == null) return;
         }
 
         float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
 
-        // حالة 1: اليد مقفلة + السيارة قريبة → امسك
-        if (handClosed && distanceToHand < 1.5f && !isHolding)
+        // 1: hand closed + car nearby + not already holding -> grab
+        if (handClosed && distanceToHand < grabDistance && !isHolding)
         {
             isHolding = true;
             if (carCollider != null) carCollider.enabled = false;
-            Debug.Log($"Grabbed {color} car");
+            Debug.Log($"Grabbed {color} car (dist={distanceToHand:F2})");
         }
 
-        // حالة 2: اليد فتحت + السيارة ممسوكة → حاول الإيداع
+        // 2: hand opened while holding -> drop (and check for match)
         if (!handClosed && isHolding)
         {
             isHolding = false;
@@ -55,11 +57,18 @@ public class DraggableCar : MonoBehaviour
             }
         }
 
-        // تحريك السيارة مع اليد
         if (isHolding)
         {
             transform.position = handPoint.position;
         }
+    }
+
+   
+    private Transform FindHandPoint()
+    {
+        GameObject hand = GameObject.Find("Hand");
+        if (hand == null) hand = GameObject.FindGameObjectWithTag("Hand");
+        return hand != null ? hand.transform : null;
     }
 
     public void SetHandClosed(bool closed)
@@ -77,7 +86,8 @@ public class DraggableCar : MonoBehaviour
         Basket[] allBaskets = FindObjectsOfType<Basket>();
         foreach (Basket basket in allBaskets)
         {
-            if (Vector2.Distance(transform.position, basket.transform.position) < 1.5f && basket.color == color)
+            if (Vector2.Distance(transform.position, basket.transform.position) < dropDistance
+                && basket.color == color)
                 return true;
         }
         return false;
