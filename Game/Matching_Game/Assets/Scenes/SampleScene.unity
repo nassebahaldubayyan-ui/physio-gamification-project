@@ -565,7 +565,7 @@ GameObject:
   - component: {fileID: 514841953}
   m_Layer: 0
   m_Name: BOX2
-  m_TagString: Hand
+  m_TagString: Basket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -722,7 +722,7 @@ GameObject:
   - component: {fileID: 562188764}
   m_Layer: 0
   m_Name: BOX1
-  m_TagString: Hand
+  m_TagString: Basket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1384,7 +1384,7 @@ GameObject:
   - component: {fileID: 1282180216}
   - component: {fileID: 1282180215}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: MatchingReceiver
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1598,7 +1598,7 @@ GameObject:
   - component: {fileID: 1725267898}
   m_Layer: 0
   m_Name: BOX3
-  m_TagString: Hand
+  m_TagString: Basket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

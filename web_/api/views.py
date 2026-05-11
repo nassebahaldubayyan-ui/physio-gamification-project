@@ -330,17 +330,22 @@ def game_matching(request):
     
     user_id = request.GET.get('user_id', '').strip()
     
-    # إذا كان user_id فارغ، حاول من session
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
         if not user_id:
             return redirect('/gamer-login/')
     
     user_id = int(user_id)
-    
-    # تخزين user_id في الجلسة (عشان يضل محفوظ بين الصفحات)
     request.session['user_id'] = user_id
-    
+    request.session.modified = True
+
+    # تحديد المستوى
+    force_level = request.GET.get('force_level', '').strip()
+    if force_level and force_level.isdigit():
+        current_level = max(1, min(3, int(force_level)))
+    else:
+        current_level = 1
+
     try:
         user = Users.objects.get(id=user_id)
         
@@ -357,27 +362,34 @@ def game_matching(request):
     except Users.DoesNotExist:
         return redirect('/gamer-login/')
     
-    # قراءة ملف HTML الخاص بلعبة المطابقة
     file_path = os.path.join('static', 'matching_build', 'index.html')
-    
-    # إذا الملف غير موجود، جرب مكان آخر
     if not os.path.exists(file_path):
         file_path = os.path.join(settings.BASE_DIR, 'static', 'matching_build', 'index.html')
-    
     if not os.path.exists(file_path):
-        return HttpResponse("Matching game not found. Please build the game first.", status=404)
+        return HttpResponse("Matching game not found.", status=404)
     
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
     
-    # استبدال القيم في الـ HTML
     html_content = html_content.replace('__USER_ID__', str(user_id))
     html_content = html_content.replace('"__USER_ID__"', str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
     html_content = html_content.replace('__SIDE__', side)
-    html_content = html_content.replace('__LEVEL__', '1')
+    html_content = html_content.replace('__LEVEL__', str(current_level))
     
-    print(f"🎮 Matching Game - User: {user_id}, Name: {patient_name}, Side: {side}")
+    backup_script = f"""
+    <script>
+        window.DJANGO_USER_ID = {user_id};
+        window.DJANGO_PATIENT_NAME = "{patient_name}";
+        window.DJANGO_LEVEL = {current_level};
+        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID,
+                    "Patient:", window.DJANGO_PATIENT_NAME,
+                    "Level:", window.DJANGO_LEVEL);
+    </script>
+    """
+    html_content = html_content.replace('</body>', backup_script + '\n</body>')
+    
+    print(f"🎮 Matching Game - User: {user_id}, Name: {patient_name}, Level: {current_level}")
     
     return HttpResponse(html_content)
 
