@@ -470,7 +470,7 @@
                         shoulder: true,
                         elbow: true,
                         hand: true,
-                        rotation: false
+                        rotation: true
                     };
 
                 case 3:
@@ -1117,9 +1117,14 @@
                     lm[11], lm[13], lm[15], lm[23]
                 );
                 
-                poseTracker.leftShoulderExternalRotation = Math.max(0, rotation);
+                poseTracker.leftShoulderExternalRotation =
+                     Math.min(180, rotation * 2);
                 
             }
+            console.log("ROT:", {
+                right: poseTracker.rightShoulderExternalRotation,
+                left: poseTracker.leftShoulderExternalRotation
+            });
             // ===============================
             // UPDATE PREVIOUS ANGLES (FIX)
             // ===============================
