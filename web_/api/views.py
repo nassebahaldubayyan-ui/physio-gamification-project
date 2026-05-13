@@ -214,8 +214,10 @@ def get_level_from_assessment(patient):
     shoulder = patient.shoulder_strength or 0
     elbow = patient.elbow_strength or 0
     grip = patient.grip_strength or 0
+    shoulder_external = patient.shoulder_external_strength or 0
+
     
-    print(f"📊 Assessment Values - Shoulder: {shoulder}, Elbow: {elbow}, Grip: {grip}")
+    print(f"📊 Assessment Values - Shoulder: {shoulder}, Elbow: {elbow}, Grip: {grip}, Shoulder_external: {shoulder_external}")
     
     # مستوى الكتف
     if shoulder <= 35:
@@ -240,11 +242,18 @@ def get_level_from_assessment(patient):
         grip_level = 2
     else:
         grip_level = 3
+        
+    if shoulder_external <= 55:
+        shoulder_external_level = 1
+    elif shoulder_external <= 80:
+        shoulder_external_level = 2
+    else:
+        shoulder_external_level = 3
     
-    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}")
+    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}, Shoulder_external: {shoulder_external}")
     
     # المستوى النهائي = أقل مستوى
-    current_level = min(shoulder_level, elbow_level, grip_level)
+    current_level = min(shoulder_level, elbow_level, grip_level, shoulder_external_level)
     
     print(f"✅ Final Level from Assessment: {current_level}")
     
