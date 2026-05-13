@@ -931,8 +931,7 @@
                     shoulder_strength: this.maxAngles.shoulder,
                     elbow_strength: this.maxAngles.elbow,
                     grip_strength: this.maxAngles.hand_open,
-
-                    shoulder_external_rotation: this.maxAngles.shoulder_external_rotation
+                    shoulder_external_strength: this.maxAngles.shoulder_external_rotation,
                 };
                 try {
                     console.log("Sending payload:", payload);
@@ -1097,11 +1096,14 @@
                     prevAngles.rightElbow,
                     calculateAngle(lm[12], lm[14], lm[16])
                 );
-                const rotation = calculateShoulderRotation(
-                    lm[12], lm[14], lm[16], lm[24]
-                );
                 poseTracker.rightShoulderExternalRotation =
-                    Math.min(180, rotation * 2);
+                calculateShoulderRotation(
+                    lm[12], // shoulder
+                    lm[14], // elbow
+                    lm[16], // wrist
+                    lm[24], // hip
+                    "right"
+                );
             } else {
 
                 poseTracker.leftShoulderAngle = smoothAngle(
@@ -1113,12 +1115,14 @@
                     prevAngles.leftElbow,
                     calculateAngle(lm[11], lm[13], lm[15])
                 );
-                const rotation = calculateShoulderRotation(
-                    lm[11], lm[13], lm[15], lm[23]
-                );
-                
                 poseTracker.leftShoulderExternalRotation =
-                     Math.min(180, rotation * 2);
+                calculateShoulderRotation(
+                    lm[11], // shoulder
+                    lm[13], // elbow
+                    lm[15], // wrist
+                    lm[23], // hip
+                    "left"
+                );
                 
             }
             console.log("ROT:", {
@@ -1231,91 +1235,69 @@
         
         function calculateShoulderRotation(shoulder, elbow, wrist, hip) {
 
-            // ===== VECTORS =====
+            const elbowAngle = calculateAngle(shoulder, elbow, wrist);
 
-            // upper arm
-            const upper = {
-                x: elbow.x - shoulder.x,
-                y: elbow.y - shoulder.y,
-                z: elbow.z - shoulder.z
-            };
+            if (elbowAngle < 30 || elbowAngle > 150) return 0;
 
-            // forearm
             const forearm = {
                 x: wrist.x - elbow.x,
-                y: wrist.y - elbow.y,
-                z: wrist.z - elbow.z
+                y: wrist.y - elbow.y
             };
 
-            // torso reference
-            const torso = {
-                x: hip.x - shoulder.x,
-                y: hip.y - shoulder.y,
-                z: hip.z - shoulder.z
+            const upperArm = {
+                x: elbow.x - shoulder.x,
+                y: elbow.y - shoulder.y
             };
 
-            // ===== NORMALIZE =====
+            const dot = upperArm.x * forearm.x + upperArm.y * forearm.y;
 
-            function normalize(v) {
-                const mag = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+            const mag1 = Math.hypot(upperArm.x, upperArm.y);
+            const mag2 = Math.hypot(forearm.x, forearm.y);
 
-                if (mag === 0) {
-                    return {x:0, y:0, z:0};
-                }
+            if (mag1 * mag2 === 0) return 0;
 
-                return {
-                    x: v.x / mag,
-                    y: v.y / mag,
-                    z: v.z / mag
-                };
-            }
+            let cosTheta = dot / (mag1 * mag2);
+            cosTheta = Math.max(-1, Math.min(1, cosTheta));
 
-            const u = normalize(upper);
-            const f = normalize(forearm);
-            const t = normalize(torso);
+            let angle = Math.acos(cosTheta) * 180 / Math.PI;
 
-            // ===== PROJECT FOREARM ONTO PLANE
-            // perpendicular to upper arm =====
+            // --- NEW: distance factor ---
+            const wristToHip = Math.hypot(
+                wrist.x - hip.x,
+                wrist.y - hip.y
+            );
 
-            const dotUF = u.x*f.x + u.y*f.y + u.z*f.z;
+            const shoulderToHip = Math.hypot(
+                shoulder.x - hip.x,
+                shoulder.y - hip.y
+            );
 
-            const projected = {
-                x: f.x - dotUF * u.x,
-                y: f.y - dotUF * u.y,
-                z: f.z - dotUF * u.z
-            };
+            // normalize to 0 → 1
+            let distanceNorm = wristToHip / (shoulderToHip * 1.5);
 
-            const p = normalize(projected);
+            // clamp
+            distanceNorm = Math.max(0, Math.min(1, distanceNorm));
 
-            // ===== CREATE REFERENCE DIRECTION =====
-            // torso projected onto same plane
+            // normalize rotation (same as before)
+            const minROM = 60;
+            const maxROM = 150;
 
-            const dotUT = u.x*t.x + u.y*t.y + u.z*t.z;
+            let rotation = ((angle - minROM) / (maxROM - minROM)) * 100;
 
-            const torsoProjected = {
-                x: t.x - dotUT * u.x,
-                y: t.y - dotUT * u.y,
-                z: t.z - dotUT * u.z
-            };
+            // blend with spatial movement
+            const spatialBoost = distanceNorm * 25;
 
-            const r = normalize(torsoProjected);
+            // smooth + fuse spatial + angular info
+            let finalRotation = rotation + spatialBoost;
 
-            // ===== ANGLE BETWEEN PROJECTED VECTORS =====
+            // optional smoothing (IMPORTANT)
+            if (!window._prevRotation) window._prevRotation = 0;
 
-            let dot = p.x*r.x + p.y*r.y + p.z*r.z;
+            finalRotation = window._prevRotation * 0.7 + finalRotation * 0.3;
+            window._prevRotation = finalRotation;
 
-            dot = Math.max(-1, Math.min(1, dot));
-
-            let angle = Math.acos(dot) * (180 / Math.PI);
-
-            // ===== CONVERT TO CLINICAL ROM =====
-            // neutral = 0°
-            // full external ≈ 90°
-            // convert to 180-style display if desired
-
-            angle = Math.abs(angle);
-
-            return angle;
+            // clamp
+            return Math.max(0, Math.min(100, finalRotation));
         }
 
         function updateAngleGridState() {

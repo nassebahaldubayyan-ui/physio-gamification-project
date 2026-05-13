@@ -977,6 +977,7 @@ def api_save_initial_assessment(request):
         patient.shoulder_strength = data.get("shoulder_strength", 0)
         patient.elbow_strength = data.get("elbow_strength", 0)
         patient.grip_strength = data.get("grip_strength", 0)
+        patient.shoulder_external_strength = data.get("shoulder_external_strength", 0)
 
         # optional tracking fields
         patient.has_assessment_video = 1
