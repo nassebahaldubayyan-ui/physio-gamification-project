@@ -86,15 +86,28 @@
         
         .angles-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
             margin: 30px 0;
+            align-items: stretch;
+            overflow-x: auto;  /* allows scroll if screen is small */
+            white-space: nowrap;
         }
-        
+        @media (max-width: 1200px) {
+            .angles-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .angles-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
         .angle-card {
             background: white;
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 10px;
             border: 2px solid #e2e8f0;
             transition: all 0.3s;
             text-align: center;
@@ -107,8 +120,8 @@
         
         .angle-card h4 {
             color: #1e293b;
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 12px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -116,21 +129,20 @@
         }
         
         .angle-value-large {
-            font-size: 36px;
+            font-size: 18px;
             font-weight: 800;
             color: #3b82f6;
         }
         
         .angle-unit-large {
-            font-size: 16px;
+            font-size: 12px;
             color: #94a3b8;
         }
         
         .main-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 25px;
-            margin: 25px 0;
         }
         
         .camera-section {
@@ -361,39 +373,23 @@
             </ul>
         </div>
         
-        <div class="angles-grid" id="anglesGrid" style="display: none;">
-            <div class="angle-card"><h4><span>🦾</span> Left Shoulder</h4><div><span class="angle-value-large" id="leftShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
-            <div class="angle-card"><h4><span>💪</span> Left Elbow</h4><div><span class="angle-value-large" id="leftElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
-            <div class="angle-card"><h4><span>🦾</span> Right Shoulder</h4><div><span class="angle-value-large" id="rightShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
-            <div class="angle-card"><h4><span>💪</span> Right Elbow</h4><div><span class="angle-value-large" id="rightElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
-            <div class="angle-card">
-                <h4>🔄 Shoulder External Rotation</h4>
-                <div>
-                    <span class="angle-value-large" id="extRotationDisplay">0</span>
-                    <span class="angle-unit-large">°</span>
-                </div>
-            </div>
-        </div>
-        
         <div class="main-grid" id="mainGrid" style="display: none;">
             <div class="camera-section">
                 <div class="video-wrapper">
                     <video id="video" autoplay muted playsinline style="width:100%; max-height:500px; object-fit:cover; border-radius:10px; background:#000;"></video>
                 </div>
             </div>
-            <div class="analysis-panel">
-                <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
-                <div class="angle-card">
-                    <h4>✋ Hand Open</h4>
-                    <div>
-                        <span class="angle-value-large" id="handOpenDisplay">0</span>
-                        <span class="angle-unit-large">%</span>
-                    </div>
-                </div>
-                <div class="feedback-box"><div class="feedback-text" id="feedbackText"><i class="fas fa-info-circle"></i> Position yourself in front of the camera</div></div>
-            </div>
+             <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
         </div>
-        
+             
+        <div class="angles-grid" id="anglesGrid" style="display: none;">
+            <div class="angle-card"><h4><span>🦾</span> Left Shoulder</h4><div><span class="angle-value-large" id="leftShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>💪</span> Left Elbow</h4><div><span class="angle-value-large" id="leftElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>🦾</span> Right Shoulder</h4><div><span class="angle-value-large" id="rightShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4><span>💪</span> Right Elbow</h4><div><span class="angle-value-large" id="rightElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4>🔄 Shoulder External Rotation</h4><div><span class="angle-value-large" id="extRotationDisplay">0</span><span class="angle-unit-large">°</span></div></div>
+            <div class="angle-card"><h4>✋ Hand Open</h4><div><span class="angle-value-large" id="handOpenDisplay">0</span><span class="angle-unit-large">%</span></div></div>
+        </div>
         <div class="progress-bar" id="progressBar" style="display: none;"><div class="progress-fill" id="progressFill"></div></div>
         
         <div class="current-status" id="currentStatus" style="display: none;">✅ Ready to start recording<br>Press "Start Recording" to begin</div>
