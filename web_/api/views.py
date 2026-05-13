@@ -250,7 +250,7 @@ def get_level_from_assessment(patient):
     else:
         shoulder_external_level = 3
     
-    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}, Shoulder_external: {shoulder_external}")
+    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}, Shoulder_external: {shoulder_external_level}")
     
     # المستوى النهائي = أقل مستوى
     current_level = min(shoulder_level, elbow_level, grip_level, shoulder_external_level)
