@@ -391,6 +391,23 @@ def game_matching(request):
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
+
+    try:
+        user = Users.objects.get(id=user_id)
+        
+        if user.role != 'patient':
+            return redirect('/gamer-login/')
+        
+        patient = Patients.objects.filter(user=user).first()
+        if not patient:
+            return HttpResponse("Your account is not linked to a patient record.", status=403)
+        
+        patient_name = user.name
+        side = patient.affected_hand if patient.affected_hand else 'right'
+        
+    except Users.DoesNotExist:
+        return redirect('/gamer-login/')
+    
     # تحديد المستوى
     from .models import GameSessions
 
@@ -430,21 +447,7 @@ def game_matching(request):
 
     print(f"✅ Final level: {current_level}")
 
-    try:
-        user = Users.objects.get(id=user_id)
-        
-        if user.role != 'patient':
-            return redirect('/gamer-login/')
-        
-        patient = Patients.objects.filter(user=user).first()
-        if not patient:
-            return HttpResponse("Your account is not linked to a patient record.", status=403)
-        
-        patient_name = user.name
-        side = patient.affected_hand if patient.affected_hand else 'right'
-        
-    except Users.DoesNotExist:
-        return redirect('/gamer-login/')
+    
     
     file_path = os.path.join('static', 'matching_build', 'index.html')
     if not os.path.exists(file_path):
