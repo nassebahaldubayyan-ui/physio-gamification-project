@@ -7,6 +7,11 @@ public class LevelConfig
     public float gameDuration;
     public int gripSensitivity;
     public string levelName;
+
+    public float carSpeed;
+    public float spawnInterval;
+    public float grabDistance;
+    public float dropDistance;
 }
 public class GameManager : MonoBehaviour
 {
@@ -21,7 +26,7 @@ public class GameManager : MonoBehaviour
     private int userID = 1;
     private bool gameStarted = false;
 
-
+    public SpawnCars spawnManager;
 
     void Awake()
     {
@@ -45,7 +50,14 @@ public class GameManager : MonoBehaviour
         if (config == null) return;
 
         timeLeft = config.gameDuration;
-        Debug.Log($"Config applied: Level {config.levelNumber}, Duration {config.gameDuration}s");
+
+        if (spawnManager != null)
+        {
+            spawnManager.ApplyLevelSettings(config);
+        }
+
+        Debug.Log($"Config applied: Level {config.levelNumber}");
+
         UpdateUI();
     }
 

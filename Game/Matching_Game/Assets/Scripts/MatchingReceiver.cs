@@ -101,18 +101,52 @@ public class MatchingReceiver : MonoBehaviour
 
     void UpdateGame(TrackerPacket p)
     {
-        if (handPoint != null && Camera.main != null)
+        if (handPoint != null)
         {
-            Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
-            worldPos.z = 0f;
-            handPoint.position = worldPos;
-        }
+            Vector3 worldPos =
+                Camera.main.ViewportToWorldPoint(
+                    new Vector3(
+                        p.palm_x,
+                        p.palm_y,
+                        10f
+                    )
+                );
 
-        // Send hand-closed state to all cars
+            worldPos.z = 0f;
+
+            handPoint.position = Vector3.Lerp(
+                handPoint.position,
+                worldPos,
+                Time.deltaTime * 30f
+            );
+        }
         DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
+
+        DraggableCar closestCar = null;
+        float closestDistance = Mathf.Infinity;
+
         foreach (DraggableCar car in allCars)
         {
-            car.SetHandClosed(p.hand_closed);
+            float dist = Vector2.Distance(
+                handPoint.position,
+                car.transform.position
+            );
+
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closestCar = car;
+            }
+        }
+
+        foreach (DraggableCar car in allCars)
+        {
+            car.SetHandClosed(false);
+        }
+
+        if (closestCar != null && closestDistance < 2f)
+        {
+            closestCar.SetHandClosed(p.hand_closed);
         }
     }
     void OnDestroy()

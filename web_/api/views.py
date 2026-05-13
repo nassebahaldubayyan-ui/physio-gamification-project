@@ -391,13 +391,44 @@ def game_matching(request):
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
-
     # تحديد المستوى
+    from .models import GameSessions
+
     force_level = request.GET.get('force_level', '').strip()
+
     if force_level and force_level.isdigit():
-        current_level = max(1, min(3, int(force_level)))
+        current_level = int(force_level)
+        current_level = max(1, min(3, current_level))
+        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
     else:
-        current_level = 1
+        last_session = GameSessions.objects.filter(
+            patient=patient,
+            game_type='matching-game'
+        ).order_by('-session_date').first()
+
+        if last_session is None:
+            current_level = 1
+            print("📊 No previous sessions, starting at level 1")
+        else:
+            level_thresholds = {
+                1: 5,   # إذا جاب 5 ينتقل للمستوى 2
+                2: 12,  # إذا جاب 12 ينتقل للمستوى 3
+                3: 99
+            }
+
+            last_level = last_session.level
+            last_score = last_session.score
+
+            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
+
+            if last_level >= 3:
+                current_level = 3
+            elif last_score >= level_thresholds.get(last_level, 5):
+                current_level = last_level + 1
+            else:
+                current_level = last_level
+
+    print(f"✅ Final level: {current_level}")
 
     try:
         user = Users.objects.get(id=user_id)
