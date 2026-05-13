@@ -547,7 +547,17 @@ def api_register(request):
                 avatar="default-avatar.png",
                 is_active=True
             )
-            
+            if role == "patient":
+                Patients.objects.create(
+                    user=user,
+                    patient_id=f"PT{user.id}",
+                    date_of_birth="",
+                    gender="",
+                    medical_condition="",
+                    therapy_type="",
+                    affected_hand="right",
+                    current_level=1
+                )
             return JsonResponse({
                 "success": True,
                 "message": "User registered successfully",
