@@ -218,17 +218,17 @@ def get_level_from_assessment(patient):
     print(f"📊 Assessment Values - Shoulder: {shoulder}, Elbow: {elbow}, Grip: {grip}")
     
     # مستوى الكتف
-    if shoulder <= 80:
+    if shoulder <= 35:
         shoulder_level = 1
-    elif shoulder <= 130:
+    elif shoulder <= 50:
         shoulder_level = 2
     else:
         shoulder_level = 3
     
     # مستوى المرفق
-    if elbow <= 50:
+    if elbow <= 55:
         elbow_level = 1
-    elif elbow <= 80:
+    elif elbow <= 90:
         elbow_level = 2
     else:
         elbow_level = 3
