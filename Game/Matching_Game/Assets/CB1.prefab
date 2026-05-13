@@ -80,7 +80,7 @@ SpriteRenderer:
   m_Sprite: {fileID: 21300000, guid: 69c855d21e3a19a44b9fced41f4c0ec8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
-  m_FlipY: 1
+  m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 15.36, y: 10.24}
   m_AdaptiveModeThreshold: 0.5
@@ -140,9 +140,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17b6de6e68f89d349ba156581ab6f1fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 2
   grabDistance: 2.5
   dropDistance: 2.5
+  color: 2
 --- !u!61 &8628479455727983929
 BoxCollider2D:
   m_ObjectHideFlags: 0
