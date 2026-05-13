@@ -547,7 +547,17 @@ def api_register(request):
                 avatar="default-avatar.png",
                 is_active=True
             )
-            
+            if role == "patient":
+                Patients.objects.create(
+                    user=user,
+                    patient_id=f"PT{user.id}",
+                    date_of_birth="",
+                    gender="",
+                    medical_condition="",
+                    therapy_type="",
+                    affected_hand="right",
+                    current_level=1
+                )
             return JsonResponse({
                 "success": True,
                 "message": "User registered successfully",
@@ -977,6 +987,7 @@ def api_save_initial_assessment(request):
         patient.shoulder_strength = data.get("shoulder_strength", 0)
         patient.elbow_strength = data.get("elbow_strength", 0)
         patient.grip_strength = data.get("grip_strength", 0)
+        patient.shoulder_external_strength = data.get("shoulder_external_strength", 0)
 
         # optional tracking fields
         patient.has_assessment_video = 1

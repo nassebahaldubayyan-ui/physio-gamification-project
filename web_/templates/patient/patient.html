@@ -660,19 +660,15 @@
         // CHECK ASSESSMENT STATUS
         // ============================================
         function checkAssessmentStatus() {
+    // localStorage.removeItem('assessmentCompleted');
+    // localStorage.removeItem('hasAssessmentVideo');
+    
     // Get assessment status from localStorage
     const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
     const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
     const isFirstTime = localStorage.getItem('firstTime') === null;
     
     console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
-    
-    // ✅ FORCE CHECK - Make sure we read correctly
-    if (hasVideo === true || assessmentCompleted === true) {
-        console.log('✅ Assessment completed - enabling games');
-        enableGameCards();
-        return;
-    }
     
     // Case 1: User has already completed assessment
     if (hasVideo || assessmentCompleted) {
