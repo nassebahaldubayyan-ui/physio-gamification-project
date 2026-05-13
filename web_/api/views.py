@@ -159,7 +159,7 @@ def game_catching_stars(request):
     
         if last_session is None:
             current_level = get_level_from_assessment(patient)
-            print("📊 No previous sessions, starting at level 1")
+            print("📊 No previous sessions")
         else:
             # thresholds للنجوم: 10 نقاط للمستوى 2، 20 نقطة للمستوى 3
             level_thresholds = {1: 10, 2: 20, 3: 999}
@@ -320,7 +320,7 @@ def game_catching_objects(request):
     
         if last_session is None:
             current_level = get_level_from_assessment(patient)
-            print("📊 No previous sessions, starting at level 1")
+            print("📊 No previous sessions")
         else:
             level_thresholds = {1: 20, 2: 40, 3: 999}
             last_level = last_session.level
@@ -424,8 +424,8 @@ def game_matching(request):
         ).order_by('-session_date').first()
 
         if last_session is None:
-            current_level = 1
-            print("📊 No previous sessions, starting at level 1")
+            current_level = get_level_from_assessment(patient)
+            print("📊 No previous sessions")
         else:
             level_thresholds = {
                 1: 5,   # إذا جاب 5 ينتقل للمستوى 2
