@@ -28,7 +28,7 @@ public class BasketCollector : MonoBehaviour
         if (car.IsHolding() && car.color == myBasket.color)
         {
             if (GameManager.Instance != null)
-                GameManager.Instance.AddScore(10);
+                GameManager.Instance.AddScore(1);
 
             Destroy(other.gameObject);
         }

@@ -423,10 +423,42 @@
         // 🎮 Game Config
         // ============================================================
         const GAME_CONFIG = {
-            level1: { levelNumber: 1, gameDuration: 60, gripSensitivity: 160, levelName: "Easy" },
-            level2: { levelNumber: 2, gameDuration: 55, gripSensitivity: 130, levelName: "Medium" },
-            level3: { levelNumber: 3, gameDuration: 50, gripSensitivity: 100, levelName: "Hard" }
-        };
+    level1: {
+        levelNumber: 1,
+        gameDuration: 60,
+        gripSensitivity: 160,
+        levelName: "Easy",
+
+        carSpeed: 1.2,
+        spawnInterval: 2.5,
+        grabDistance: 1.8,
+        dropDistance: 1.8
+    },
+
+    level2: {
+        levelNumber: 2,
+        gameDuration: 50,
+        gripSensitivity: 130,
+        levelName: "Medium",
+
+        carSpeed: 2.0,
+        spawnInterval: 1.8,
+        grabDistance: 1.4,
+        dropDistance: 1.4
+    },
+
+    level3: {
+        levelNumber: 3,
+        gameDuration: 40,
+        gripSensitivity: 100,
+        levelName: "Hard",
+
+        carSpeed: 3.2,
+        spawnInterval: 1.0,
+        grabDistance: 1.0,
+        dropDistance: 1.0
+    }
+};
         const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
 
         // ============================================================

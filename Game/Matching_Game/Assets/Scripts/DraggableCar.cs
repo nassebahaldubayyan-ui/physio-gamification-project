@@ -2,73 +2,97 @@
 
 public class DraggableCar : MonoBehaviour
 {
-    public ColorType color;
-
-    [Header("Drag thresholds (world units)")]
-    public float grabDistance = 1.5f;
-    public float dropDistance = 1.5f;
-
     private bool isHolding = false;
     private bool handClosed = false;
+
     private Transform handPoint;
-    private CircleCollider2D carCollider;
+
+    [Header("Grab Settings")]
+    public float grabDistance = 1.5f;
+    public float dropDistance = 1.5f;
+    public ColorType color;
+
+
+    private Rigidbody2D rb;
+    private Collider2D carCollider;
 
     void Start()
     {
-        carCollider = GetComponent<CircleCollider2D>();
-        if (carCollider == null)
-            carCollider = gameObject.AddComponent<CircleCollider2D>();
+        GameObject hand = GameObject.FindGameObjectWithTag("Hand");
 
-        if (!gameObject.CompareTag("Car"))
-            gameObject.tag = "Car";
+        if (hand != null)
+            handPoint = hand.transform;
 
-        handPoint = FindHandPoint();
+        rb = GetComponent<Rigidbody2D>();
+
+        carCollider = GetComponent<Collider2D>();
     }
 
     void Update()
     {
-        if (handPoint == null)
+        if (handPoint == null) return;
+
+        float distance =
+            Vector2.Distance(transform.position, handPoint.position);
+
+        // =========================
+        // إمساك السيارة
+        // =========================
+        if (handClosed &&
+            !isHolding &&
+            distance < grabDistance)
         {
-            handPoint = FindHandPoint();
-            if (handPoint == null) return;
+            StartHolding();
         }
 
-        float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
-
-        // 1: hand closed + car nearby + not already holding -> grab
-        if (handClosed && distanceToHand < grabDistance && !isHolding)
-        {
-            isHolding = true;
-            if (carCollider != null) carCollider.enabled = false;
-            Debug.Log($"Grabbed {color} car (dist={distanceToHand:F2})");
-        }
-
-        // 2: hand opened while holding -> drop (and check for match)
+        // =========================
+        // إفلات السيارة
+        // =========================
         if (!handClosed && isHolding)
         {
-            isHolding = false;
-            if (carCollider != null) carCollider.enabled = true;
-
-            if (IsOverMatchingBasket())
-            {
-                if (GameManager.Instance != null)
-                    GameManager.Instance.AddScore(10);
-                Destroy(gameObject);
-            }
+            StopHolding();
         }
 
+        // =========================
+        // تحريك السيارة مع اليد
+        // =========================
         if (isHolding)
         {
-            transform.position = handPoint.position;
+            transform.position = Vector3.Lerp(
+    transform.position,
+    handPoint.position,
+    Time.deltaTime * 18f
+);
+
         }
     }
 
-   
-    private Transform FindHandPoint()
+    void StartHolding()
     {
-        GameObject hand = GameObject.Find("Hand");
-        if (hand == null) hand = GameObject.FindGameObjectWithTag("Hand");
-        return hand != null ? hand.transform : null;
+        isHolding = true;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        if (carCollider != null)
+            carCollider.isTrigger = true;
+    }
+
+    void StopHolding()
+    {
+        isHolding = false;
+
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
+
+        if (carCollider != null)
+            carCollider.enabled = false;
     }
 
     public void SetHandClosed(bool closed)
@@ -79,17 +103,5 @@ public class DraggableCar : MonoBehaviour
     public bool IsHolding()
     {
         return isHolding;
-    }
-
-    bool IsOverMatchingBasket()
-    {
-        Basket[] allBaskets = FindObjectsOfType<Basket>();
-        foreach (Basket basket in allBaskets)
-        {
-            if (Vector2.Distance(transform.position, basket.transform.position) < dropDistance
-                && basket.color == color)
-                return true;
-        }
-        return false;
     }
 }
