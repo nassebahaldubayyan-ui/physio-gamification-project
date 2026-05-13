@@ -245,7 +245,7 @@ def get_level_from_assessment(patient):
         
     if shoulder_external <= 55:
         shoulder_external_level = 1
-    elif shoulder_external <= 80:
+    elif shoulder_external <= 70:
         shoulder_external_level = 2
     else:
         shoulder_external_level = 3
