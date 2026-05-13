@@ -158,7 +158,7 @@ def game_catching_stars(request):
         ).order_by('-session_date').first()
     
         if last_session is None:
-            current_level = 1
+            current_level = get_level_from_assessment(patient)
             print("📊 No previous sessions, starting at level 1")
         else:
             # thresholds للنجوم: 10 نقاط للمستوى 2، 20 نقطة للمستوى 3
@@ -205,6 +205,50 @@ def game_catching_stars(request):
     print(f"{'='*50}\n")
     return HttpResponse(html_content)
 
+
+def get_level_from_assessment(patient):
+    """
+    تحديد المستوى بناءً على التقييم الأولي
+    يستخدم أقل مستوى من (الكتف، المرفق، القبضة)
+    """
+    shoulder = patient.shoulder_strength or 0
+    elbow = patient.elbow_strength or 0
+    grip = patient.grip_strength or 0
+    
+    print(f"📊 Assessment Values - Shoulder: {shoulder}, Elbow: {elbow}, Grip: {grip}")
+    
+    # مستوى الكتف
+    if shoulder <= 80:
+        shoulder_level = 1
+    elif shoulder <= 130:
+        shoulder_level = 2
+    else:
+        shoulder_level = 3
+    
+    # مستوى المرفق
+    if elbow <= 50:
+        elbow_level = 1
+    elif elbow <= 80:
+        elbow_level = 2
+    else:
+        elbow_level = 3
+    
+    # مستوى القبضة
+    if grip <= 35:
+        grip_level = 1
+    elif grip <= 55:
+        grip_level = 2
+    else:
+        grip_level = 3
+    
+    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}")
+    
+    # المستوى النهائي = أقل مستوى
+    current_level = min(shoulder_level, elbow_level, grip_level)
+    
+    print(f"✅ Final Level from Assessment: {current_level}")
+    
+    return current_level
 
     
 def game_catching_objects(request):
@@ -266,41 +310,8 @@ def game_catching_objects(request):
         ).order_by('-session_date').first()
     
         if last_session is None:
-
-            print("📊 No previous sessions")
-            print("📊 Using Initial Assessment")
-
-            shoulder = patient.shoulder_strength or 0
-            grip = patient.grip_strength or 0
-
-            print(f"Shoulder Strength: {shoulder}")
-            print(f"Grip Strength: {grip}")
-
-    # ====================================================
-    # LEVEL 1 (LOW)
-    # ====================================================
-            if (
-                shoulder <= 35 or
-                grip <= 35
-            ):
-                current_level = 1
-
-    # ====================================================
-    # LEVEL 2 (MEDIUM)
-    # ====================================================
-            elif (
-                shoulder <= 50 or
-                grip <= 55
-                ):
-                    current_level = 2
-
-    # ====================================================
-    # LEVEL 3 (HIGH)
-    # ====================================================
-            else:
-                current_level = 3
-
-                print(f"✅ Initial Assessment Level: {current_level}")
+            current_level = get_level_from_assessment(patient)
+            print("📊 No previous sessions, starting at level 1")
         else:
             level_thresholds = {1: 20, 2: 40, 3: 999}
             last_level = last_session.level
