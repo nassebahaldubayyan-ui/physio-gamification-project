@@ -207,135 +207,140 @@ def game_catching_stars(request):
 
 
     
-def get_level_from_assessment(shoulder, elbow, external_rotation):
-    """
-    تحديد المستوى بناءً على قيم التقييم الأولي
-    """
-    # مستوى الكتف
-    if shoulder < 35:
-        shoulder_level = 1
-    elif shoulder <= 50:
-        shoulder_level = 2
-    else:
-        shoulder_level = 3
-    
-    # مستوى اليد/المرفق
-    if elbow < 35:
-        elbow_level = 1
-    elif elbow <= 55:
-        elbow_level = 2
-    else:
-        elbow_level = 3
-    
-    # مستوى الالتفاف الخارجي
-    if external_rotation < 55:
-        rotation_level = 1
-    elif external_rotation <= 70:
-        rotation_level = 2
-    else:
-        rotation_level = 3
-    
-    # حساب المتوسط (المستوى)
-    avg_level = round((shoulder_level + elbow_level + rotation_level) / 3)
-    
-    # التأكد من أن المستوى بين 1 و 3
-    return max(1, min(3, avg_level))
-
-
 def game_catching_objects(request):
     print(f"\n{'='*50}")
     print(f"🎮 game_catching_objects CALLED")
+    print(f"📥 GET params: {request.GET}")
+    print(f"📥 Session: {dict(request.session)}")
     
     user_id = request.GET.get('user_id', '').strip()
+    print(f"📥 user_id from GET: '{user_id}'")
     
+    # إذا ما في user_id في GET، جرب من session
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
+        print(f"📥 user_id from session: '{user_id}'")
+        
         if not user_id:
+            print("❌ No user_id found anywhere!")
             return redirect('/gamer-login/')
     
     user_id = int(user_id)
     request.session['user_id'] = user_id
+    request.session.modified = True  # ✅ مهم: حفظ session
     
+    print(f"✅ Final user_id: {user_id}")
+
     try:
         user = Users.objects.get(id=user_id)
+        print(f"✅ User found: {user.name} (role: {user.role})")
+        
         if user.role != 'patient':
+            print(f"❌ User is not patient, role: {user.role}")
             return redirect('/gamer-login/')
         
         patient = Patients.objects.filter(user=user).first()
         if not patient:
+            print("❌ No patient record")
             return HttpResponse("Your account is not linked to a patient record.", status=403)
         
         patient_name = user.name
         
-        # بيانات التقييم الأولي
-        shoulder_strength = patient.shoulder_strength or 0
-        elbow_strength = patient.elbow_strength or 0
-        external_rotation = patient.external_rotation or 0
-        
-        print(f"📊 Assessment Data - Shoulder: {shoulder_strength}, Elbow: {elbow_strength}, Rotation: {external_rotation}")
-        
     except Users.DoesNotExist:
+        print(f"❌ User {user_id} not found")
         return redirect('/gamer-login/')
     
-    # ✅ تحديد المستوى
+    # تحديد المستوى من DB
     from .models import GameSessions
-    
     force_level = request.GET.get('force_level', '').strip()
-    
+
     if force_level and force_level.isdigit():
-        # PLAY AGAIN -> نفس المستوى
-        current_level = max(1, min(3, int(force_level)))
-        print(f"🔁 PLAY AGAIN - Level: {current_level}")
+        # المريض ضغط PLAY AGAIN — نبقى بنفس المستوى بدون ما نرفعه
+        current_level = int(force_level)
+        current_level = max(1, min(3, current_level))
+        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
     else:
-        # ✅ التحقق إذا كان المريض قد لعب من قبل (أي عنده جلسات مسجلة)
-        has_played = GameSessions.objects.filter(
+        last_session = GameSessions.objects.filter(
             patient=patient,
             game_type='catching-objects'
-        ).exists()
-        
-        if not has_played:
-            # ❗ لم يلعب أبداً -> يحدد المستوى من التقييم الأولي
-            current_level = get_level_from_assessment(
-                shoulder_strength, 
-                elbow_strength, 
-                external_rotation
-            )
-            print(f"📊 FIRST TIME PLAYER - Level from assessment: {current_level}")
+        ).order_by('-session_date').first()
+    
+        if last_session is None:
+
+            print("📊 No previous sessions")
+            print("📊 Using Initial Assessment")
+
+            shoulder = patient.shoulder_strength or 0
+            grip = patient.grip_strength or 0
+
+            print(f"Shoulder Strength: {shoulder}")
+            print(f"Grip Strength: {grip}")
+
+    # ====================================================
+    # LEVEL 1 (LOW)
+    # ====================================================
+            if (
+                shoulder <= 35 or
+                grip <= 35
+            ):
+                current_level = 1
+
+    # ====================================================
+    # LEVEL 2 (MEDIUM)
+    # ====================================================
+            elif (
+                shoulder <= 50 or
+                grip <= 55
+                ):
+                    current_level = 2
+
+    # ====================================================
+    # LEVEL 3 (HIGH)
+    # ====================================================
+            else:
+                current_level = 3
+
+                print(f"✅ Initial Assessment Level: {current_level}")
         else:
-            # ✅ لعب قبل كذا -> يحدد المستوى من آخر جلسة (نفس النظام القديم)
-            last_session = GameSessions.objects.filter(
-                patient=patient,
-                game_type='catching-objects'
-            ).order_by('-session_date').first()
-            
             level_thresholds = {1: 20, 2: 40, 3: 999}
             last_level = last_session.level
             last_score = last_session.score
-            
-            print(f"📊 RETURNING PLAYER - Last Level: {last_level}, Last Score: {last_score}")
-            
+        
+            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
+        
             if last_level >= 3:
                 current_level = 3
-            elif last_score >= level_thresholds.get(last_level, 20):
+            elif last_score >= level_thresholds.get(last_level, 5):
                 current_level = last_level + 1
             else:
                 current_level = last_level
     
-    print(f"✅ Final Level: {current_level}")
+    print(f"✅ Final level: {current_level}")
     
-    # ✅ قراءة ملف اللعبة
+    # ✅ قراءة الملف
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
     
+    # ✅ طباعة قبل الاستبدال للتحقق
+    print(f"📝 Before replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
+    print(f"📝 Before replace - contains __PATIENT_NAME__: {'__PATIENT_NAME__' in html_content}")
+    print(f"📝 Before replace - contains __LEVEL__: {'__LEVEL__' in html_content}")
+    
     # ✅ استبدال المتغيرات
     html_content = html_content.replace('__USER_ID__', str(user_id))
+    html_content = html_content.replace('"__USER_ID__"', str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
     html_content = html_content.replace('__LEVEL__', str(current_level))
     
-    # ✅ إضافة سكريبت تأكيد
+    # ✅ طباعة بعد الاستبدال للتحقق
+    print(f"📝 After replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
+    print(f"📝 Final check - user {user_id} in HTML: {str(user_id) in html_content}")
+    
+    # ✅ إضافة سكريبت تأكيد (خطة B)
     backup_script = f"""
     <script>
+        // ✅ Django Backup - يضمن إن userId موجود
         window.DJANGO_USER_ID = {user_id};
         window.DJANGO_PATIENT_NAME = "{patient_name}";
         window.DJANGO_LEVEL = {current_level};
@@ -345,7 +350,10 @@ def game_catching_objects(request):
     </script>
     """
     
+    # حقن السكريبت قبل </body>
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
+    
+    print(f"{'='*50}\n")
     
     return HttpResponse(html_content)
     
