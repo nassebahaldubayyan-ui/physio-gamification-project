@@ -11,6 +11,12 @@ public class MatchingReceiver : MonoBehaviour
     public int port = 5053;
     public Transform handPoint;
 
+    [Header("Hand Smoothing")]
+    [Range(5f, 30f)]
+    public float handFollowSpeed = 20f;  
+
+    private Vector3 targetHandPos;  
+
 #if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient udpClient;
     private Thread receiveThread;
@@ -18,6 +24,10 @@ public class MatchingReceiver : MonoBehaviour
     private TrackerPacket latestPacket;
     private object packetLock = new object();
 #endif
+
+    private DraggableCar[] cachedCars = new DraggableCar[0];
+    private float cacheRefreshInterval = 0.5f;
+    private float lastCacheTime = -1f;
 
     void Start()
     {
@@ -33,6 +43,8 @@ public class MatchingReceiver : MonoBehaviour
             handPoint = hand.transform;
         }
 
+        targetHandPos = handPoint.position;
+
 #if !UNITY_WEBGL || UNITY_EDITOR
         try
         {
@@ -47,7 +59,7 @@ public class MatchingReceiver : MonoBehaviour
             Debug.LogWarning("MatchingReceiver disabled: " + e.Message);
         }
 #else
-        Debug.Log("MatchingReceiver: WebGL build - UDP disabled, using JS bridge instead.");
+        Debug.Log("MatchingReceiver: WebGL build - UDP disabled.");
 #endif
     }
 
@@ -62,11 +74,7 @@ public class MatchingReceiver : MonoBehaviour
                 byte[] data = udpClient.Receive(ref remoteEP);
                 string json = Encoding.UTF8.GetString(data);
                 var packet = JsonUtility.FromJson<TrackerPacket>(json);
-
-                lock (packetLock)
-                {
-                    latestPacket = packet;
-                }
+                lock (packetLock) { latestPacket = packet; }
             }
             catch (System.Exception e) { Debug.LogError("UDP Error: " + e.Message); }
         }
@@ -74,6 +82,15 @@ public class MatchingReceiver : MonoBehaviour
 
     void Update()
     {
+        if (Time.time - lastCacheTime > cacheRefreshInterval)
+        {
+            cachedCars = FindObjectsOfType<DraggableCar>();
+            lastCacheTime = Time.time;
+        }
+
+        if (handPoint != null)
+            handPoint.position = Vector3.Lerp(handPoint.position, targetHandPos, Time.deltaTime * handFollowSpeed);
+
         lock (packetLock)
         {
             if (latestPacket != null)
@@ -84,7 +101,17 @@ public class MatchingReceiver : MonoBehaviour
         }
     }
 #else
-    // WebGL: receive packets via JS bridge -> unityInstance.sendMessage("MatchingReceiver", "ReceivePacketFromJS", json)
+    void Update()
+    {
+        if (Time.time - lastCacheTime > cacheRefreshInterval)
+        {
+            cachedCars = FindObjectsOfType<DraggableCar>();
+            lastCacheTime = Time.time;
+        }
+        if (handPoint != null)
+            handPoint.position = Vector3.Lerp(handPoint.position, targetHandPos, Time.deltaTime * handFollowSpeed);
+    }
+
     public void ReceivePacketFromJS(string json)
     {
         try
@@ -101,20 +128,20 @@ public class MatchingReceiver : MonoBehaviour
 
     void UpdateGame(TrackerPacket p)
     {
-        if (handPoint != null && Camera.main != null)
+        if (Camera.main != null)
         {
             Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
             worldPos.z = 0f;
-            handPoint.position = worldPos;
+            targetHandPos = worldPos; 
         }
 
-        // Send hand-closed state to all cars
-        DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
-        foreach (DraggableCar car in allCars)
+        foreach (DraggableCar car in cachedCars)
         {
-            car.SetHandClosed(p.hand_closed);
+            if (car != null)
+                car.SetHandClosed(p.hand_closed);
         }
     }
+
     void OnDestroy()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR

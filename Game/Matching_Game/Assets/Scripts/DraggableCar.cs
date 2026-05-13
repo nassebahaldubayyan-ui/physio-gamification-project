@@ -1,6 +1,4 @@
-﻿
-using UnityEngine;
-
+﻿using UnityEngine;
 
 public class DraggableCar : MonoBehaviour
 {
@@ -10,13 +8,24 @@ public class DraggableCar : MonoBehaviour
     public float grabDistance = 1.5f;
     public float dropDistance = 1.5f;
 
+    [Header("Spawn Protection")]
+    public float spawnGracePer = 0.3f;
+
+    [Header("Smoothing")]
+    [Range(5f, 25f)]
+    public float followSpeed = 15f;  
+
     private bool isHolding = false;
     private bool handClosed = false;
+    private float spawnTime;
     private Transform handPoint;
     private CircleCollider2D carCollider;
+    private Basket[] cachedBaskets;  
 
     void Start()
     {
+        spawnTime = Time.time;
+
         carCollider = GetComponent<CircleCollider2D>();
         if (carCollider == null)
             carCollider = gameObject.AddComponent<CircleCollider2D>();
@@ -24,28 +33,31 @@ public class DraggableCar : MonoBehaviour
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
 
-        handPoint = FindHandPoint();
+        GameObject hand = GameObject.FindGameObjectWithTag("Hand");
+        if (hand != null) handPoint = hand.transform;
+
+        cachedBaskets = FindObjectsOfType<Basket>();
     }
 
     void Update()
     {
         if (handPoint == null)
         {
-            handPoint = FindHandPoint();
-            if (handPoint == null) return;
+            GameObject hand = GameObject.FindGameObjectWithTag("Hand");
+            if (hand == null) return;
+            handPoint = hand.transform;
         }
 
         float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
+        bool graceOver = (Time.time - spawnTime) > spawnGracePer;
 
-        // 1: hand closed + car nearby + not already holding -> grab
-        if (handClosed && distanceToHand < grabDistance && !isHolding)
+        if (handClosed && graceOver && distanceToHand < grabDistance && !isHolding)
         {
             isHolding = true;
             if (carCollider != null) carCollider.enabled = false;
-            Debug.Log($"Grabbed {color} car (dist={distanceToHand:F2})");
+            Debug.Log($"Grabbed {color} car");
         }
 
-        // 2: hand opened while holding -> drop (and check for match)
         if (!handClosed && isHolding)
         {
             isHolding = false;
@@ -61,37 +73,29 @@ public class DraggableCar : MonoBehaviour
 
         if (isHolding)
         {
-            transform.position = handPoint.position;
+            transform.position = Vector3.Lerp(
+                transform.position,
+                handPoint.position,
+                Time.deltaTime * followSpeed
+            );
         }
     }
 
-   
-    private Transform FindHandPoint()
-    {
-        GameObject hand = GameObject.Find("Hand");
-        if (hand == null) hand = GameObject.FindGameObjectWithTag("Hand");
-        return hand != null ? hand.transform : null;
-    }
-
-    public void SetHandClosed(bool closed)
-    {
-        handClosed = closed;
-    }
-
-    public bool IsHolding()
-    {
-        return isHolding;
-    }
+    public void SetHandClosed(bool closed) => handClosed = closed;
+    public bool IsHolding() => isHolding;
 
     bool IsOverMatchingBasket()
     {
-        Basket[] allBaskets = FindObjectsOfType<Basket>();
-        foreach (Basket basket in allBaskets)
+        if (cachedBaskets == null || cachedBaskets.Length == 0)
+            cachedBaskets = FindObjectsOfType<Basket>();
+
+        foreach (Basket basket in cachedBaskets)
         {
+            if (basket == null) continue;
             if (Vector2.Distance(transform.position, basket.transform.position) < dropDistance
                 && basket.color == color)
                 return true;
         }
         return false;
     }
-}  
+}
