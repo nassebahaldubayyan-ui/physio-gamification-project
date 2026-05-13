@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 public class SpawnCars : MonoBehaviour
 {
     [Header("Car Prefabs ")]
@@ -17,17 +16,13 @@ public class SpawnCars : MonoBehaviour
     public float carLifeTime = 20f;
 
     [Header("Spawn Position")]
-    public float spawnX = 0f;
+    public float spawnX = 0f;      
 
     [Header("Movement Speed")]
-    public float carSpeed = 1.0f;
-
-    private float currentGrabDistance = 1.5f;
-    private float currentDropDistance = 1.5f;
+    public float carSpeed = 1.0f;   
     void Start()
     {
-        InvokeRepeating("SpawnRandomCar", 2f, spawnInterval);
-
+        InvokeRepeating("SpawnRandomCar", 1f, spawnInterval);
     }
 
     public void SpawnRandomCar()
@@ -66,17 +61,12 @@ public class SpawnCars : MonoBehaviour
         // 3) إنشاء السيارة
         GameObject car = Instantiate(carPrefab, spawnPos, Quaternion.identity);
 
-
+        
         car.tag = "Car";
 
         // 4) ضمان لون السيارة صحيح
         DraggableCar dc = car.GetComponent<DraggableCar>();
-        if (dc != null)
-        {
-            dc.grabDistance = currentGrabDistance;
-            dc.dropDistance = currentDropDistance;
-            dc.color = chosenColor;
-        }
+        if (dc != null) dc.color = chosenColor;
 
         Car c = car.GetComponent<Car>();
         if (c != null) c.color = chosenColor;
@@ -88,16 +78,5 @@ public class SpawnCars : MonoBehaviour
 
         // 6) حذف بعد فترة
         Destroy(car, carLifeTime);
-    }
-    public void ApplyLevelSettings(LevelConfig config)
-    {
-        spawnInterval = config.spawnInterval;
-        carSpeed = config.carSpeed;
-
-        currentGrabDistance = config.grabDistance;
-        currentDropDistance = config.dropDistance;
-
-        CancelInvoke();
-        InvokeRepeating("SpawnRandomCar", 1f, spawnInterval);
     }
 }
