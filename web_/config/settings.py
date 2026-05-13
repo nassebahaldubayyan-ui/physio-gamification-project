@@ -95,9 +95,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR / 'static'),
-                    os.path.join(BASE_DIR, 'apple_build'),
-                    os.path.join(BASE_DIR, 'Star_build'),
-                    os.path.join(BASE_DIR, 'matching_build'),
+                    os.path.join(BASE_DIR / 'static/apple_build'),
+                    os.path.join(BASE_DIR / 'static/Star_build'),
+                    os.path.join(BASE_DIR / 'static/matching_build'),
                     ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
