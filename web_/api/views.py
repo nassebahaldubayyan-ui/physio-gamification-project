@@ -228,7 +228,7 @@ def get_level_from_assessment(patient):
         shoulder_level = 3
     
     # مستوى المرفق
-    if elbow <= 55:
+    if elbow <= 150:
         elbow_level = 1
     elif elbow <= 90:
         elbow_level = 2
