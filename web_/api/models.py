@@ -37,6 +37,7 @@ class Patients(models.Model):
     city = models.TextField(blank=True, null=True)
     country = models.TextField(blank=True, null=True)
     shoulder_strength = models.IntegerField(blank=True, null=True)
+    shoulder_external_strength = models.IntegerField(blank=True, null=True)
     elbow_strength = models.IntegerField(blank=True, null=True)
     grip_strength = models.IntegerField(blank=True, null=True)
     affected_hand = models.TextField()
