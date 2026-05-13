@@ -1100,7 +1100,8 @@
                 const rotation = calculateShoulderRotation(
                     lm[12], lm[14], lm[16], lm[24]
                 );
-                poseTracker.rightShoulderExternalRotation = Math.max(0, rotation);
+                poseTracker.rightShoulderExternalRotation =
+                    Math.min(180, rotation * 2);
             } else {
 
                 poseTracker.leftShoulderAngle = smoothAngle(
@@ -1192,102 +1193,122 @@
         });
 
         function calculateAngle(a, b, c) {
+
             const AB = {
                 x: a.x - b.x,
-                y: a.y - b.y,
-                z: a.z - b.z
+                y: a.y - b.y
             };
 
             const CB = {
                 x: c.x - b.x,
-                y: c.y - b.y,
-                z: c.z - b.z
+                y: c.y - b.y
             };
 
-            const dot = AB.x * CB.x + AB.y * CB.y + AB.z * CB.z;
+            const dot = AB.x * CB.x + AB.y * CB.y;
 
-            const magAB = Math.sqrt(AB.x**2 + AB.y**2 + AB.z**2);
-            const magCB = Math.sqrt(CB.x**2 + CB.y**2 + CB.z**2);
+            const magAB = Math.sqrt(AB.x**2 + AB.y**2);
+            const magCB = Math.sqrt(CB.x**2 + CB.y**2);
 
             const denom = magAB * magCB;
 
-            if (denom === 0) return 0; // ✅ prevent crash
+            if (denom === 0) return 0;
 
             let cosAngle = dot / denom;
 
-            // ✅ clamp to avoid NaN from floating errors
             cosAngle = Math.max(-1, Math.min(1, cosAngle));
 
-            const angle = Math.acos(cosAngle);
+            let angle = Math.acos(cosAngle) * (180 / Math.PI);
 
-            return angle * (180 / Math.PI);
+            angle = Math.max(0, Math.min(180, angle));
+
+            return angle;
         }
         
         function calculateShoulderRotation(shoulder, elbow, wrist, hip) {
 
-            // Upper arm (axis)
+            // ===== VECTORS =====
+
+            // upper arm
             const upper = {
                 x: elbow.x - shoulder.x,
                 y: elbow.y - shoulder.y,
                 z: elbow.z - shoulder.z
             };
 
-            // Forearm
-            const lower = {
+            // forearm
+            const forearm = {
                 x: wrist.x - elbow.x,
                 y: wrist.y - elbow.y,
                 z: wrist.z - elbow.z
             };
 
-            // Torso (reference)
+            // torso reference
             const torso = {
                 x: hip.x - shoulder.x,
                 y: hip.y - shoulder.y,
                 z: hip.z - shoulder.z
             };
 
-            const normalize = (v) => {
+            // ===== NORMALIZE =====
+
+            function normalize(v) {
                 const mag = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
-                return mag === 0 ? {x:0,y:0,z:0} : {
-                    x: v.x/mag,
-                    y: v.y/mag,
-                    z: v.z/mag
+
+                if (mag === 0) {
+                    return {x:0, y:0, z:0};
+                }
+
+                return {
+                    x: v.x / mag,
+                    y: v.y / mag,
+                    z: v.z / mag
                 };
-            };
+            }
 
             const u = normalize(upper);
-            const l = normalize(lower);
+            const f = normalize(forearm);
             const t = normalize(torso);
 
-            // ✅ Reference plane normal (upper vs torso)
-            const referenceNormal = {
-                x: u.y*t.z - u.z*t.y,
-                y: u.z*t.x - u.x*t.z,
-                z: u.x*t.y - u.y*t.x
+            // ===== PROJECT FOREARM ONTO PLANE
+            // perpendicular to upper arm =====
+
+            const dotUF = u.x*f.x + u.y*f.y + u.z*f.z;
+
+            const projected = {
+                x: f.x - dotUF * u.x,
+                y: f.y - dotUF * u.y,
+                z: f.z - dotUF * u.z
             };
 
-            // ✅ Rotation axis (upper vs lower)
-            const rotationAxis = {
-                x: u.y*l.z - u.z*l.y,
-                y: u.z*l.x - u.x*l.z,
-                z: u.x*l.y - u.y*l.x
+            const p = normalize(projected);
+
+            // ===== CREATE REFERENCE DIRECTION =====
+            // torso projected onto same plane
+
+            const dotUT = u.x*t.x + u.y*t.y + u.z*t.z;
+
+            const torsoProjected = {
+                x: t.x - dotUT * u.x,
+                y: t.y - dotUT * u.y,
+                z: t.z - dotUT * u.z
             };
 
-            const dot = u.x*l.x + u.y*l.y + u.z*l.z;
+            const r = normalize(torsoProjected);
 
-            let angle = Math.atan2(
-                Math.sqrt(rotationAxis.x**2 + rotationAxis.y**2 + rotationAxis.z**2),
-                dot
-            );
+            // ===== ANGLE BETWEEN PROJECTED VECTORS =====
 
-            // ✅ SIGNED rotation (THIS is the key improvement)
-            const sign = Math.sign(
-                rotationAxis.x * referenceNormal.x +
-                rotationAxis.y * referenceNormal.y +
-                rotationAxis.z * referenceNormal.z
-            );
+            let dot = p.x*r.x + p.y*r.y + p.z*r.z;
 
-            angle = angle * (-sign) * (180 / Math.PI);
+            dot = Math.max(-1, Math.min(1, dot));
+
+            let angle = Math.acos(dot) * (180 / Math.PI);
+
+            // ===== CONVERT TO CLINICAL ROM =====
+            // neutral = 0°
+            // full external ≈ 90°
+            // convert to 180-style display if desired
+
+            angle = Math.abs(angle);
 
             return angle;
         }
