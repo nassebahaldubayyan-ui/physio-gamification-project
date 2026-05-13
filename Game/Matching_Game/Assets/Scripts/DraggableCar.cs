@@ -85,14 +85,12 @@ public class DraggableCar : MonoBehaviour
     void StopHolding()
     {
         isHolding = false;
-
-        if (rb != null)
-        {
-            rb.bodyType = RigidbodyType2D.Dynamic;
-        }
-
+        if (rb != null) rb.bodyType = RigidbodyType2D.Dynamic;
         if (carCollider != null)
-            carCollider.enabled = false;
+        {
+            carCollider.isTrigger = false;
+            carCollider.enabled = true;
+        }
     }
 
     public void SetHandClosed(bool closed)

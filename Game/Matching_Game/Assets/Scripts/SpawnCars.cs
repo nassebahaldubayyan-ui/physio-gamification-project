@@ -26,6 +26,8 @@ public class SpawnCars : MonoBehaviour
     private float currentDropDistance = 1.5f;
     void Start()
     {
+        InvokeRepeating("SpawnRandomCar", 2f, spawnInterval);
+
     }
 
     public void SpawnRandomCar()
@@ -69,9 +71,12 @@ public class SpawnCars : MonoBehaviour
 
         // 4) ضمان لون السيارة صحيح
         DraggableCar dc = car.GetComponent<DraggableCar>();
-        dc.grabDistance = currentGrabDistance;
-        dc.dropDistance = currentDropDistance;
-        if (dc != null) dc.color = chosenColor;
+        if (dc != null)
+        {
+            dc.grabDistance = currentGrabDistance;
+            dc.dropDistance = currentDropDistance;
+            dc.color = chosenColor;
+        }
 
         Car c = car.GetComponent<Car>();
         if (c != null) c.color = chosenColor;

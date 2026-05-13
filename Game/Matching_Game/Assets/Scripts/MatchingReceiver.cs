@@ -103,14 +103,8 @@ public class MatchingReceiver : MonoBehaviour
     {
         if (handPoint != null)
         {
-            Vector3 worldPos =
-                Camera.main.ViewportToWorldPoint(
-                    new Vector3(
-                        p.palm_x,
-                        p.palm_y,
-                        10f
-                    )
-                );
+            Vector3 worldPos = Camera.main.ViewportToWorldPoint(
+                new Vector3(p.palm_x, 1f - p.palm_y, 10f));
 
             worldPos.z = 0f;
 
