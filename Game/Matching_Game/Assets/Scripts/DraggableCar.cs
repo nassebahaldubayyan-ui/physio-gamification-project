@@ -12,8 +12,8 @@ public class DraggableCar : MonoBehaviour
     public float spawnGracePer = 0.3f;
 
     [Header("Smoothing")]
-    [Range(5f, 25f)]
-    public float followSpeed = 15f;  
+    [Range(5f, 50f)]
+    public float followSpeed = 30f;  
 
     private bool isHolding = false;
     private bool handClosed = false;

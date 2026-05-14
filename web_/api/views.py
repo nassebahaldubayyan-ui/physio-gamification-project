@@ -905,7 +905,7 @@ def api_save_game_result(request):
                     objects_caught = data.get('objects_caught', score)
 
                 elif game_type == "matching-game":
-                    accuracy = data.get('accuracy', 0)
+                    accuracy = data.get('grip_accuracy', data.get('accuracy', 0)) 
                     objects_caught = data.get('matches_made', score)
 
                 # ======================================================

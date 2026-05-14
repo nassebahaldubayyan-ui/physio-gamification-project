@@ -7,6 +7,10 @@ public class LevelConfig
     public float gameDuration;
     public int gripSensitivity;
     public string levelName;
+    public float carSpeed;
+    public float spawnInterval;
+    public float grabDistance;
+    public float dropDistance;
 }
 public class GameManager : MonoBehaviour
 {
@@ -37,18 +41,34 @@ public class GameManager : MonoBehaviour
         if (endPanel != null)
             endPanel.SetActive(false);
     }
-    // ✅ 1 — تستقبل الإعدادات من HTML قبل البدء
     public void ApplyLevelConfig(string json)
     {
         LevelConfig config = JsonUtility.FromJson<LevelConfig>(json);
         if (config == null) return;
 
         timeLeft = config.gameDuration;
-        Debug.Log($"Config applied: Level {config.levelNumber}, Duration {config.gameDuration}s");
+
+        SpawnCars spawner = FindObjectOfType<SpawnCars>();
+        if (spawner != null)
+        {
+            if (config.carSpeed > 0) spawner.carSpeed = config.carSpeed;
+            if (config.spawnInterval > 0) spawner.spawnInterval = config.spawnInterval;
+        }
+
+        if (config.grabDistance > 0 || config.dropDistance > 0)
+        {
+            DraggableCar[] cars = FindObjectsOfType<DraggableCar>();
+            foreach (DraggableCar car in cars)
+            {
+                if (config.grabDistance > 0) car.grabDistance = config.grabDistance;
+                if (config.dropDistance > 0) car.dropDistance = config.dropDistance;
+            }
+        }
+
+        Debug.Log($"Config applied: Level {config.levelNumber}, Speed {config.carSpeed}, Interval {config.spawnInterval}");
         UpdateUI();
     }
 
-    // ✅ 2 — تشغّل اللعبة من HTML
     public void StartGameFromHTML()
     {
         gameStarted = true;
@@ -72,7 +92,6 @@ public class GameManager : MonoBehaviour
         if (timerText != null)
             timerText.text = "Time: " + Mathf.Ceil(timeLeft);
 
-        // ✅ أبلغ HTML بالتايمر
 #if UNITY_WEBGL && !UNITY_EDITOR
     SendTimerToHTML(timeLeft);
 #endif
@@ -96,7 +115,7 @@ public class GameManager : MonoBehaviour
     {
         score += value;
         UpdateUI();
-        // ✅ أبلغ HTML بالسكور الجديد
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         SendScoreToHTML(score);
 #endif
@@ -107,7 +126,7 @@ public class GameManager : MonoBehaviour
         if (scoreText != null)
             scoreText.text = "Score: " + score;
     }
-    // ✅ دوال التواصل مع JavaScript
+
     [System.Runtime.InteropServices.DllImport("__Internal")]
     private static extern void SendScoreToHTML(int score);
 

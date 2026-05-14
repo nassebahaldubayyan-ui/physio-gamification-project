@@ -12,10 +12,10 @@ public class MatchingReceiver : MonoBehaviour
     public Transform handPoint;
 
     [Header("Hand Smoothing")]
-    [Range(5f, 30f)]
-    public float handFollowSpeed = 20f;  
+    [Range(5f, 50f)]
+    public float handFollowSpeed = 35f;
 
-    private Vector3 targetHandPos;  
+    private Vector3 targetHandPos;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient udpClient;
@@ -132,7 +132,7 @@ public class MatchingReceiver : MonoBehaviour
         {
             Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
             worldPos.z = 0f;
-            targetHandPos = worldPos; 
+            targetHandPos = worldPos;
         }
 
         foreach (DraggableCar car in cachedCars)
