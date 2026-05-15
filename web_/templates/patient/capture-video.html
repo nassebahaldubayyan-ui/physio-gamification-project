@@ -409,7 +409,21 @@
     <script>
         const affectedHand = "{{ affected_hand }}".toLowerCase().trim();
         const userId = "{{ patient_id }}";
+        // initialization and bootstrap
+        window.addEventListener("DOMContentLoaded", () => {
+            const handBadge = document.getElementById('handBadge');
 
+            if (affectedHand === 'right') {
+                handBadge.textContent = 'Right Hand';
+            } else if (affectedHand === 'left') {
+                handBadge.textContent = 'Left Hand';
+            } else {
+                handBadge.textContent = 'Unknown Hand';
+            }
+        });
+
+        let assessment = new InitialAssessmentJS("/api/initial-assessment/", userId);
+        window.addEventListener('beforeunload',()=>{ if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); });
         const videoElement = document.getElementById("video");
         
         let voiceGuideActive = false;
@@ -1180,22 +1194,6 @@
                 }
             }
         }
-        
-        // initialization and bootstrap
-        window.addEventListener("DOMContentLoaded", () => {
-            const handBadge = document.getElementById('handBadge');
-
-            if (affectedHand === 'right') {
-                handBadge.textContent = 'Right Hand';
-            } else if (affectedHand === 'left') {
-                handBadge.textContent = 'Left Hand';
-            } else {
-                handBadge.textContent = 'Unknown Hand';
-            }
-        });
-
-        let assessment = new InitialAssessmentJS("/api/initial-assessment/", userId);
-        window.addEventListener('beforeunload',()=>{ if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); });
     </script>
 </body>
 </html>
