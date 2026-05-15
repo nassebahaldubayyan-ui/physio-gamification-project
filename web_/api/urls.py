@@ -11,6 +11,13 @@ urlpatterns = [
     path('api/conversations/', views.api_get_conversations),
     path('api/update-assessment-status/', views.api_update_assessment_status),
     path('api/send-contact/', views.send_contact_message),
+    path('api/add-patient-details/', views.api_add_patient_details, name='add_patient_details'),
+    path('api/delete-patient/', views.api_delete_patient, name='delete_patient'),
+    path('api/patient-details/', views.api_patient_details, name='patient_details'),
+    path('api/my-patient-data/', views.api_get_my_patient_data, name='my_patient_data'),
+    
+    # NEW API: Get patients for doctor
+    path('api/doctors/patients/', views.api_get_patients_for_doctor, name='doctor_patients_api'),
     
     # ========== HTML PAGES ==========
     # Main Pages
@@ -50,7 +57,7 @@ urlpatterns = [
     path('api/get-user-name/', views.api_get_user_name),
     path('game/', views.apple_game, name='game'),
     path('api/save-game-result/', views.api_save_game_result, name='save_game_result'),
-     
-    # save assessment result
-    path("api/initial-assessment/",views.api_save_initial_assessment,name="api_save_initial_assessment"),
+    
+    # Save assessment result
+    path("api/initial-assessment/", views.api_save_initial_assessment, name="api_save_initial_assessment"),
 ]

@@ -69,7 +69,6 @@
             flex: 1;
         }
 
-        /* تنسيق عناصر القائمة */
         .sidebar li {
             padding: 15px 20px;
             margin: 8px 0;
@@ -84,7 +83,6 @@
             color: white;
         }
 
-        /* تنسيق الأيقونات */
         .sidebar li i {
             font-size: 20px;
             width: 24px;
@@ -350,11 +348,45 @@
             transform: translateY(-2px);
         }
 
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             .patient-header-card {
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
+            }
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -416,102 +448,59 @@
                 </div>
             </div>
 
-            <!-- Patient Header -->
-            <div class="patient-header-card">
-                <div class="patient-info-main">
-                    <h1 id="patientName">Ali Ahmed</h1>
-                    <div>
-                        <span class="status-badge good" id="patientStatus">In Progress</span>
-                        <span class="patient-id" id="patientId">ID: PT002</span>
-                    </div>
-                </div>
-                <div class="progress-score">
-                    <div class="score-value" id="overallScore">75%</div>
-                    <div style="color: #64748b;">Overall Score</div>
-                </div>
-            </div>
+            <div id="loadingIndicator" class="loading">Loading patient data...</div>
 
-            <!-- Details Grid -->
-            <div class="details-grid">
-                <!-- Personal Information -->
-                <div class="info-card">
-                    <h3><i class="fas fa-user"></i> Personal Information</h3>
-                    <div class="info-row">
-                        <span class="info-label">Full Name</span>
-                        <span class="info-value" id="fullName">Ali Ahmed</span>
+            <div id="patientContent" style="display: none;">
+                <!-- Patient Header -->
+                <div class="patient-header-card">
+                    <div class="patient-info-main">
+                        <h1 id="patientName">-</h1>
+                        <div>
+                            <span class="status-badge good" id="patientStatus">-</span>
+                            <span class="patient-id" id="patientId">ID: -</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Age</span>
-                        <span class="info-value" id="age">25 years</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Gender</span>
-                        <span class="info-value" id="gender">Male</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Contact</span>
-                        <span class="info-value" id="contact">+966 50 000 0000</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Email</span>
-                        <span class="info-value" id="email">ali@test.com</span>
+                    <div class="progress-score">
+                        <div class="score-value" id="overallScore">0</div>
+                        <div style="color: #64748b;">Overall Score</div>
                     </div>
                 </div>
 
-                <!-- Therapy Progress -->
-                <div class="info-card">
-                    <h3><i class="fas fa-chart-line"></i> Therapy Progress</h3>
-                    <div class="info-row">
-                        <span class="info-label">Current Level</span>
-                        <span class="info-value highlight" id="currentLevel">Level 1</span>
+                <!-- Details Grid -->
+                <div class="details-grid">
+                    <div class="info-card">
+                        <h3><i class="fas fa-user"></i> Personal Information</h3>
+                        <div class="info-row"><span class="info-label">Full Name</span><span class="info-value" id="fullName">-</span></div>
+                        <div class="info-row"><span class="info-label">Age</span><span class="info-value" id="age">-</span></div>
+                        <div class="info-row"><span class="info-label">Gender</span><span class="info-value" id="gender">-</span></div>
+                        <div class="info-row"><span class="info-label">Contact</span><span class="info-value" id="contact">-</span></div>
+                        <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="email">-</span></div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Accuracy</span>
-                        <span class="info-value" id="accuracy">75%</span>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-chart-line"></i> Therapy Progress</h3>
+                        <div class="info-row"><span class="info-label">Current Level</span><span class="info-value highlight" id="currentLevel">-</span></div>
+                        <div class="info-row"><span class="info-label">Total Score</span><span class="info-value" id="totalScore">-</span></div>
+                        <div class="info-row"><span class="info-label">Games Played</span><span class="info-value" id="gamesPlayed">-</span></div>
+                        <div class="info-row"><span class="info-label">Stars Collected</span><span class="info-value" id="starsCollected">-</span></div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Speed</span>
-                        <span class="info-value" id="speed">70%</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Sessions Completed</span>
-                        <span class="info-value" id="sessions">8 sessions</span>
+
+                    <div class="info-card">
+                        <h3><i class="fas fa-hospital"></i> Medical Information</h3>
+                        <div class="info-row"><span class="info-label">Condition</span><span class="info-value highlight" id="condition">-</span></div>
+                        <div class="info-row"><span class="info-label">Affected Hand</span><span class="info-value" id="affectedHand">-</span></div>
+                        <div class="info-row"><span class="info-label">Therapy Type</span><span class="info-value" id="therapyType">-</span></div>
+                        <div class="info-row"><span class="info-label">Assessment</span><span class="info-value" id="assessmentStatus">-</span></div>
                     </div>
                 </div>
 
-                <!-- Medical Information -->
-                <div class="info-card">
-                    <h3><i class="fas fa-hospital"></i> Medical Information</h3>
-                    <div class="info-row">
-                        <span class="info-label">Condition</span>
-                        <span class="info-value highlight" id="condition">Not specified</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Affected Hand</span>
-                        <span class="info-value" id="affectedHand">right</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Therapy Type</span>
-                        <span class="info-value" id="therapyType">Physical Therapy</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Start Date</span>
-                        <span class="info-value" id="startDate">10 Jan 2026</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Next Session</span>
-                        <span class="info-value" id="nextSession">01 Aug 2026</span>
-                    </div>
+                <!-- AI Recommendation -->
+                <div class="ai-recommendation">
+                    <h3><i class="fas fa-robot"></i> AI Recommendation</h3>
+                    <p id="aiRecommendation">Loading recommendation...</p>
                 </div>
             </div>
 
-            <!-- AI Recommendation -->
-            <div class="ai-recommendation">
-                <h3><i class="fas fa-robot"></i> AI Recommendation</h3>
-                <p id="aiRecommendation">Patient is responding well to Physical Therapy. Continue with current treatment plan.</p>
-            </div>
-
-            <!-- Back Button -->
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_patients' %}'">
                 <i class="fas fa-arrow-left"></i> Back to Patients List
             </button>
@@ -520,7 +509,7 @@
 
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        let currentPatientId = 'PT002';
+        let currentUserId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
@@ -530,110 +519,97 @@
             document.getElementById('doctorName').textContent = doctorName;
             document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
 
+            // Get user_id from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const patientId = urlParams.get('patient') || 'PT002';
-            currentPatientId = patientId;
-
-            loadPatientData(patientId);
+            currentUserId = urlParams.get('user_id') || urlParams.get('patient');
+            
+            console.log('Loading patient with ID:', currentUserId);
+            
+            if (currentUserId) {
+                loadPatientData(currentUserId);
+            } else {
+                document.getElementById('loadingIndicator').innerHTML = '<p style="color:red;">No patient ID provided</p>';
+            }
         });
 
-        function loadPatientData(patientId) {
-            const patientData = {
-                'PT004': {
-                    name: 'Omar Hassan',
-                    id: 'PT004',
-                    age: '9 years',
-                    gender: 'Male',
-                    contact: '+966 50 333 3333',
-                    email: 'omar@rehab.com',
-                    level: 'Level 1',
-                    accuracy: '82%',
-                    speed: '75%',
-                    sessions: '12 sessions',
-                    condition: 'Movement Disorder',
-                    affectedHand: 'left',
-                    therapyType: 'Developmental Therapy',
-                    startDate: '15 Feb 2026',
-                    nextSession: '05 Aug 2026',
-                    score: '82%',
-                    status: 'Completed',
-                    recommendation: 'Good progress with Developmental Therapy. Focus on left hand exercises.'
-                },
-                'PT005': {
-                    name: 'Sara Khaled',
-                    id: 'PT005',
-                    age: '7 years',
-                    gender: 'Female',
-                    contact: '+966 50 222 2222',
-                    email: 'sara@rehab.com',
-                    level: 'Level 1',
-                    accuracy: '79%',
-                    speed: '72%',
-                    sessions: '10 sessions',
-                    condition: 'Arm Weakness',
-                    affectedHand: 'right',
-                    therapyType: 'Occupational Therapy',
-                    startDate: '20 Mar 2026',
-                    nextSession: '03 Aug 2026',
-                    score: '79%',
-                    status: 'In Progress',
-                    recommendation: 'Continue Occupational Therapy. Right arm strengthening exercises are showing results.'
-                },
-                'PT006': {
-                    name: 'Ali Ahmed',
-                    id: 'PT006',
-                    age: '8 years',
-                    gender: 'Male',
-                    contact: '+966 50 111 1111',
-                    email: 'ali@rehab.com',
-                    level: 'Level 1',
-                    accuracy: '81%',
-                    speed: '73%',
-                    sessions: '15 sessions',
-                    condition: 'Motor Disability',
-                    affectedHand: 'left',
-                    therapyType: 'Physical Therapy',
-                    startDate: '05 Jan 2026',
-                    nextSession: '30 Jul 2026',
-                    score: '81%',
-                    status: 'In Progress',
-                    recommendation: 'Excellent participation in Physical Therapy. Left hand mobility improving.'
+        async function loadPatientData(userId) {
+            const loadingDiv = document.getElementById('loadingIndicator');
+            const contentDiv = document.getElementById('patientContent');
+            
+            try {
+                const response = await fetch(`/api/patient-details/?user_id=${userId}`);
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.success) {
+                    displayPatientData(data);
+                    loadingDiv.style.display = 'none';
+                    contentDiv.style.display = 'block';
+                } else {
+                    loadingDiv.innerHTML = `<p style="color:red;">${data.error || 'Error loading patient'}</p>`;
                 }
-            };
+            } catch (error) {
+                console.error('Error:', error);
+                loadingDiv.innerHTML = '<p style="color:red;">Connection error. Please refresh.</p>';
+            }
+        }
 
-            const patient = patientData[patientId] || patientData['PT002'];
-
-            document.getElementById('patientName').textContent = patient.name;
-            document.getElementById('patientId').textContent = `ID: ${patient.id}`;
-            document.getElementById('patientStatus').textContent = patient.status;
-            document.getElementById('overallScore').textContent = patient.score;
-            document.getElementById('fullName').textContent = patient.name;
-            document.getElementById('age').textContent = patient.age;
-            document.getElementById('gender').textContent = patient.gender;
-            document.getElementById('contact').textContent = patient.contact;
-            document.getElementById('email').textContent = patient.email;
-            document.getElementById('currentLevel').textContent = patient.level;
-            document.getElementById('accuracy').textContent = patient.accuracy;
-            document.getElementById('speed').textContent = patient.speed;
-            document.getElementById('sessions').textContent = patient.sessions;
-            document.getElementById('condition').textContent = patient.condition;
-            document.getElementById('affectedHand').textContent = patient.affectedHand;
-            document.getElementById('therapyType').textContent = patient.therapyType;
-            document.getElementById('startDate').textContent = patient.startDate;
-            document.getElementById('nextSession').textContent = patient.nextSession;
-            document.getElementById('aiRecommendation').textContent = patient.recommendation;
+        function displayPatientData(data) {
+            const p = data.patient;
+            const stats = data.statistics;
+            
+            // Header
+            document.getElementById('patientName').textContent = p.name;
+            document.getElementById('patientStatus').textContent = p.assessment_completed ? 'Active' : 'Pending';
+            document.getElementById('patientId').textContent = `ID: ${p.patient_id}`;
+            document.getElementById('overallScore').textContent = stats.total_score || 0;
+            
+            // Personal Information
+            document.getElementById('fullName').textContent = p.name;
+            document.getElementById('age').textContent = p.age ? `${p.age} years` : 'N/A';
+            document.getElementById('gender').textContent = p.gender ? (p.gender === 'male' ? 'Male' : 'Female') : 'Not specified';
+            document.getElementById('contact').textContent = p.phone || 'Not provided';
+            document.getElementById('email').textContent = p.email;
+            
+            // Therapy Progress
+            document.getElementById('currentLevel').textContent = `Level ${p.current_level || 1}`;
+            document.getElementById('totalScore').textContent = stats.total_score || 0;
+            document.getElementById('gamesPlayed').textContent = stats.total_sessions || 0;
+            document.getElementById('starsCollected').textContent = stats.total_stars || 0;
+            
+            // Medical Information
+            document.getElementById('condition').textContent = p.medical_condition || 'Not specified';
+            document.getElementById('affectedHand').textContent = p.affected_hand === 'right' ? 'Right Hand' : 'Left Hand';
+            document.getElementById('therapyType').textContent = p.therapy_type || 'Physical Therapy';
+            document.getElementById('assessmentStatus').textContent = p.assessment_completed ? 'Completed' : 'Not Completed';
+            
+            // AI Recommendation
+            let recommendation = '';
+            if (!p.assessment_completed) {
+                recommendation = 'Patient needs to complete initial assessment video to begin therapy.';
+            } else if (p.current_level === 1) {
+                recommendation = 'Patient is at beginner level. Focus on basic range of motion exercises.';
+            } else if (p.current_level === 2) {
+                recommendation = 'Patient is progressing well. Increase exercise difficulty gradually.';
+            } else {
+                recommendation = 'Patient is at advanced level. Focus on complex movements and form.';
+            }
+            document.getElementById('aiRecommendation').textContent = recommendation;
         }
 
         function viewPatientProgress() {
-            window.location.href = `/patient-progress/?patient=${currentPatientId}`;
+            window.location.href = `/patient-progress/?patient=${currentUserId}`;
         }
 
         function contactPatient() {
-            window.location.href = `/doctor/messages/?patient=${currentPatientId}`;
+            window.location.href = `/doctor/messages/?patient=${currentUserId}`;
         }
 
         function logoutDoctor() {
-            if (confirm('Are you sure you want to log out?')) {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = "{% url 'index' %}";
             }
         }
