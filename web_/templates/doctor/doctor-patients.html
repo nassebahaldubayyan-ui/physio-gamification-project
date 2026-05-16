@@ -61,42 +61,44 @@
         .btn-cancel { background: #f1f5f9; color: #475569; }
         .delete-modal { max-width: 400px; text-align: center; }
         
-        /* Notification Styles */
+        /* Notification Styles - Same as messages page */
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .custom-notification {
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification {
             position: fixed;
             top: 20px;
             right: 20px;
             padding: 15px 25px;
-            border-radius: 12px;
+            border-radius: 8px;
             color: white;
             font-weight: 500;
             z-index: 9999;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             animation: slideIn 0.3s ease;
-            max-width: 350px;
-            text-align: center;
+            max-width: 300px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 15px;
+            gap: 10px;
             cursor: pointer;
         }
-        .custom-notification i { font-size: 18px; }
+        .notification.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .notification.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .notification.info { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .page-header { flex-direction: column; } .search-bar { width: 100%; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
                 <div class="avatar"><i class="fas fa-user-circle"></i></div>
@@ -116,7 +118,6 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
             <div class="page-header">
                 <h2>Patients List</h2>
@@ -135,7 +136,6 @@
         </div>
     </div>
 
-    <!-- Add Patient Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeAddModal()">&times;</span>
@@ -151,7 +151,6 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content delete-modal">
             <h3><i class="fas fa-trash-alt"></i> Delete Patient</h3>
@@ -164,43 +163,30 @@
         let currentDeleteId = null;
 
         // ============================================
-        // NOTIFICATION FUNCTION
+        // NOTIFICATION FUNCTION (Same as messages page)
         // ============================================
         function showNotification(message, type = 'success') {
-            const old = document.querySelector('.custom-notification');
-            if (old) old.remove();
-            
-            const notif = document.createElement('div');
-            notif.className = 'custom-notification';
-            
-            let icon = 'fa-info-circle';
-            if (type === 'success') icon = 'fa-check-circle';
-            if (type === 'error') icon = 'fa-exclamation-circle';
-            if (type === 'warning') icon = 'fa-exclamation-triangle';
-            
-            notif.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
-            
-            const colors = {
-                info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                success: 'linear-gradient(135deg, #10b981, #059669)',
-                warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                error: 'linear-gradient(135deg, #ef4444, #dc2626)'
-            };
-            notif.style.background = colors[type] || colors.info;
-            
-            document.body.appendChild(notif);
-            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            notification.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(message)}`;
+            document.body.appendChild(notification);
             setTimeout(() => {
-                if (notif.parentNode) {
-                    notif.style.animation = 'slideOut 0.3s ease';
-                    setTimeout(() => notif.remove(), 300);
-                }
+                if (notification.parentNode) notification.remove();
             }, 3000);
-            
-            notif.onclick = () => {
-                notif.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notif.remove(), 300);
+            notification.onclick = () => {
+                if (notification.parentNode) notification.remove();
             };
+        }
+
+        // ============================================
+        // ESCAPE HTML FUNCTION
+        // ============================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // ============================================
@@ -254,25 +240,40 @@
             return age + ' years';
         }
 
-        function escapeHtml(t) { if(!t) return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+        function filterPatients() { 
+            const filter = document.getElementById('searchInput').value.toLowerCase(); 
+            const rows = document.querySelectorAll('#patientsTableBody tr'); 
+            rows.forEach(row => {
+                const name = row.cells[0]?.innerText.toLowerCase() || ''; 
+                row.style.display = name.includes(filter) ? '' : 'none';
+            }); 
+        }
 
-        function filterPatients() { const filter=document.getElementById('searchInput').value.toLowerCase(); const rows=document.querySelectorAll('#patientsTableBody tr'); rows.forEach(row=>{const name=row.cells[0]?.innerText.toLowerCase()||''; row.style.display=name.includes(filter)?'':'none';}); }
+        function viewPatient(userId, patientId) {
+            window.location.href = `/doctor/patient-details/?user_id=${userId}`;
+        }
 
-function viewPatient(userId, patientId) {
-    console.log("Viewing patient - User ID:", userId, "Patient ID:", patientId);
-    // Make sure we send the user_id parameter
-    window.location.href = `/doctor/patient-details/?user_id=${userId}`;
-}
         // ============================================
         // DELETE PATIENT
         // ============================================
-        function confirmDelete(id) { currentDeleteId=id; document.getElementById('deleteModal').style.display='flex'; }
-        function closeDeleteModal() { document.getElementById('deleteModal').style.display='none'; currentDeleteId=null; }
+        function confirmDelete(id) { 
+            currentDeleteId = id; 
+            document.getElementById('deleteModal').style.display = 'flex'; 
+        }
+        
+        function closeDeleteModal() { 
+            document.getElementById('deleteModal').style.display = 'none'; 
+            currentDeleteId = null; 
+        }
 
         document.getElementById('confirmDeleteBtn').onclick = async function() {
             if(!currentDeleteId) return;
             try {
-                const res = await fetch('/api/delete-patient/', { method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, body:JSON.stringify({patient_id:currentDeleteId}) });
+                const res = await fetch('/api/delete-patient/', { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, 
+                    body:JSON.stringify({patient_id:currentDeleteId}) 
+                });
                 const data = await res.json();
                 if(data.success) { 
                     showNotification('✅ Patient deleted successfully!', 'success');
@@ -289,36 +290,118 @@ function viewPatient(userId, patientId) {
         // ============================================
         // ADD PATIENT
         // ============================================
-        function openAddModal() { document.getElementById('addModal').style.display='flex'; document.getElementById('addForm').reset(); }
-        function closeAddModal() { document.getElementById('addModal').style.display='none'; }
+        function openAddModal() { 
+            document.getElementById('addModal').style.display = 'flex'; 
+            document.getElementById('addForm').reset(); 
+        }
+        
+        function closeAddModal() { 
+            document.getElementById('addModal').style.display = 'none'; 
+        }
 
         document.getElementById('addForm').onsubmit = async function(e) {
             e.preventDefault();
-            const name=document.getElementById('name').value.trim(), email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
-            const phone=document.getElementById('phone').value.trim(), dob=document.getElementById('dob').value, gender=document.getElementById('gender').value;
-            const condition=document.getElementById('condition').value.trim(), therapy=document.getElementById('therapy').value, hand=document.getElementById('hand').value, level=document.getElementById('level').value;
-            if(!name||!email||!password||!dob||!gender||!condition||!therapy){ showNotification('Please fill all required fields', 'error'); return; }
-            const btn=document.querySelector('#addForm .btn-submit'); btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating...';
+            const name = document.getElementById('name').value.trim(), 
+                  email = document.getElementById('email').value.trim(), 
+                  password = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value.trim(), 
+                  dob = document.getElementById('dob').value, 
+                  gender = document.getElementById('gender').value;
+            const condition = document.getElementById('condition').value.trim(), 
+                  therapy = document.getElementById('therapy').value, 
+                  hand = document.getElementById('hand').value, 
+                  level = document.getElementById('level').value;
+            
+            if(!name||!email||!password||!dob||!gender||!condition||!therapy){ 
+                showNotification('Please fill all required fields', 'error'); 
+                return; 
+            }
+            
+            const btn = document.querySelector('#addForm .btn-submit'); 
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            
             try {
-                const reg=await fetch('/api/register/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},body:JSON.stringify({name,email,password,role:'patient',phone})});
-                const regData=await reg.json();
+                const reg = await fetch('/api/register/',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+                    body:JSON.stringify({name,email,password,role:'patient',phone})
+                });
+                const regData = await reg.json();
+                
                 if(regData.success){
-                    const userId=regData.user.id, doctorId=localStorage.getItem('doctorId')||'3';
-                    const detailsRes=await fetch('/api/add-patient-details/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},body:JSON.stringify({user_id:userId,patient_id:`PT${userId}`,date_of_birth:dob,gender,medical_condition:condition,therapy_type:therapy,current_level:level,affected_hand:hand,assigned_doctor_id:parseInt(doctorId)})});
+                    const userId = regData.user.id, 
+                          doctorId = localStorage.getItem('doctorId') || '3';
+                    const detailsRes = await fetch('/api/add-patient-details/',{
+                        method:'POST',
+                        headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+                        body:JSON.stringify({
+                            user_id:userId,
+                            patient_id:`PT${userId}`,
+                            date_of_birth:dob,
+                            gender,
+                            medical_condition:condition,
+                            therapy_type:therapy,
+                            current_level:level,
+                            affected_hand:hand,
+                            assigned_doctor_id:parseInt(doctorId)
+                        })
+                    });
                     if(detailsRes.ok) {
                         showNotification('✅ Patient created successfully!', 'success');
-                        closeAddModal(); loadPatients();
-                    } else { showNotification('Patient created but details failed', 'warning'); }
-                } else { showNotification(regData.error || 'Registration failed', 'error'); }
-            } catch(e){ showNotification('Connection error. Please try again.', 'error'); }
-            finally{ btn.disabled=false; btn.innerHTML='Create Patient'; }
+                        closeAddModal(); 
+                        loadPatients();
+                    } else { 
+                        showNotification('Patient created but details failed', 'warning'); 
+                    }
+                } else { 
+                    showNotification(regData.error || 'Registration failed', 'error'); 
+                }
+            } catch(e){ 
+                showNotification('Connection error. Please try again.', 'error'); 
+            } finally{ 
+                btn.disabled = false; 
+                btn.innerHTML = 'Create Patient'; 
+            }
         };
 
-        function getCookie(n){ let v=null; if(document.cookie) document.cookie.split(';').forEach(c=>{let t=c.trim().split('=');if(t[0]===n)v=decodeURIComponent(t[1]);}); return v; }
+        // ============================================
+        // COOKIE HELPER
+        // ============================================
+        function getCookie(n){ 
+            let v = null; 
+            if(document.cookie) 
+                document.cookie.split(';').forEach(c=>{
+                    let t=c.trim().split('=');
+                    if(t[0]===n) v = decodeURIComponent(t[1]);
+                }); 
+            return v; 
+        }
         
-        function logoutDoctor(){ if(confirm('Logout?')){ localStorage.clear(); sessionStorage.clear(); window.location.href='/'; } }
+        // ============================================
+        // LOGOUT FUNCTION (Same as messages page)
+        // ============================================
+        function logoutDoctor() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);display:flex;justify-content:center;align-items:center;z-index:10000;animation:fadeIn 0.3s ease;`;
+            modal.innerHTML = `<div style="background:white;border-radius:30px;padding:40px;max-width:400px;width:90%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;"><div style="width:80px;height:80px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fas fa-sign-out-alt" style="font-size:40px;color:white;"></i></div><h3 style="color:#1e293b;font-size:28px;">Log Out</h3><p style="color:#64748b;font-size:16px;margin:20px 0;">Are you sure you want to log out?</p><div style="display:flex;gap:15px;"><button id="confirmLogout" style="flex:1;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Yes, Log Out</button><button id="cancelLogout" style="flex:1;padding:14px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Cancel</button></div></div>`;
+            document.body.appendChild(modal);
+            document.getElementById('confirmLogout').onclick = () => { 
+                modal.remove(); 
+                localStorage.clear(); 
+                sessionStorage.clear(); 
+                showNotification('Logged out successfully', 'info'); 
+                setTimeout(() => window.location.href = '/', 800); 
+            };
+            document.getElementById('cancelLogout').onclick = () => modal.remove();
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        }
 
-        window.onclick = function(e) { if(e.target===document.getElementById('addModal')) closeAddModal(); if(e.target===document.getElementById('deleteModal')) closeDeleteModal(); };
+        window.onclick = function(e) { 
+            if(e.target===document.getElementById('addModal')) closeAddModal(); 
+            if(e.target===document.getElementById('deleteModal')) closeDeleteModal(); 
+        };
+        
         document.addEventListener('DOMContentLoaded', () => { loadPatients(); });
     </script>
 </body>

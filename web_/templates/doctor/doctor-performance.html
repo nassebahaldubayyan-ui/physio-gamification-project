@@ -586,7 +586,7 @@
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-content">
                         <h3>Total Patients</h3>
-                        <div class="stat-number" id="totalPatients">3</div>
+                        <div class="stat-number" id="totalPatients">5</div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -616,10 +616,12 @@
             <div class="patient-selector">
                 <label><i class="fas fa-user"></i> Select Patient:</label>
                 <select id="patientSelect" onchange="loadPatientPerformance()">
-                    <option value="PT004">Omar Hassan (PT004) - Movement Disorder</option>
-                    <option value="PT005" selected>Sara Khaled (PT005) - Arm Weakness</option>
-                    <option value="PT006">Ali Ahmed (PT006) - Motor Disability</option>
-                </select>
+    <option value="PT005" selected>Sara Khaled (PT005) - Arm Weakness - 10 years</option>
+    <option value="PT006">Ali Ahmed (PT006) - Motor Disability - 10 years</option>
+    <option value="PT007">Amal (PT007) - General - 14 years</option>
+    <option value="PT008">Saad (PT008) - Not specified - 11 years</option>
+    <option value="PT010">Mansour (PT010) - General - 11 years</option>
+</select>
             </div>
 
             <!-- Games Performance Section -->
@@ -866,14 +868,6 @@
         let currentPatient = 'PT005';
 
         const patientsData = {
-            'PT004': {
-    name: 'Omar Hassan',
-    games: {
-        stars: { shoulder: 82, elbow: 78, grasp: 80, sessions: 12, caught: 98, accuracy: 80 },
-        match: { range: 85, grip: 78, trap: 8, sessions: 10, matches: 82, accuracy: 82 },
-        rotation: { external: 88, alignment: 82, sessions: 14, caught: 112, prevention: 88 }
-    }
-},
             'PT005': {
                 name: 'Sara Khaled',
                 games: {
@@ -889,7 +883,35 @@
                     match: { range: 84, grip: 75, trap: 9, sessions: 13, matches: 102, accuracy: 80 },
                     rotation: { external: 86, alignment: 83, sessions: 16, caught: 132, prevention: 86 }
                 }
-            }
+            },
+            'PT007': {
+        name: 'Amal',
+        age: 14,
+        games: {
+            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+        }
+    },
+    'PT008': {
+        name: 'Saad',
+        age: 11,
+        games: {
+            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+        }
+    },
+    'PT010': {
+        name: 'Mansour',
+        age: 11,
+        games: {
+            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+        }
+    }
+};
         };
 
         document.addEventListener('DOMContentLoaded', function() {

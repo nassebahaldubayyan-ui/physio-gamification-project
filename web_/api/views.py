@@ -713,28 +713,55 @@ def api_get_patients_for_doctor(request):
     
 @require_http_methods(["GET"])
 def api_patient_details(request):
+    """Get detailed data for a single patient"""
     try:
-        user_id = request.GET.get("user_id")
-        if not user_id:
-            return JsonResponse({"error": "user_id required"}, status=400)
+        identifier = request.GET.get("user_id")
+        if not identifier:
+            identifier = request.GET.get("patient")
+        
+        print(f"🔍 Looking for patient with identifier: {identifier}")
+        
+        if not identifier:
+            return JsonResponse({"error": "user_id or patient required"}, status=400)
         
         from .models import Users, Patients, GameSessions
         from django.db.models import Sum, Count
         from datetime import date, datetime
         
-        user = Users.objects.get(id=user_id, role='patient')
+        user = None
+        
+        # Try to find by user_id (number)
+        try:
+            if str(identifier).isdigit():
+                user = Users.objects.filter(id=int(identifier), role='patient').first()
+                if user:
+                    print(f"✅ Found by user_id: {user.id}")
+        except:
+            pass
+        
+        # If not found, try by patient_id (string like PT005)
+        if not user:
+            patient_record = Patients.objects.filter(patient_id=identifier).first()
+            if patient_record:
+                user = patient_record.user
+                print(f"✅ Found by patient_id: {patient_record.patient_id}")
+        
+        if not user:
+            return JsonResponse({"error": f"No patient found with identifier: {identifier}"}, status=404)
+        
         patient = Patients.objects.filter(user=user).first()
         
-        # Get game sessions statistics - using correct field names
+        # Get game sessions statistics
         sessions = GameSessions.objects.filter(patient__user=user)
         stats = sessions.aggregate(
             total_sessions=Count('id'),
             total_score=Sum('score'),
-            total_stars=Sum('stars_caught')  # ✅ Changed from stars_earned to stars_caught
+            total_stars=Sum('stars_caught')
         )
         
         # Calculate age
         age = None
+        age_display = 'N/A'
         if patient and patient.date_of_birth:
             try:
                 dob = patient.date_of_birth
@@ -744,8 +771,14 @@ def api_patient_details(request):
                 age = today.year - dob.year
                 if today.month < dob.month or (today.month == dob.month and today.day < dob.day):
                     age -= 1
+                age_display = f"{age} years"
             except:
                 pass
+        
+        # Format gender
+        gender_display = 'Not specified'
+        if patient and patient.gender:
+            gender_display = 'Male' if patient.gender == 'male' else 'Female'
         
         return JsonResponse({
             "success": True,
@@ -756,13 +789,14 @@ def api_patient_details(request):
                 'phone': user.phone or '',
                 'patient_id': patient.patient_id if patient else f"PT{user.id}",
                 'date_of_birth': patient.date_of_birth if patient else None,
-                'age': age,
-                'gender': patient.gender if patient else None,
+                'age': age_display,
+                'gender': gender_display,
                 'medical_condition': patient.medical_condition if patient else 'Not specified',
                 'therapy_type': patient.therapy_type if patient else 'Physical Therapy',
                 'affected_hand': patient.affected_hand if patient else 'right',
                 'current_level': patient.current_level if patient else 1,
-                'assessment_completed': patient.has_assessment_video == 1 if patient else False
+                'assessment_completed': patient.has_assessment_video == 1 if patient else False,
+                'total_points': stats['total_score'] or 0
             },
             "statistics": {
                 'total_sessions': stats['total_sessions'] or 0,
@@ -770,8 +804,6 @@ def api_patient_details(request):
                 'total_stars': stats['total_stars'] or 0
             }
         })
-    except Users.DoesNotExist:
-        return JsonResponse({"error": "Patient not found"}, status=404)
     except Exception as e:
         import traceback
         traceback.print_exc()

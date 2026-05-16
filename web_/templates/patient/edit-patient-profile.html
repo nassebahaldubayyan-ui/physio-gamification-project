@@ -471,21 +471,7 @@
         function loadPatientData() {
             patientId = localStorage.getItem('patientId') || '7';
             const patientName = localStorage.getItem('patientName') || 'Amal';
-            
-            if (patientId === '4') {
-                patientData = {
-                    fullName: 'Omar Hassan',
-                    patientId: 'PT004',
-                    email: 'omar@rehab.com',
-                    phone: '+966 50 333 3333',
-                    dob: '2017-11-05',
-                    gender: 'male',
-                    condition: 'Movement Disorder',
-                    affectedHand: 'left',
-                    currentLevel: '1',
-                    address: 'Riyadh, Saudi Arabia'
-                };
-            } else if (patientId === '5') {
+            if (patientId === '5') {
                 patientData = {
                     fullName: 'Sara Khaled',
                     patientId: 'PT005',
