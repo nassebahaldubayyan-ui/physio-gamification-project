@@ -8,108 +8,530 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .patient-dashboard { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
-        .patient-header { background: rgba(255,255,255,0.95); border-radius: 30px; padding: 25px 35px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.2); flex-wrap: wrap; gap: 20px; }
-        .patient-info { display: flex; align-items: center; gap: 20px; }
-        .patient-avatar { width: 70px; height: 70px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; border: 3px solid white; overflow: hidden; }
-        .patient-details h2 { color: #1e293b; font-size: 28px; margin-bottom: 5px; }
-        .patient-details p { color: #64748b; font-size: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .level-badge { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 14px; }
-        .affected-hand-badge { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 14px; }
-        .header-actions { display: flex; gap: 10px; }
-        .profile-btn, .settings-btn { background: #f1f5f9; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
-        .profile-btn:hover, .settings-btn:hover { background: #e2e8f0; transform: scale(1.1); }
-        .section-title { color: white; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .games-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 40px; }
-        .game-card { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 30px 25px; cursor: pointer; transition: all 0.3s; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); position: relative; overflow: hidden; }
-        .game-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
-        .game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; }
-        .game-card:nth-child(1)::before { background: linear-gradient(90deg, #ffd700, #ffa500); }
-        .game-card:nth-child(2)::before { background: linear-gradient(90deg, #48bb78, #38a169); }
-        .game-card:nth-child(3)::before { background: linear-gradient(90deg, #4299e1, #3182ce); }
-        .game-card.disabled { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
-        .game-card.disabled:hover { transform: none; }
-        .game-icon { font-size: 60px; margin-bottom: 20px; text-align: center; }
-        .game-card h3 { color: #1e293b; font-size: 24px; margin-bottom: 10px; text-align: center; }
-        .game-description { color: #64748b; font-size: 14px; margin-bottom: 20px; text-align: center; min-height: 60px; }
-        .game-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; }
-        .game-level { background: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-weight: 600; color: #667eea; font-size: 14px; }
-        .game-progress { color: #10b981; font-weight: 600; font-size: 14px; }
-        .assessment-warning { background: #fee2e2; color: #dc2626; padding: 15px 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; border: 2px solid #fecaca; }
-        .assessment-warning button { padding: 10px 25px; background: #dc2626; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .assessment-warning button:hover { background: #b91c1c; transform: translateY(-2px); }
-        .contact-section { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.2); margin-top: 30px; }
-        .contact-info { display: flex; align-items: center; gap: 20px; }
-        .doctor-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #a78bfa; border: 2px solid #a78bfa; background: transparent; }
-        .contact-text h3 { color: #1e293b; font-size: 20px; margin-bottom: 5px; }
-        .contact-text p { color: #64748b; display: flex; align-items: center; gap: 5px; }
-        .online-indicator { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; }
-        .contact-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
-        .contact-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(16,185,129,0.4); }
-        .logout-btn { margin-top: 25px; padding: 15px 30px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 50px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
-        .logout-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-3px); }
-        .loading { text-align: center; color: white; font-size: 20px; padding: 50px; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        .custom-notification { cursor: pointer; transition: all 0.3s ease; }
-        .custom-notification:hover { transform: translateY(-2px); filter: brightness(1.05); }
-        @media (max-width: 1024px) { .games-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .patient-header { flex-direction: column; text-align: center; } .games-grid { grid-template-columns: 1fr; } .contact-section { flex-direction: column; text-align: center; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .patient-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .patient-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 25px 35px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .patient-avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            overflow: hidden;
+        }
+
+        .patient-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .patient-details h2 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .patient-details p {
+            color: #64748b;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .affected-hand-badge {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .profile-btn, .settings-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-btn:hover, .settings-btn:hover {
+            background: #e2e8f0;
+            transform: scale(1.1);
+        }
+
+        .section-title {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .game-card:nth-child(1)::before {
+            background: linear-gradient(90deg, #ffd700, #ffa500);
+        }
+
+        .game-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+
+        .game-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #4299e1, #3182ce);
+        }
+
+        .game-card.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .game-card.disabled:hover {
+            transform: none;
+        }
+
+        .game-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-card h3 {
+            color: #1e293b;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .game-description {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.5;
+            min-height: 60px;
+        }
+
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .game-level {
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .game-progress {
+            color: #10b981;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .assessment-warning {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 2px solid #fecaca;
+        }
+
+        .assessment-warning i {
+            font-size: 20px;
+        }
+
+        .assessment-warning button {
+            padding: 10px 25px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assessment-warning button:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        .contact-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-top: 30px;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #a78bfa;
+            border: 2px solid #a78bfa;
+        }
+
+        .contact-text h3 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .contact-text p {
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .contact-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .logout-btn {
+            margin-top: 25px;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            padding: 50px;
+        }
+
+        /* Custom Logout Modal Styles */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .custom-notification {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-notification:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        @media (max-width: 1024px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .patient-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+            .contact-section {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="patient-dashboard" id="dashboard" style="display: none;">
+        <!-- Header -->
         <div class="patient-header">
             <div class="patient-info">
-                <div class="patient-avatar" id="patientAvatar"><span id="avatarText">A</span></div>
+                <div class="patient-avatar" id="patientAvatar">
+                    <span id="avatarText">A</span>
+                </div>
                 <div class="patient-details">
                     <h2 id="patientName">Loading...</h2>
-                    <p><span>ID: <span id="patientId">---</span></span><span class="level-badge" id="patientCondition">Loading...</span><span class="affected-hand-badge" id="affectedHandBadge">Loading...</span></p>
+                    <p>
+                        <span>ID: <span id="patientId">---</span></span>
+                        <span class="level-badge" id="patientCondition">Loading...</span>
+                        <span class="affected-hand-badge" id="affectedHandBadge">Loading...</span>
+                    </p>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="profile-btn" onclick="window.location.href='/profile/'"><i class="fas fa-user"></i></button>
-                <button class="settings-btn" onclick="window.location.href='/settings/'"><i class="fas fa-cog"></i></button>
+                <button class="profile-btn" onclick="window.location.href='{% url 'profile' %}'" title="User Profile">
+                    <i class="fas fa-user"></i>
+                </button>
+                <button class="settings-btn" onclick="window.location.href='{% url 'settings' %}'" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
             </div>
         </div>
 
+        <!-- Assessment Warning -->
         <div class="assessment-warning" id="assessmentWarning" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i> Please complete your initial assessment video to unlock games.
-            <button onclick="window.location.href='/patient/capture-video/'"><i class="fas fa-video"></i> Take Assessment Now</button>
+            <i class="fas fa-exclamation-triangle"></i>
+            Please complete your initial assessment video to unlock games.
+            <button onclick="window.location.href='{% url 'capture_video' %}'">
+                <i class="fas fa-video"></i> Take Assessment Now
+            </button>
         </div>
 
-        <h2 class="section-title"><i class="fas fa-gamepad"></i> Therapeutic Games</h2>
-        <div class="games-grid">
-            <div class="game-card disabled" id="game1" onclick="checkGameAccess(1)">
+        <!-- Games Section -->
+        <h2 class="section-title">
+            <i class="fas fa-gamepad"></i> Therapeutic Games
+        </h2>
+        
+        <div class="games-grid" id="gamesGrid">
+            <div class="game-card" id="game1" onclick="checkGameAccess(1)">
                 <div class="game-icon"><i class="fas fa-star"></i></div>
                 <h3>Catching Stars</h3>
                 <p class="game-description">Reach up to catch stars. Targets shoulder elevation and elbow movement.</p>
-                <div class="game-footer"><span class="game-level" id="game1Level">Level 1</span><span class="game-progress" id="game1Progress">0%</span></div>
+                <div class="game-footer">
+                    <span class="game-level" id="game1Level">Level 1</span>
+                    <span class="game-progress" id="game1Progress">0%</span>
+                </div>
             </div>
-            <div class="game-card disabled" id="game2" onclick="checkGameAccess(2)">
+
+            <div class="game-card" id="game2" onclick="checkGameAccess(2)">
                 <div class="game-icon"><i class="fas fa-paint-brush"></i></div>
                 <h3>Matching Game</h3>
                 <p class="game-description">Match objects to colors. Full upper extremity workout.</p>
-                <div class="game-footer"><span class="game-level" id="game2Level">Level 1</span><span class="game-progress" id="game2Progress">0%</span></div>
+                <div class="game-footer">
+                    <span class="game-level" id="game2Level">Level 1</span>
+                    <span class="game-progress" id="game2Progress">0%</span>
+                </div>
             </div>
-            <div class="game-card disabled" id="game3" onclick="checkGameAccess(3)">
+
+            <div class="game-card" id="game3" onclick="checkGameAccess(3)">
                 <div class="game-icon"><i class="fas fa-basketball-ball"></i></div>
                 <h3>Catching Falling Objects</h3>
                 <p class="game-description">External rotation training. Prevents contractures.</p>
-                <div class="game-footer"><span class="game-level" id="game3Level">Level 1</span><span class="game-progress" id="game3Progress">0%</span></div>
+                <div class="game-footer">
+                    <span class="game-level" id="game3Level">Level 1</span>
+                    <span class="game-progress" id="game3Progress">0%</span>
+                </div>
             </div>
         </div>
 
+        <!-- Contact Section -->
         <div class="contact-section">
-            <div class="contact-info"><div class="doctor-avatar"><i class="fas fa-user-circle"></i></div><div class="contact-text"><h3>Dr. Ahmad</h3><p><span class="online-indicator"></span> Online</p></div></div>
-            <button class="contact-btn" onclick="window.location.href='/patient/chat/'"><i class="fas fa-comment"></i> Message Doctor</button>
+            <div class="contact-info">
+                <div class="doctor-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="contact-text">
+                    <h3>Dr. Ahmad</h3>
+                    <p>
+                        <span class="online-indicator"></span>
+                        Online
+                    </p>
+                </div>
+            </div>
+            <button class="contact-btn" onclick="window.location.href='{% url 'patient_chat' %}'">
+                <i class="fas fa-comment"></i> Message Doctor
+            </button>
         </div>
 
-        <button class="logout-btn" onclick="logoutPatient()"><i class="fas fa-sign-out-alt"></i> Log Out</button>
+        <button class="logout-btn" onclick="logoutPatient()">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </button>
     </div>
 
     <div class="loading" id="loading">Loading patient data...</div>
@@ -131,10 +553,7 @@
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             loadPatientData();
-            // Always show assessment dialog for every user
-            setTimeout(function() {
-                showAssessmentDialog();
-            }, 1500);
+            checkAssessmentStatus();
         });
 
         // ============================================
@@ -158,7 +577,7 @@
         }
 
         // ============================================
-        // LOAD PATIENT DATA
+        // LOAD PATIENT DATA (Statistics cards removed)
         // ============================================
         function loadPatientData() {
             // Get data from localStorage
@@ -185,14 +604,20 @@
             hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
             assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
             
-            // Set patient condition
+            // Set patient condition (without statistics)
             if (!hasVideo && !assessmentCompleted) {
                 if (patientConditionEl) patientConditionEl.textContent = 'New Patient';
+            } else if (patientId === '4') {
+                if (patientConditionEl) patientConditionEl.textContent = 'Movement Disorder';
+            } else if (patientId === '5') {
+                if (patientConditionEl) patientConditionEl.textContent = 'Arm Weakness';
+            } else if (patientId === '6') {
+                if (patientConditionEl) patientConditionEl.textContent = 'Motor Disability';
             } else {
                 if (patientConditionEl) patientConditionEl.textContent = 'Patient';
             }
             
-            // Update game progress
+            // Update game progress only (statistics were removed)
             const game1Progress = document.getElementById('game1Progress');
             const game2Progress = document.getElementById('game2Progress');
             const game3Progress = document.getElementById('game3Progress');
@@ -201,13 +626,26 @@
                 if (game1Progress) game1Progress.textContent = '0%';
                 if (game2Progress) game2Progress.textContent = '0%';
                 if (game3Progress) game3Progress.textContent = '0%';
+            } else if (patientId === '4') {
+                if (game1Progress) game1Progress.textContent = '82%';
+                if (game2Progress) game2Progress.textContent = '82%';
+                if (game3Progress) game3Progress.textContent = '82%';
+            } else if (patientId === '5') {
+                if (game1Progress) game1Progress.textContent = '79%';
+                if (game2Progress) game2Progress.textContent = '79%';
+                if (game3Progress) game3Progress.textContent = '79%';
+            } else if (patientId === '6') {
+                if (game1Progress) game1Progress.textContent = '81%';
+                if (game2Progress) game2Progress.textContent = '81%';
+                if (game3Progress) game3Progress.textContent = '81%';
+            } else {
+                if (game1Progress) game1Progress.textContent = '0%';
+                if (game2Progress) game2Progress.textContent = '0%';
+                if (game3Progress) game3Progress.textContent = '0%';
             }
             
-            // Load avatar
+            // Load avatar from localStorage
             loadAvatarOnDashboard();
-            
-            // Disable games by default
-            disableGameCards();
             
             // Hide loading, show dashboard
             const loadingEl = document.getElementById('loading');
@@ -218,6 +656,44 @@
         }
 
         // ============================================
+        // CHECK ASSESSMENT STATUS
+        // ============================================
+        function checkAssessmentStatus() {
+    // localStorage.removeItem('assessmentCompleted');
+    // localStorage.removeItem('hasAssessmentVideo');
+    
+    // Get assessment status from localStorage
+    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+    const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+    const isFirstTime = localStorage.getItem('firstTime') === null;
+    
+    console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
+    
+    // Case 1: User has already completed assessment
+    if (hasVideo || assessmentCompleted) {
+        console.log('User has completed assessment');
+        enableGameCards();
+        return;
+    }
+    
+    // Case 2: User is new (first time)
+    if (isFirstTime) {
+        console.log('First time user - showing assessment dialog');
+        localStorage.setItem('firstTime', 'false');
+        setTimeout(() => {
+            showAssessmentDialog();
+        }, 2000);
+        return;
+    }
+    
+    // Case 3: Returning user who hasn't completed assessment
+    if (!hasVideo && !assessmentCompleted) {
+        console.log('Returning user without assessment - showing warning');
+        disableGameCards();
+        return;
+    }
+}
+        // ============================================
         // SHOW ASSESSMENT DIALOG
         // ============================================
         function showAssessmentDialog() {
@@ -227,7 +703,11 @@
                 return;
             }
             
-            sessionStorage.setItem('assessmentShownThisSession', 'true');
+            // Remove any existing dialog
+            const existingDialog = document.querySelector('.camera-dialog');
+            if (existingDialog) {
+                existingDialog.remove();
+            }
             
             const dialog = document.createElement('div');
             dialog.className = 'camera-dialog';
@@ -260,11 +740,12 @@
                     <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
                     <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Initial Assessment Required</h3>
                     <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
-                        Welcome! We need to record an assessment video to track your progress.
+                        Welcome! As this is your first time, we need to record an assessment video.<br>
+                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
                     </p>
                     <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
                         <p style="color: #1e293b; font-weight: 600; margin-bottom: 5px;">Camera permission needed:</p>
-                        <p style="color: #64748b; font-size: 14px;">We'll need access to your camera to record the assessment.</p>
+                        <p style="color: #64748b; font-size: 14px;">We'll need access to your camera to record the assessment. This is a one-time requirement.</p>
                     </div>
                     <div style="display: flex; gap: 15px;">
                         <button id="cameraYes" style="
@@ -282,7 +763,7 @@
                             justify-content: center;
                             gap: 8px;
                         ">
-                            <i class="fas fa-video"></i> Start Assessment
+                            <i class="fas fa-video"></i> Allow Camera & Record
                         </button>
                         <button id="cameraNo" style="
                             flex: 1;
@@ -295,7 +776,7 @@
                             font-weight: 600;
                             cursor: pointer;
                         ">
-                            Later
+                            Not Now
                         </button>
                     </div>
                     <p style="color: #ef4444; font-size: 13px; margin-top: 15px; font-weight: 500;">
@@ -305,29 +786,98 @@
             `;
             
             document.body.appendChild(dialog);
+            sessionStorage.setItem('assessmentShownThisSession', 'true');
             
             document.getElementById('cameraYes').addEventListener('click', function() {
                 dialog.remove();
-                window.location.href = "{% url 'capture_video' %}";
+                requestCameraAndGoToVideo();
             });
             
             document.getElementById('cameraNo').addEventListener('click', function() {
                 dialog.remove();
-                document.getElementById('assessmentWarning').style.display = 'flex';
-                showNotification('Please complete assessment to play games', 'error');
+                localStorage.setItem('assessmentSkipped', 'true');
+                showNotification('Assessment required. You cannot play games until you complete it.', 'error');
+                disableGameCards();
             });
         }
+
+        async function checkAssessmentStatusFromDB() {
+    try {
+        const patientId = localStorage.getItem('patientId');
+        if (!patientId) return;
+        
+        const response = await fetch(`/api/check-assessment/?patient_id=${patientId}`);
+        const data = await response.json();
+        
+        console.log('Assessment status from DB:', data);
+        
+        if (data.success && data.assessment_completed) {
+            localStorage.setItem('assessmentCompleted', 'true');
+            localStorage.setItem('hasAssessmentVideo', 'true');
+            enableGameCards();
+            console.log('✅ Assessment completed - games enabled');
+        } else {
+            localStorage.setItem('assessmentCompleted', 'false');
+            localStorage.setItem('hasAssessmentVideo', 'false');
+            disableGameCards();
+            console.log('❌ Assessment NOT completed - games disabled');
+            
+            // ✅ FORCE SHOW DIALOG
+            setTimeout(function() {
+                showAssessmentDialog();
+            }, 500);
+        }
+    } catch (error) {
+        console.error('Error checking assessment:', error);
+        // Fallback to localStorage
+        const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+        const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+        if (hasVideo || assessmentCompleted) {
+            enableGameCards();
+        } else {
+            disableGameCards();
+            setTimeout(function() {
+                showAssessmentDialog();
+            }, 500);
+        }
+    }
+}
 
         // ============================================
         // REQUEST CAMERA AND GO TO VIDEO
         // ============================================
         async function requestCameraAndGoToVideo() {
             try {
+                const loadingDialog = document.createElement('div');
+                loadingDialog.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001;
+                `;
+                loadingDialog.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #667eea;"></i>
+                        <p style="margin-top: 15px; color: #1e293b;">Requesting camera access...</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingDialog);
+                
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 stream.getTracks().forEach(track => track.stop());
+                
+                loadingDialog.remove();
                 window.location.href = "{% url 'capture_video' %}";
+                
             } catch (error) {
-                alert('Camera access is required. Please allow camera access.');
+                console.error('Camera permission error:', error);
+                alert('Camera access is required for new players. Please allow camera access and try again.');
                 showAssessmentDialog();
             }
         }
@@ -338,6 +888,7 @@
         function checkGameAccess(gameNumber) {
             const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
             const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
+            const assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
             
             if (hasVideo || assessmentCompleted) {
                 goToGame(gameNumber);
@@ -369,7 +920,7 @@
             
             const warningEl = document.getElementById('assessmentWarning');
             if (warningEl) {
-                warningEl.style.display = 'none';
+                warningEl.style.display = 'flex';
             }
         }
 
@@ -380,11 +931,13 @@
                 card.removeAttribute('title');
             });
             
+            // Remove warning message if exists
             const warningMsg = document.querySelector('.assessment-warning');
             if (warningMsg) {
                 warningMsg.style.display = 'none';
             }
             
+            // Ensure localStorage is set correctly
             localStorage.setItem('hasAssessmentVideo', 'true');
             localStorage.setItem('assessmentCompleted', 'true');
         }
@@ -455,44 +1008,115 @@
         }
 
         // ============================================
-        // LOGOUT FUNCTION
+        // CUSTOM LOGOUT FUNCTION
         // ============================================
         function logoutPatient() {
-            if (confirm('Are you sure you want to logout?')) {
+            const modal = document.createElement('div');
+            modal.className = 'logout-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 30px;
+                    padding: 40px;
+                    max-width: 400px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 20px;
+                    ">
+                        <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
+                    </div>
+                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
+                    <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
+                        Are you sure you want to log out?
+                    </p>
+                    <div style="display: flex; gap: 15px;">
+                        <button id="confirmLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                            color: white;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-check-circle"></i> Yes, Log Out
+                        </button>
+                        <button id="cancelLogout" style="
+                            flex: 1;
+                            padding: 14px;
+                            background: #f1f5f9;
+                            color: #475569;
+                            border: none;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('confirmLogout').addEventListener('click', function() {
+                modal.remove();
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = "{% url 'index' %}";
-            }
-        }
-        
-        // ============================================
-        // SAVE GAME RESULT FUNCTION
-        // ============================================
-        async function saveGameResultToDatabase(score, stars) {
-            const patientId = localStorage.getItem('patientId');
-            if (!patientId) return false;
-            let gameType = window.location.pathname.includes('catching-stars') ? 'stars' : 
-                          window.location.pathname.includes('matching') ? 'matching' : 'objects';
-            try {
-                const response = await fetch('/api/update-level/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ patient_id: parseInt(patientId), score: score, stars: stars, game_type: gameType, duration: 60 })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert(`🎉 ${data.message}`);
-                    localStorage.setItem('patientLevel', data.new_level);
-                    return true;
+                showNotification('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = "{% url 'index' %}";
+                }, 800);
+            });
+            
+            document.getElementById('cancelLogout').addEventListener('click', function() {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
                 }
-                return false;
-            } catch(e) { return false; }
-        }
-        
-        function getCookie(name) {
-            let v = null;
-            if (document.cookie) document.cookie.split(';').forEach(c => { let t = c.trim().split('='); if (t[0] === name) v = decodeURIComponent(t[1]); });
-            return v;
+            });
         }
     </script>
 </body>
