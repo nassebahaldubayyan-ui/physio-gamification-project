@@ -5,22 +5,22 @@ public class DraggableCar : MonoBehaviour
     public ColorType color;
 
     [Header("Drag thresholds (world units)")]
-    public float grabDistance = 1.5f;
-    public float dropDistance = 1.5f;
+    public float grabDistance = 2.2f;        
+    public float dropDistance = 2.0f;
 
     [Header("Spawn Protection")]
-    public float spawnGracePer = 0.3f;
+    public float spawnGracePer = 0.2f;       
 
-    [Header("Smoothing")]
-    [Range(5f, 50f)]
-    public float followSpeed = 30f;  
+    [Header("Dragging")]
+    [Range(10f, 50f)]
+    public float followSpeed = 35f;          
 
     private bool isHolding = false;
     private bool handClosed = false;
     private float spawnTime;
     private Transform handPoint;
     private CircleCollider2D carCollider;
-    private Basket[] cachedBaskets;  
+    private Basket[] cachedBaskets;
 
     void Start()
     {
@@ -29,6 +29,8 @@ public class DraggableCar : MonoBehaviour
         carCollider = GetComponent<CircleCollider2D>();
         if (carCollider == null)
             carCollider = gameObject.AddComponent<CircleCollider2D>();
+
+        carCollider.radius = 0.8f;  
 
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
@@ -55,7 +57,7 @@ public class DraggableCar : MonoBehaviour
         {
             isHolding = true;
             if (carCollider != null) carCollider.enabled = false;
-            Debug.Log($"Grabbed {color} car");
+            Debug.Log($"[DraggableCar] Grabbed {color} car at distance {distanceToHand:F2}");
         }
 
         if (!handClosed && isHolding)
@@ -66,18 +68,14 @@ public class DraggableCar : MonoBehaviour
             if (IsOverMatchingBasket())
             {
                 if (GameManager.Instance != null)
-                    GameManager.Instance.AddScore(1);
+                    GameManager.Instance.AddScore(1);  // أو 10 حسب تصميمك
                 Destroy(gameObject);
             }
         }
 
         if (isHolding)
         {
-            transform.position = Vector3.Lerp(
-                transform.position,
-                handPoint.position,
-                Time.deltaTime * followSpeed
-            );
+            transform.position = Vector3.Lerp(transform.position, handPoint.position, Time.deltaTime * followSpeed);
         }
     }
 

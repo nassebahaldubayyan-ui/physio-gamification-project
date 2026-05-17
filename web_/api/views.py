@@ -404,7 +404,7 @@ def game_matching(request):
             level_thresholds = {
                 1: 5,
                 2: 12,
-                3: 99
+                3: 999
             }
 
             last_level = last_session.level
@@ -420,6 +420,9 @@ def game_matching(request):
                 current_level = last_level
 
     print(f"✅ Final level: {current_level}")
+
+    affected_hand = patient.affected_hand if patient.affected_hand else 'right'
+
 
     
     
@@ -443,9 +446,11 @@ def game_matching(request):
         window.DJANGO_USER_ID = {user_id};
         window.DJANGO_PATIENT_NAME = "{patient_name}";
         window.DJANGO_LEVEL = {current_level};
-        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID,
-                    "Patient:", window.DJANGO_PATIENT_NAME,
-                    "Level:", window.DJANGO_LEVEL);
+        window.DJANGO_AFFECTED_HAND = "{affected_hand}";
+        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
+                    "Patient:", window.DJANGO_PATIENT_NAME, 
+                    "Level:", window.DJANGO_LEVEL,
+                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
     </script>
     """
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
