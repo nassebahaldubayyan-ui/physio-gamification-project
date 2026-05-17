@@ -328,7 +328,6 @@
         🖐️ HAND: X <span id="handX">--</span>% | Y <span id="handY">--</span>%<br>
         ✊ GRIP: <span id="gripStatus">OPEN</span><br>
         📐 ELBOW: <span id="elbowAngle">--</span>°<br>
-        💪 SHOULDER: <span id="shoulderAct">--</span>%<br>
         ✋ WRIST: <span id="wristAct">--</span>%<br>
         🔄 EXT ROT: <span id="externalRot">--</span>°<br>
         ⬆️ SHRUG: <span id="shoulderShrug">--</span>%
@@ -361,7 +360,6 @@
         <div class="data-row"><span class="data-label">🎯 Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
         <div class="data-row"><span class="data-label">✊ Grip Activation</span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
         <div class="data-row"><span class="data-label">📐 Elbow Angle</span><span class="data-value"><span id="avgElbow">--</span>°</span></div>
-        <div class="data-row"><span class="data-label">💪 Shoulder Activation</span><span class="data-value"><span id="finalShoulder">--</span>%</span></div>
         <div class="data-row"><span class="data-label">✋ Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
         <div class="data-row"><span class="data-label">🔄 External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
         <div class="data-row"><span class="data-label">⬆️ Shoulder Shrug</span><span class="data-value"><span id="finalShrug">--</span>%</span></div>
@@ -574,17 +572,21 @@ let lastWrongHandTime = 0;
 let lastNotificationTime = 0;
 let currentGripSensitivity = 75;
 
-// History for metrics (مثل لعبة التفاح)
+// History for metrics - فقط اللي نحتاجها
 let gripSuccessHistory = [];
 let elbowHistory = [];
-let shoulderXHistory = [];     // ← لتخزين X positions عشان نحسب range
-let wristSpeedHistory = [];    // ← لتخزين سرعة الحركة
+let wristSpeedHistory = [];
 let externalRotHistory = [];
 let shoulderShrugHistory = [];
 let handInFrameHistory = [];
 
 // Variables for speed calculation
 let prevHandX = null;
+
+// Grip debounce
+let lastGripState = false;
+let gripDebounceTimer = null;
+let currentGripState = false;
 
 // Smoothing filters
 let elbowFilter, extRotFilter, shrugFilter, wristFilter;
@@ -604,9 +606,7 @@ window.UpdateTimerFromUnity = function(timer) {
     updateUI();
 };
 
-window.UpdateTotalStars = function(total) {
-    // Not used for metrics but kept for compatibility
-};
+window.UpdateTotalStars = function(total) {};
 
 window.EndGameFromUnity = function(score) {
     if (gameEnded) return;
@@ -647,11 +647,10 @@ function showNotification(msg, isSuccess = false) {
     setTimeout(() => div.remove(), 2500);
 }
 
-function updateStatsDisplay(handX, handY, elbowAngle, shoulderAct, wristAct, externalRot, shrug, isGripping, isInside) {
+function updateStatsDisplay(handX, handY, elbowAngle, wristAct, externalRot, shrug, isGripping, isInside) {
     document.getElementById('handX').innerHTML = Math.round(handX * 100);
     document.getElementById('handY').innerHTML = Math.round(handY * 100);
     document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
-    document.getElementById('shoulderAct').innerHTML = shoulderAct || 0;
     document.getElementById('wristAct').innerHTML = wristAct || 0;
     document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
     document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
@@ -678,7 +677,7 @@ function updateSensitivityMeter(currentAngle) {
 }
 
 // ============================================================
-// Metric Calculations (مثل لعبة التفاح)
+// Metric Calculations
 // ============================================================
 function calculateAccuracy() {
     if (handInFrameHistory.length === 0) return 100;
@@ -690,12 +689,6 @@ function calculateGripActivation() {
     if (gripSuccessHistory.length === 0) return 0;
     const success = gripSuccessHistory.filter(v => v === 1).length;
     return Math.round((success / gripSuccessHistory.length) * 100);
-}
-
-function calculateShoulderActivation() {
-    if (shoulderXHistory.length < 2) return 0;
-    const range = Math.max(...shoulderXHistory) - Math.min(...shoulderXHistory);
-    return Math.min(100, Math.round(range * 100));
 }
 
 function calculateWristActivation() {
@@ -723,7 +716,7 @@ function calculateAvgShrug() {
 }
 
 // ============================================================
-// Pose Calculations from MediaPipe Hands
+// Pose Calculations
 // ============================================================
 function calculateGripFromLandmarks(landmarks) {
     const fingerTips = [4, 8, 12, 16, 20];
@@ -738,7 +731,6 @@ function calculateGripFromLandmarks(landmarks) {
     return avgAngle < currentGripSensitivity;
 }
 
-// Elbow angle estimation from hand landmarks
 function calculateElbowAngle(landmarks) {
     try {
         const wrist = landmarks[0];
@@ -748,7 +740,6 @@ function calculateElbowAngle(landmarks) {
     } catch(e) { return 90; }
 }
 
-// External rotation (without Math.abs - preserves direction)
 function calculateExternalRotation(landmarks) {
     try {
         const indexMCP = landmarks[5];
@@ -759,7 +750,6 @@ function calculateExternalRotation(landmarks) {
     } catch(e) { return 0; }
 }
 
-// Shoulder shrug from hand height
 function calculateShoulderShrug(handY) {
     return Math.min(100, Math.max(0, Math.round((1 - handY) * 100)));
 }
@@ -793,7 +783,7 @@ function startGameUnity() {
 }
 
 // ============================================================
-// MediaPipe (نفس طريقة لعبة التفاح)
+// MediaPipe
 // ============================================================
 async function initMediaPipe() {
     const video = document.createElement('video');
@@ -841,8 +831,6 @@ async function initMediaPipe() {
         const wrist = handLandmarks[0];
         let handX = wrist.x;
         let handY = wrist.y;
-        
-        // Mirror fix for X
         handX = 1 - handX;
         
         const isInside = (handX > 0.05 && handX < 0.95 && handY > 0.05 && handY < 0.95);
@@ -852,24 +840,29 @@ async function initMediaPipe() {
             lastNotificationTime = Date.now();
         }
         
-        // ============================================================
-        // Record metrics (مثل لعبة التفاح)
-        // ============================================================
-        
-        // 1. Hand in frame (for accuracy)
+        // 1. Hand in frame
         handInFrameHistory.push(isInside ? 1 : 0);
         if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
         
-        // 2. Shoulder X positions (for range calculation)
-        shoulderXHistory.push(handX);
-        if (shoulderXHistory.length > 1800) shoulderXHistory.shift();
+        // 2. Grip with debounce
+        const rawGrip = calculateGripFromLandmarks(handLandmarks);
+        let isGripping = rawGrip;
         
-        // 3. Grip activation
-        const isGripping = calculateGripFromLandmarks(handLandmarks);
+        if (rawGrip !== lastGripState) {
+            if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
+            gripDebounceTimer = setTimeout(() => {
+                currentGripState = rawGrip;
+            }, 100);
+            isGripping = currentGripState;
+        } else {
+            isGripping = currentGripState;
+        }
+        lastGripState = rawGrip;
+        
         gripSuccessHistory.push(isGripping ? 1 : 0);
         if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
         
-        // 4. Wrist activation (speed - مثل لعبة التفاح)
+        // 3. Wrist speed
         let wristSpeed = 0;
         if (prevHandX !== null) {
             wristSpeed = Math.abs(handX - prevHandX);
@@ -879,29 +872,25 @@ async function initMediaPipe() {
         prevHandX = handX;
         const smoothedWrist = wristFilter ? wristFilter.filter(wristSpeed) : wristSpeed;
         
-        // 5. Elbow angle
+        // 4. Elbow angle
         const elbowAngle = calculateElbowAngle(handLandmarks);
         const smoothedElbow = elbowFilter ? elbowFilter.filter(elbowAngle) : elbowAngle;
         elbowHistory.push(smoothedElbow);
         if (elbowHistory.length > 1800) elbowHistory.shift();
         
-        // 6. External rotation
+        // 5. External rotation
         const externalRot = calculateExternalRotation(handLandmarks);
         const smoothedExtRot = extRotFilter ? extRotFilter.filter(externalRot) : externalRot;
         externalRotHistory.push(smoothedExtRot);
         if (externalRotHistory.length > 1800) externalRotHistory.shift();
         
-        // 7. Shoulder shrug
+        // 6. Shoulder shrug
         const shrug = calculateShoulderShrug(handY);
         const smoothedShrug = shrugFilter ? shrugFilter.filter(shrug) : shrug;
         shoulderShrugHistory.push(smoothedShrug);
         if (shoulderShrugHistory.length > 1800) shoulderShrugHistory.shift();
         
-        // Update live display (shoulder activation يعرض القيمة الحالية)
-        const currentShoulder = shoulderXHistory.length > 0 ? 
-            Math.min(100, Math.round((Math.max(...shoulderXHistory) - Math.min(...shoulderXHistory)) * 100)) : 0;
-        
-        updateStatsDisplay(handX, handY, smoothedElbow, currentShoulder, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
+        updateStatsDisplay(handX, handY, smoothedElbow, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
         updateHandCursor(handX, handY, isGripping);
         
         if (unityInstance && typeof unityInstance.sendMessage === 'function') {
@@ -918,11 +907,11 @@ async function initMediaPipe() {
     });
     await camera.start();
     mediaPipeActive = true;
-    console.log("MediaPipe started - Tracking:", targetMPLabel, "(Patient's", affectedHand, "hand)");
+    console.log("MediaPipe started - Tracking:", targetMPLabel);
 }
 
 // ============================================================
-// End Game (مثل لعبة التفاح)
+// End Game
 // ============================================================
 function endGame(score) {
     gameActive = false;
@@ -931,7 +920,6 @@ function endGame(score) {
     const accuracy = calculateAccuracy();
     const gripActivation = calculateGripActivation();
     const avgElbow = calculateAvgElbow();
-    const avgShoulder = calculateShoulderActivation();
     const avgWrist = calculateWristActivation();
     const avgExternalRot = calculateAvgExternalRot();
     const avgShrug = calculateAvgShrug();
@@ -941,7 +929,7 @@ function endGame(score) {
     document.getElementById('finalAccuracy').innerHTML = accuracy;
     document.getElementById('finalGrip').innerHTML = gripActivation;
     document.getElementById('avgElbow').innerHTML = avgElbow;
-    document.getElementById('finalShoulder').innerHTML = avgShoulder;
+    document.getElementById('finalShoulder').innerHTML = "0";
     document.getElementById('finalWrist').innerHTML = avgWrist;
     document.getElementById('finalExtRot').innerHTML = avgExternalRot;
     document.getElementById('finalShrug').innerHTML = avgShrug;
@@ -974,7 +962,7 @@ function endGame(score) {
             grip_activation: gripActivation,
             accuracy: accuracy,
             elbow_activation: avgElbow,
-            shoulder_activation: avgShoulder,
+            shoulder_activation: 0,
             wrist_activation: avgWrist,
             external_rotation: avgExternalRot,
             shoulder_shrug: avgShrug,
@@ -1013,16 +1001,17 @@ function startGame() {
             currentGripSensitivity = cfg?.gripSensitivity || 75;
             finalLevel = currentLevel;
             
-            // Reset filters
             elbowFilter = new SmoothingFilter(5);
             extRotFilter = new SmoothingFilter(5);
             shrugFilter = new SmoothingFilter(5);
             wristFilter = new SmoothingFilter(5);
             
-            // Reset histories
+            lastGripState = false;
+            currentGripState = false;
+            if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
+            
             gripSuccessHistory = [];
             elbowHistory = [];
-            shoulderXHistory = [];
             wristSpeedHistory = [];
             externalRotHistory = [];
             shoulderShrugHistory = [];
@@ -1038,7 +1027,7 @@ function startGame() {
             else mediaPipeActive = true;
             
             soundManager.resumeAudio();
-            showNotification(`🎮 GAME STARTED! Use your ${affectedHandDisplay} hand! Close it to catch stars! 🎮`, true);
+            showNotification(`🎮 GAME STARTED! Use your ${affectedHandDisplay} hand! 🎮`, true);
         })
         .catch(err => {
             console.error("Camera error:", err);
@@ -1068,16 +1057,13 @@ function waitForUnity() {
     }).then((instance) => {
         if (typeof instance.sendMessage === 'function') {
             unityInstance = instance;
-            console.log("✅ Unity ready - sendMessage direct");
         } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
             unityInstance = {
                 sendMessage: function(obj, method, value) {
                     instance.Module.SendMessage(obj, method, value);
                 }
             };
-            console.log("✅ Unity ready - sendMessage via Module");
         } else {
-            console.error("❌ Cannot find sendMessage function");
             showNotification("❌ Unity loaded but sendMessage missing");
             return;
         }
@@ -1087,7 +1073,6 @@ function waitForUnity() {
         setTimeout(() => {
             if (unityInstance && currentLevel) {
                 sendConfigToUnity(currentLevel);
-                console.log("✅ Initial config sent to Unity");
             }
         }, 500);
         
@@ -1099,7 +1084,7 @@ function waitForUnity() {
 }
 
 // ============================================================
-// Wait for Django Data (نفس لعبة التفاح)
+// Wait for Django Data
 // ============================================================
 function waitForDjango(callback) {
     if (window.DJANGO_USER_ID) {
@@ -1107,12 +1092,9 @@ function waitForDjango(callback) {
         patientName = window.DJANGO_PATIENT_NAME || "Guest";
         currentLevel = window.DJANGO_LEVEL || 1;
         
-        // Get affected hand from database
         affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
         if (affectedHand !== 'left' && affectedHand !== 'right') affectedHand = 'right';
         affectedHandDisplay = affectedHand === "right" ? "RIGHT HAND" : "LEFT HAND";
-        
-        // Camera mirror fix
         targetMPLabel = affectedHand === "right" ? "left" : "right";
         
         document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
@@ -1128,10 +1110,12 @@ function waitForDjango(callback) {
         const forceLevel = urlParams.get("force_level");
         if (urlUserId) {
             userId = parseInt(urlUserId);
-            if (forceLevel) {currentLevel = parseInt(forceLevel);
+            if (forceLevel) {
+                currentLevel = parseInt(forceLevel);
                 document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
                 document.getElementById('levelValue').innerText = currentLevel;
-                }
+                document.getElementById('finalLevel').innerText = currentLevel;
+            }
             callback();
         } else {
             setTimeout(() => waitForDjango(callback), 100);
@@ -1143,7 +1127,7 @@ function waitForDjango(callback) {
 // Event Listeners
 // ============================================================
 waitForDjango(() => {
-    console.log("User:", userId, "Level:", currentLevel, "Affected Hand:", affectedHand, "MP Label:", targetMPLabel);
+    console.log("User:", userId, "Level:", currentLevel, "Affected Hand:", affectedHand);
     waitForUnity();
 });
 
