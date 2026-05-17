@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
@@ -52,23 +51,73 @@
             transition: all 0.2s ease; margin-top: 10px;
         }
         .start-panel button:hover { background: #ffcc44; transform: scale(1.03); }
+        
+        /* Rating Stars Styles */
+        .rating-section {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        .rating-title {
+            color: #ffdd88;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .star {
+            font-size: 40px;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .star:hover {
+            transform: scale(1.1);
+        }
+        .star.selected {
+            color: #ffcc44;
+            text-shadow: 0 0 10px #ffaa44;
+        }
+        .rating-text {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+        .rating-note {
+            text-align: center;
+            font-size: 11px;
+            color: #ffaa44;
+            margin-top: 5px;
+        }
         .end-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #2e3b2e, #1a2a1a);
             padding: 35px 50px; border-radius: 35px; text-align: center;
             z-index: 200; border: 2px solid #ffcc44; box-shadow: 0 0 40px rgba(0,0,0,0.6);
-            pointer-events: auto; min-width: 420px; max-width: 85vw;
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            pointer-events: auto; min-width: 500px; max-width: 90vw;
+            display: flex; flex-direction: column; align-items: center; 
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .end-panel h2 { color: #ffdd88; font-size: 36px; letter-spacing: 2px; }
         .end-panel .final-score { font-size: 52px; color: #ffaa44; margin: 10px 0 20px; font-weight: bold; }
         .accuracy-data {
             background: rgba(0,0,0,0.4); border-radius: 20px; padding: 15px 25px;
-            margin: 15px 0; text-align: left; border: 1px solid rgba(255,204,68,0.3); width: 100%;
+             text-align: left; border: 1px solid rgba(255,204,68,0.3); width: 100%;
         }
         .data-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px;
+            padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 16px;
         }
         .data-row:last-child { border-bottom: none; }
         .data-label { color: #ffdd88; font-weight: bold; }
@@ -83,6 +132,16 @@
         .end-panel { display: none; }
         #nextLevelBtn { background: #33bb33; display: none; }
         #nextLevelBtn:hover { background: #55dd55; }
+        .submit-rating-btn {
+            background: #44aa44 !important;
+            margin-top: 5px;
+        }
+        .submit-rating-btn:hover {
+            background: #66cc66 !important;
+        }
+        .ratings-pending {
+            border-left: 3px solid #ffaa44;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -98,25 +157,19 @@
         ⏱️ TIME: <span id="timerValue">60</span>s
     </div>
     <div class="notification-panel" id="notificationPanel"></div>
-
-```
-<!-- Stats Panel: جميع القياسات live -->
-<div class="stats-panel" id="statsPanel">
-    🤚 AFFECTED: <span id="affectedHandLabel">--</span> | 🎯 <span id="handStatus">WAITING</span><br>
-    🖐️ HAND X: <span id="handX">--</span>% | 📏 RANGE: <span id="liveRange">--</span>%<br>
-    💪 SHOULDER: <span id="liveShoulder">--</span>% | ⚡ ELBOW SPD: <span id="liveElbow">--</span>%<br>
-    🔄 EXT ROT: <span id="liveExtRot">--</span>° | ↕️ SHRUG: <span id="liveShrug">--</span>%
-</div>
-```
-
+    <div class="stats-panel" id="statsPanel">
+        AFFECTED: <span id="affectedHandLabel">--</span> | <span id="handStatus">WAITING</span><br>
+        HAND X: <span id="handX">--</span>% | RANGE: <span id="liveRange">--</span>%<br>
+        SHOULDER: <span id="liveShoulder">--</span>% | ELBOW SPD: <span id="liveElbow">--</span>%<br>
+        EXT ROT: <span id="liveExtRot">--</span>° | ↕SHRUG: <span id="liveShrug">--</span>%
+    </div>
 </div>
 
 <!-- Start Panel -->
-
 <div class="start-panel" id="startPanel">
     <h1>🍎 CATCHING FALLING OBJECTS 🧺</h1>
     <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
-    <h2>📖 HOW TO PLAY</h2>
+    <h2>HOW TO PLAY</h2>
     <div class="instructions-box">
         <div class="instruction-line">
             <div class="instruction-icon">🖐️</div>
@@ -145,53 +198,72 @@
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
-<!-- End Panel -->
-
+<!-- End Panel with Rating -->
 <div class="end-panel" id="endPanel">
     <h2>🎮 GAME OVER 🎮</h2>
     <div class="final-score" id="finalScore">0</div>
     <div class="accuracy-data">
         <div class="data-row">
-            <span class="data-label">⭐ Level</span>
+            <span class="data-label">Level</span>
             <span class="data-value"><span id="finalLevel">1</span></span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">🍎 Score</span>
+            <span class="data-label">Score</span>
             <span class="data-value"><span id="finalScoreDetail">0</span></span>
         </div>
         <div class="data-row">
-            <span class="data-label">🤚 Affected Hand</span>
-            <span class="data-value"><span id="finalAffectedHand">--</span></span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">🎯 Accuracy</span>
+            <span class="data-label">Shoulder Shrug</span>
+            <span class="data-value"><span id="finalShrug">--</span>%</span>
+            <span class="data-label">Accuracy</span>
             <span class="data-value"><span id="finalAccuracy">--</span>%</span>
         </div>
         <div class="data-row">
-            <span class="data-label">🖐️ Wrist Activation</span>
+            <span class="data-label">Wrist Activation</span>
             <span class="data-value"><span id="finalWrist">--</span>%</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">💪 Shoulder Activation</span>
+            <span class="data-label">Shoulder Activation</span>
             <span class="data-value"><span id="finalShoulder">--</span>%</span>
         </div>
         <div class="data-row">
-            <span class="data-label">⚡ Elbow Activation</span>
+            <span class="data-label">Elbow Activation</span>
             <span class="data-value"><span id="finalElbow">--</span>%</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">🔄 External Rotation</span>
+            <span class="data-label">External Rotation</span>
             <span class="data-value"><span id="finalExtRot">--</span>°</span>
         </div>
         <div class="data-row">
-            <span class="data-label">↕️ Shoulder Shrug</span>
-            <span class="data-value"><span id="finalShrug">--</span>%</span>
+            <span class="data-label">Affected Hand</span>
+            <span class="data-value" id="finalAffectedHand">--</span>
         </div>
     </div>
+
+    <!-- ========== RATING SECTION ========== -->
+    <div class="rating-section">
+        <div class="rating-title">😖 How much pain did you feel during the game?</div>
+        <div class="stars-container" id="painStarsContainer">
+            <span class="star" data-value="1">☆</span>
+            <span class="star" data-value="2">☆</span>
+            <span class="star" data-value="3">☆</span>
+            <span class="star" data-value="4">☆</span>
+            <span class="star" data-value="5">☆</span>
+        </div>
+        <div class="rating-text" id="painRatingText">No pain → Severe pain</div>
+    </div>
+
+    <div class="rating-section">
+        <div class="rating-title">😊 How much did you enjoy the game?</div>
+        <div class="stars-container" id="enjoyStarsContainer">
+            <span class="star" data-value="1">☆</span>
+            <span class="star" data-value="2">☆</span>
+            <span class="star" data-value="3">☆</span>
+            <span class="star" data-value="4">☆</span>
+            <span class="star" data-value="5">☆</span>
+        </div>
+        <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
+    </div>
+    <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
+    <!-- =================================== -->
+
     <div class="button-group">
-        <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
-        <button id="restartBtn">🔄 PLAY AGAIN</button>
-        <button id="exitBtn">🚪 EXIT TO GAMES</button>
+        <button id="nextLevelBtn">⬆NEXT LEVEL</button>
+        <button id="restartBtn">PLAY AGAIN</button>
+        <button id="exitBtn">EXIT TO GAMES</button>
     </div>
 </div>
 
@@ -263,6 +335,14 @@ class SoundManager {
 const soundManager = new SoundManager();
 
 // ============================================================
+// Rating System Variables
+// ============================================================
+let painRating = 0;
+let enjoymentRating = 0;
+let ratingsSubmitted = false;
+let gameDataForSaving = null;
+
+// ============================================================
 // انتظر Django Backup
 // ============================================================
 function waitForDjangoBackup(callback) {
@@ -273,6 +353,127 @@ function waitForDjangoBackup(callback) {
         if (window.DJANGO_USER_ID) { clearInterval(iv); callback(); }
         else if (attempts > 50)    { clearInterval(iv); callback(); }
     }, 100);
+}
+
+// ============================================================
+// Star Rating Setup
+// ============================================================
+function setupStarRating(containerId, callback, ratingTextId) {
+    const container = document.getElementById(containerId);
+    const stars = container.querySelectorAll('.star');
+    let currentRating = 0;
+    
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            const starValue = parseInt(star.dataset.value);
+            if (starValue <= rating) {
+                star.innerHTML = '★';
+                star.classList.add('selected');
+            } else {
+                star.innerHTML = '☆';
+                star.classList.remove('selected');
+            }
+        });
+        if (ratingTextId) {
+            const textEl = document.getElementById(ratingTextId);
+            if (textEl) {
+                const texts = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+                if (containerId === 'painStarsContainer') {
+                    const painTexts = ['Very Severe Pain', 'Severe Pain', 'Moderate Pain', 'Mild Pain', 'No Pain'];
+                    textEl.innerHTML = painTexts[rating - 1] || 'Select rating';
+                } else {
+                    const enjoyTexts = ['Not at all', 'Slightly', 'Moderately', 'Very Much', 'Extremely'];
+                    textEl.innerHTML = enjoyTexts[rating - 1] || 'Select rating';
+                }
+            }
+        }
+    }
+    
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const value = parseInt(star.dataset.value);
+            currentRating = value;
+            updateStars(currentRating);
+            if (callback) callback(currentRating);
+        });
+        star.addEventListener('mouseenter', () => {
+            const value = parseInt(star.dataset.value);
+            updateStars(value);
+        });
+        star.addEventListener('mouseleave', () => {
+            updateStars(currentRating);
+        });
+    });
+    
+    return {
+        getRating: () => currentRating,
+        reset: () => { currentRating = 0; updateStars(0); }
+    };
+}
+
+function initRatingSystem() {
+    painRatingControl = setupStarRating('painStarsContainer', (rating) => {
+        painRating = rating;
+        checkRatingsComplete();
+    }, 'painRatingText');
+    
+    enjoymentRatingControl = setupStarRating('enjoyStarsContainer', (rating) => {
+        enjoymentRating = rating;
+        checkRatingsComplete();
+    }, 'enjoyRatingText');
+    
+    // Reset ratings
+    painRating = 0;
+    enjoymentRating = 0;
+    ratingsSubmitted = false;
+    if (painRatingControl) painRatingControl.reset();
+    if (enjoymentRatingControl) enjoymentRatingControl.reset();
+}
+
+let painRatingControl = null;
+let enjoymentRatingControl = null;
+
+function checkRatingsComplete() {
+    const ratingNote = document.getElementById('ratingNote');
+    if (painRating > 0 && enjoymentRating > 0 && !ratingsSubmitted) {
+        ratingNote.innerHTML = '✅ Ratings complete! You can now continue ✅';
+        ratingNote.style.color = '#88ff88';
+    } else {
+        ratingNote.innerHTML = '⭐ Please rate both pain level and enjoyment before continuing ⭐';
+        ratingNote.style.color = '#ffaa44';
+    }
+}
+
+function areRatingsComplete() {
+    return painRating > 0 && enjoymentRating > 0;
+}
+
+function getPainRating() { return painRating; }
+function getEnjoymentRating() { return enjoymentRating; }
+
+// ============================================================
+// Save Game with Ratings
+// ============================================================
+function saveGameWithRatings(saveData) {
+    if (!userId) {
+        console.warn("⚠️ No userId, cannot save");
+        return;
+    }
+    
+    // Add ratings to save data
+    saveData.pain_score = getPainRating();
+    saveData.enjoyment_score = getEnjoymentRating();
+    
+    console.log("💾 Saving with ratings:", saveData);
+    fetch('/api/save-game-result/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(saveData)
+    }).then(r => r.json())
+      .then(d => {
+          if (d.success) console.log("✅ Saved with ratings!");
+          else console.error("❌ Save failed:", d.error);
+      }).catch(err => console.error("Save error:", err));
 }
 
 function initGame() {
@@ -288,18 +489,8 @@ function initGame() {
     const currentLevel = window.DJANGO_LEVEL || 1;
 
     // ─── Affected Hand ───
-    // يُرسَل من Django: window.DJANGO_AFFECTED_HAND = "right" | "left"
     const affectedHand        = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
     const affectedHandDisplay = affectedHand === "right" ? "Right" : "Left";
-
-    /*
-        تصحيح المرآة:
-        الكاميرا معكوسة → يد المريض اليمنى تظهر على يسار الشاشة
-        لذا MediaPipe يعطيها label = "Left"
-
-        affected_hand = "right"  →  targetMPLabel = "Left"
-        affected_hand = "left"   →  targetMPLabel = "Right"
-    */
     const targetMPLabel = affectedHand === "right" ? "Left" : "Right";
 
     document.getElementById('affectedHandLabel').innerText  = affectedHandDisplay;
@@ -346,16 +537,15 @@ function initGame() {
     let hands = null, camera     = null;
     let lastNotificationTime     = 0;
     let lastWrongHandNotif        = 0;
+    let finalGameScore = 0;
 
-    // ================================================================
-    // تاريخ القياسات — كل قيمة مصفوفة نحسب متوسطها في النهاية
-    // ================================================================
-    let handInFrameHistory  = [];   // 1 = في الإطار، 0 = خارجه       → accuracy
-    let handXHistory        = [];   // مواضع X                         → wrist_activation, shoulder_activation
-    let handSpeedHistory    = [];   // سرعة تغير X بين الإطارات         → elbow_activation
-    let extRotHistory       = [];   // زاوية دوران اليد (درجات)         → external_rotation
-    let shrugHistory        = [];   // ارتفاع المعصم في الإطار (0-100)  → shoulder_shrug
-    let prevHandX           = null; // لحساب السرعة
+    // History for metrics
+    let handInFrameHistory  = [];
+    let handXHistory        = [];
+    let handSpeedHistory    = [];
+    let extRotHistory       = [];
+    let shrugHistory        = [];
+    let prevHandX           = null;
 
     function resetHistories() {
         handInFrameHistory = [];
@@ -366,60 +556,37 @@ function initGame() {
         prevHandX          = null;
     }
 
-    // ================================================================
-    // دوال حساب النتائج النهائية
-    // ================================================================
-
-    // accuracy: % الوقت الذي كانت اليد المتأثرة ظاهرة
     function calcAccuracy() {
         if (!handInFrameHistory.length) return 0;
         return Math.round((handInFrameHistory.filter(v => v === 1).length / handInFrameHistory.length) * 100);
     }
 
-    // wrist_activation: مدى الحركة الأفقية (max - min) × 100
     function calcWristActivation() {
         if (handXHistory.length < 2) return 0;
         const range = Math.max(...handXHistory) - Math.min(...handXHistory);
         return Math.min(100, Math.round(range * 100));
     }
 
-    // shoulder_activation: نفس مدى الحركة (الكتف يتحرك مع اليد أفقياً)
-    function calcShoulderActivation() {
-        return calcWristActivation();
-    }
+    function calcShoulderActivation() { return calcWristActivation(); }
 
-    // elbow_activation: متوسط سرعة الحركة الأفقية (0-100)
-    // السرعة القصوى المتوقعة = 0.05 لكل إطار (30fps) = 1.5 وحدة/ثانية
     function calcElbowActivation() {
         if (!handSpeedHistory.length) return 0;
         const avgSpeed = handSpeedHistory.reduce((a, b) => a + b, 0) / handSpeedHistory.length;
-        // نطبّع: 0.05 يعادل نشاط كامل 100%
         return Math.min(100, Math.round((avgSpeed / 0.05) * 100));
     }
 
-    // external_rotation: متوسط زاوية دوران اليد (درجات)
-    // نقيسها من الزاوية بين vector (pinky_MCP→index_MCP)
-    // 0° = اليد أفقية تماماً (neutral)
-    // موجب = راحة اليد للأعلى (external rotation)
-    // سالب = راحة اليد للأسفل (internal rotation)
     function calcExternalRotation() {
         if (!extRotHistory.length) return 0;
         const avg = extRotHistory.reduce((a, b) => a + b, 0) / extRotHistory.length;
         return Math.round(avg);
     }
 
-    // shoulder_shrug: متوسط ارتفاع المعصم في الإطار (0-100)
-    // wrist.y قريبة من 0 = أعلى الإطار = الكتف مرفوع (shrug)
-    // wrist.y قريبة من 1 = أسفل الإطار = الكتف مخفوض
     function calcShoulderShrug() {
         if (!shrugHistory.length) return 0;
         const avg = shrugHistory.reduce((a, b) => a + b, 0) / shrugHistory.length;
         return Math.round(avg);
     }
 
-    // ================================================================
-    // تحديث stats panel أثناء اللعب
-    // ================================================================
     function updateStatsDisplay(handX, isInside, extRot, shrug, speed) {
         document.getElementById('handX').innerText       = Math.round(handX * 100);
         document.getElementById('handStatus').innerHTML  = isInside ? '✅ IN' : '⚠️ OUT';
@@ -461,9 +628,6 @@ function initGame() {
         }, 1000);
     }
 
-    // ================================================================
-    // MediaPipe — يتتبع اليد المتأثرة فقط ويحسب جميع القياسات
-    // ================================================================
     async function initMediaPipe() {
         const video = document.createElement('video');
         video.style.display = 'none';
@@ -471,7 +635,7 @@ function initGame() {
 
         hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
         hands.setOptions({
-            maxNumHands: 2,              // نكشف يدّين لتمييز الصحيحة
+            maxNumHands: 2,
             modelComplexity: 1,
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
@@ -483,7 +647,6 @@ function initGame() {
             const allLandmarks = results.multiHandLandmarks || [];
             const allHandedness = results.multiHandedness    || [];
 
-            // ── ① ابحث عن اليد المتأثرة ──
             let targetIndex = -1;
             for (let i = 0; i < allHandedness.length; i++) {
                 if (allHandedness[i].label === targetMPLabel) {
@@ -491,12 +654,9 @@ function initGame() {
                 }
             }
 
-            // ── ② اليد المتأثرة غير ظاهرة ──
             if (targetIndex === -1) {
                 handInFrameHistory.push(0);
                 if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
-
-                // إذا ظهرت يد لكنها الخاطئة → إشعار
                 if (allHandedness.length > 0 && Date.now() - lastWrongHandNotif > 3000) {
                     showNotification(`⚠️ Please use your ${affectedHandDisplay} (affected) hand!`);
                     lastWrongHandNotif = Date.now();
@@ -504,10 +664,9 @@ function initGame() {
                 return;
             }
 
-            // ── ③ وجدنا اليد المتأثرة ──
             const lm     = allLandmarks[targetIndex];
-            const wrist  = lm[0];   // landmark 0  = wrist
-            const handX  = wrist.x;
+            const wrist  = lm[0];
+            let handX    = wrist.x;
             const isInside = handX > 0.05 && handX < 0.95;
 
             if (!isInside && Date.now() - lastNotificationTime > 3000) {
@@ -515,16 +674,13 @@ function initGame() {
                 lastNotificationTime = Date.now();
             }
 
-            // ── سجّل هل اليد في الإطار ──
             handInFrameHistory.push(isInside ? 1 : 0);
             if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
 
             if (isInside) {
-                // ── سجّل موضع X لـ wrist/shoulder activation ──
                 handXHistory.push(handX);
                 if (handXHistory.length > 1800) handXHistory.shift();
 
-                // ── سجّل سرعة الحركة لـ elbow activation ──
                 if (prevHandX !== null) {
                     const speed = Math.abs(handX - prevHandX);
                     handSpeedHistory.push(speed);
@@ -532,36 +688,14 @@ function initGame() {
                 }
                 prevHandX = handX;
 
-                // ────────────────────────────────────────────────
-                // ④ external_rotation
-                //    نقيس من الزاوية بين vector (pinky_MCP → index_MCP)
-                //    landmark 5  = index finger MCP
-                //    landmark 17 = pinky finger MCP
-                //
-                //    عندما راحة اليد للأعلى (supination / external rotation):
-                //      الخنصر يكون أسفل من السبابة في الإطار → dy موجبة
-                //    عندما راحة اليد للأسفل (pronation / internal rotation):
-                //      الخنصر يكون أعلى من السبابة → dy سالبة
-                //
-                //    atan2(-dy, dx) يعطينا الزاوية من الأفقي
-                // ────────────────────────────────────────────────
                 const indexMCP = lm[5];
                 const pinkyMCP = lm[17];
                 const dx = indexMCP.x - pinkyMCP.x;
-                const dy = indexMCP.y - pinkyMCP.y; // Y معكوس في الكاميرا (0=أعلى)
-                // الزاوية بالدرجات من الأفقي
-                // موجبة = راحة اليد للأعلى (external rotation)
-                // سالبة = راحة اليد للأسفل (internal rotation)
+                const dy = indexMCP.y - pinkyMCP.y;
                 const extRotAngle = Math.atan2(-dy, dx) * 180 / Math.PI;
                 extRotHistory.push(extRotAngle);
                 if (extRotHistory.length > 1800) extRotHistory.shift();
 
-                // ────────────────────────────────────────────────
-                // ⑤ shoulder_shrug
-                //    wrist.y: 0=أعلى الإطار، 1=أسفل الإطار
-                //    كلما كان المعصم أعلى في الإطار → الكتف مرفوع أكثر
-                //    نحوّله لـ 0-100: shrug = (1 - wrist.y) * 100
-                // ────────────────────────────────────────────────
                 const shrugVal = (1 - wrist.y) * 100;
                 shrugHistory.push(shrugVal);
                 if (shrugHistory.length > 1800) shrugHistory.shift();
@@ -569,7 +703,6 @@ function initGame() {
                 updateStatsDisplay(handX, isInside, extRotAngle, shrugVal,
                     handSpeedHistory.length ? handSpeedHistory[handSpeedHistory.length-1] : 0);
 
-                // ── ⑥ أرسل الموضع لـ Unity (مع تصحيح المرآة) ──
                 const invertedX = 1 - handX;
                 if (unityInstance) {
                     unityInstance.sendMessage('Basket', 'SetHandPosition', invertedX.toString());
@@ -588,7 +721,6 @@ function initGame() {
         console.log("✅ MediaPipe started | tracking:", affectedHand, "| MP label:", targetMPLabel);
     }
 
-    // ─── Callbacks من Unity ───
     window.UpdateScoreFromUnity = function(score) {
         if (score > gameScore) soundManager.playCatchSound();
         gameScore = score; updateUI();
@@ -602,8 +734,8 @@ function initGame() {
         console.log("Game ended | Score:", score, "| Level:", currentLevel);
         gameActive = false;
         if (timerInterval) clearInterval(timerInterval);
+        finalGameScore = score;
 
-        // ── احسب جميع القياسات ──
         const accuracy          = calcAccuracy();
         const wristActivation   = calcWristActivation();
         const shoulderActivation = calcShoulderActivation();
@@ -611,7 +743,6 @@ function initGame() {
         const externalRotation  = calcExternalRotation();
         const shoulderShrug     = calcShoulderShrug();
 
-        // ── اعرض في end panel ──
         document.getElementById('finalScore').innerText       = score;
         document.getElementById('finalScoreDetail').innerText = score;
         document.getElementById('finalAccuracy').innerText    = accuracy;
@@ -625,43 +756,51 @@ function initGame() {
         const canAdvance = cfg && cfg.scoreToAdvance !== null
                            && score >= cfg.scoreToAdvance && currentLevel < 3;
         document.getElementById('nextLevelBtn').style.display = canAdvance ? 'block' : 'none';
-        document.getElementById('endPanel').style.display     = 'flex';
-
+        
+        // Store game data for saving after ratings
+        gameDataForSaving = {
+            user_id: userId,
+            game: 'catching-objects',
+            level: currentLevel,
+            score: score,
+            objects_caught: score,
+            accuracy: accuracy,
+            wrist_activation: wristActivation,
+            shoulder_activation: shoulderActivation,
+            elbow_activation: elbowActivation,
+            external_rotation: externalRotation,
+            shoulder_shrug: shoulderShrug,
+            grip_activation: 0,
+            affected_hand: affectedHand
+        };
+        
+        // Show end panel with rating section
+        document.getElementById('endPanel').style.display = 'flex';
+        
+        // Initialize rating system
+        initRatingSystem();
+        
         if (camera) { camera.stop(); mediaPipeActive = false; }
+    };
 
-        // ── احفظ في قاعدة البيانات ──
-        if (userId) {
-            const saveData = {
-                user_id:              userId,
-                game:                 'catching-objects',
-                level:                currentLevel,
-                score:                score,
-                objects_caught:       score,
-                accuracy:             accuracy,           // % وقت اليد في الإطار
-                wrist_activation:     wristActivation,    // مدى الحركة الأفقية
-                shoulder_activation:  shoulderActivation, // نفس مدى الحركة
-                elbow_activation:     elbowActivation,    // متوسط السرعة
-                external_rotation:    externalRotation,   // متوسط زاوية دوران اليد (درجات)
-                shoulder_shrug:       shoulderShrug,      // متوسط ارتفاع المعصم
-                grip_activation:      0,                  // غير مطلوب لهذه اللعبة
-                affected_hand:        affectedHand
-            };
-            console.log("💾 Saving:", saveData);
+    function finalizeAndSave() {
+        if (gameDataForSaving && userId && areRatingsComplete() && !ratingsSubmitted) {
+            ratingsSubmitted = true;
+            gameDataForSaving.pain_score = getPainRating();
+            gameDataForSaving.enjoyment_score = getEnjoymentRating();
+            console.log("💾 Final save with ratings:", gameDataForSaving);
             fetch('/api/save-game-result/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(saveData)
+                body: JSON.stringify(gameDataForSaving)
             }).then(r => r.json())
               .then(d => {
-                  if (d.success) console.log("✅ Saved!");
-                  else           console.error("❌ Save failed:", d.error);
+                  if (d.success) console.log("✅ Saved with ratings!");
+                  else console.error("❌ Save failed:", d.error);
               }).catch(err => console.error("Save error:", err));
-        } else {
-            console.warn("⚠️ No userId, cannot save");
         }
-    };
+    }
 
-    // ─── بدء اللعبة ───
     function startGame() {
         if (!unityInstance) {
             showNotification("⏳ Loading game, please wait...");
@@ -690,7 +829,6 @@ function initGame() {
             });
     }
 
-    // ─── تحميل Unity ───
     const canvas = document.querySelector("#unity-canvas");
     function waitForUnity() {
         if (typeof createUnityInstance === 'undefined') { setTimeout(waitForUnity, 100); return; }
@@ -733,24 +871,41 @@ function initGame() {
     }
     waitForUnity();
 
-    // ─── أزرار ───
     document.getElementById('startBtn').onclick = () => {
         soundManager.playButtonClick(); startGame();
     };
+    
     document.getElementById('nextLevelBtn').onclick = () => {
         soundManager.playButtonClick();
+        if (!areRatingsComplete()) {
+            showNotification("❌ Please rate your pain level and enjoyment first!", false);
+            return;
+        }
+        finalizeAndSave();
         const id = userId || window.DJANGO_USER_ID;
         if (id) window.location.href = `/games/catching-objects/?user_id=${id}`;
         else    showNotification("❌ Error: Please login again");
     };
+    
     document.getElementById('restartBtn').onclick = () => {
         soundManager.playButtonClick();
+        if (!areRatingsComplete()) {
+            showNotification("❌ Please rate your pain level and enjoyment first!", false);
+            return;
+        }
+        finalizeAndSave();
         const id = userId || window.DJANGO_USER_ID;
         if (id) window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}`;
         else    window.location.reload();
     };
+    
     document.getElementById('exitBtn').onclick = () => {
         soundManager.playButtonClick();
+        if (!areRatingsComplete()) {
+            showNotification("❌ Please rate your pain level and enjoyment before exiting!", false);
+            return;
+        }
+        finalizeAndSave();
         setTimeout(() => { window.location.href = "/patient/"; }, 100);
     };
 
@@ -760,6 +915,5 @@ function initGame() {
 
 waitForDjangoBackup(initGame);
 </script>
-
 </body>
 </html>

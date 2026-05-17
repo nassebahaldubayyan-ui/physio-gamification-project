@@ -42,6 +42,7 @@ class Patients(models.Model):
     grip_strength = models.IntegerField(blank=True, null=True)
     affected_hand = models.TextField()
     photo_url = models.TextField(blank=True, null=True)
+
     
     # NEW FIELD - For tracking assessment video
     has_assessment_video = models.IntegerField(blank=True, null=True, default=0)
@@ -111,6 +112,8 @@ class GameSessions(models.Model):
     shoulder_shrug = models.IntegerField(blank=True, null=True)
     completed = models.IntegerField(blank=True, null=True)
     session_date = models.DateTimeField(blank=True, null=True)
+    pain_score = models.IntegerField(null=True, blank=True)
+    enjoyment_score = models.IntegerField(null=True, blank=True)
 
     class Meta:
         managed = True

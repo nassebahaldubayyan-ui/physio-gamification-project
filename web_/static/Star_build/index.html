@@ -35,7 +35,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-width: 300px;
+            max-width: 320px;
             pointer-events: none;
         }
         .notification {
@@ -47,14 +47,6 @@
             font-weight: bold;
             animation: slideIn 0.3s ease;
             pointer-events: auto;
-        }
-        .notification.warning {
-            border-left-color: #ff8800;
-            color: #ffaa44;
-        }
-        .notification.success {
-            border-left-color: #44ff44;
-            color: #88ff88;
         }
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
@@ -234,6 +226,55 @@
             background: #ffcc44;
             transform: scale(1.03);
         }
+        
+        /* Rating Stars Styles - مثل لعبة التفاح */
+        .rating-section {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        .rating-title {
+            color: #ffdd88;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .star {
+            font-size: 40px;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .star:hover {
+            transform: scale(1.1);
+        }
+        .star.selected {
+            color: #ffcc44;
+            text-shadow: 0 0 10px #ffaa44;
+        }
+        .rating-text {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+        .rating-note {
+            text-align: center;
+            font-size: 11px;
+            color: #ffaa44;
+            margin-top: 5px;
+        }
+        
         .end-panel {
             position: fixed;
             top: 50%;
@@ -247,31 +288,32 @@
             border: 2px solid #ffcc44;
             box-shadow: 0 0 40px rgba(0,0,0,0.6);
             pointer-events: auto;
-            min-width: 420px;
-            max-width: 85vw;
+            min-width: 500px;
+            max-width: 90vw;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .end-panel h2 {
             color: #ffdd88;
-            margin-bottom: 20px;
             font-size: 36px;
+            letter-spacing: 2px;
         }
         .end-panel .final-score {
             font-size: 52px;
             color: #ffaa44;
-            margin: 10px 0 20px 0;
+            margin: 10px 0 20px;
             font-weight: bold;
         }
         .accuracy-data {
             background: rgba(0,0,0,0.4);
             border-radius: 20px;
             padding: 15px 25px;
-            margin: 15px 0;
             text-align: left;
             border: 1px solid rgba(255,204,68,0.3);
+            width: 100%;
         }
         .data-row {
             display: flex;
@@ -281,10 +323,19 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             font-size: 16px;
         }
-        .data-row:last-child { border-bottom: none; }
-        .data-label { color: #ffdd88; font-weight: bold; }
-        .data-value { color: #ffffff; font-family: monospace; font-size: 18px; font-weight: bold; }
-        .data-value span { color: #ffaa44; }
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            color: #ffdd88;
+            font-weight: bold;
+        }
+        .data-value {
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+        }
         .button-group {
             display: flex;
             gap: 20px;
@@ -304,10 +355,20 @@
             transition: all 0.2s ease;
             min-width: 140px;
         }
-        .end-panel button:hover { background: #ffcc44; transform: scale(1.02); }
-        .end-panel { display: none; }
-        #nextLevelBtn { background: #33bb33; display: none; }
-        #nextLevelBtn:hover { background: #55dd55; }
+        .end-panel button:hover {
+            background: #ffcc44;
+            transform: scale(1.02);
+        }
+        .end-panel {
+            display: none;
+        }
+        #nextLevelBtn {
+            background: #33bb33;
+            display: none;
+        }
+        #nextLevelBtn:hover {
+            background: #55dd55;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -323,14 +384,14 @@
     </div>
     <div class="notification-panel" id="notificationPanel"></div>
     <div class="stats-panel" id="statsPanel">
-        🤚 TRACKING: <span id="trackingHand">--</span><br>
-        🎯 <span id="handStatus">WAITING</span><br>
-        🖐️ HAND: X <span id="handX">--</span>% | Y <span id="handY">--</span>%<br>
-        ✊ GRIP: <span id="gripStatus">OPEN</span><br>
-        📐 ELBOW: <span id="elbowAngle">--</span>°<br>
-        ✋ WRIST: <span id="wristAct">--</span>%<br>
-        🔄 EXT ROT: <span id="externalRot">--</span>°<br>
-        ⬆️ SHRUG: <span id="shoulderShrug">--</span>%
+         TRACKING: <span id="trackingHand">--</span><br>
+         <span id="handStatus">WAITING</span><br>
+         HAND: X <span id="handX">--</span>% | Y <span id="handY">--</span>%<br>
+         GRIP: <span id="gripStatus">OPEN</span><br>
+         ELBOW: <span id="elbowAngle">--</span>°<br>
+         WRIST: <span id="wristAct">--</span>%<br>
+         EXT ROT: <span id="externalRot">--</span>°<br>
+        ⬆ SHRUG: <span id="shoulderShrug">--</span>%
     </div>
     <div class="sensitivity-bar">
         🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
@@ -341,7 +402,7 @@
 <div class="start-panel" id="startPanel">
     <h1>⭐ CATCHING STARS ⭐</h1>
     <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
-    <h2>📖 HOW TO PLAY</h2>
+    <h2>HOW TO PLAY</h2>
     <div class="instructions-box">
         <div class="instruction-line"><div class="instruction-icon">🖐️</div><div class="instruction-text">Move your <span class="instruction-highlight" id="handInstruction">AFFECTED HAND</span></div></div>
         <div class="instruction-line"><div class="instruction-icon">✊</div><div class="instruction-text"><span class="instruction-highlight">CLOSE YOUR HAND</span> to catch a star</div></div>
@@ -351,23 +412,71 @@
     <button id="startBtn">▶️ START GAME</button>
 </div>
 
+<!-- End Panel - نفس تصميم لعبة التفاح -->
 <div class="end-panel" id="endPanel">
     <h2>✨ GAME OVER ✨</h2>
     <div class="final-score" id="finalScore">0</div>
     <div class="accuracy-data">
-        <div class="data-row"><span class="data-label">⭐ Level</span><span class="data-value"><span id="finalLevel">1</span></span></div>
-        <div class="data-row"><span class="data-label">⭐ Stars Collected</span><span class="data-value"><span id="finalScoreDetail">0</span></span></div>
-        <div class="data-row"><span class="data-label">🎯 Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
-        <div class="data-row"><span class="data-label">✊ Grip Activation</span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
-        <div class="data-row"><span class="data-label">📐 Elbow Angle</span><span class="data-value"><span id="avgElbow">--</span>°</span></div>
-        <div class="data-row"><span class="data-label">✋ Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
-        <div class="data-row"><span class="data-label">🔄 External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
-        <div class="data-row"><span class="data-label">⬆️ Shoulder Shrug</span><span class="data-value"><span id="finalShrug">--</span>%</span></div>
+        <div class="data-row">
+            <span class="data-label">Level</span>
+            <span class="data-value"><span id="finalLevel">1</span></span>
+            <span class="data-label">Stars</span>
+            <span class="data-value"><span id="finalScoreDetail">0</span></span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Accuracy</span>
+            <span class="data-value"><span id="finalAccuracy">--</span>%</span>
+            <span class="data-label">Grip</span>
+            <span class="data-value"><span id="finalGrip">--</span>%</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Elbow Angle</span>
+            <span class="data-value"><span id="avgElbow">--</span>°</span>
+            <span class="data-label">Wrist</span>
+            <span class="data-value"><span id="finalWrist">--</span>%</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Ext Rotation</span>
+            <span class="data-value"><span id="finalExtRot">--</span>°</span>
+            <span class="data-label">Shrug</span>
+            <span class="data-value"><span id="finalShrug">--</span>%</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Affected Hand</span>
+            <span class="data-value" id="finalAffectedHand">--</span>
+        </div>
     </div>
+
+    <div class="rating-section">
+        <div class="rating-title">😖 How much pain did you feel during the game?</div>
+        <div class="stars-container" id="painStarsContainer">
+            <span class="star" data-value="1">☆</span>
+            <span class="star" data-value="2">☆</span>
+            <span class="star" data-value="3">☆</span>
+            <span class="star" data-value="4">☆</span>
+            <span class="star" data-value="5">☆</span>
+        </div>
+        <div class="rating-text" id="painRatingText">No pain → Severe pain</div>
+    </div>
+
+    <div class="rating-section">
+        <div class="rating-title">😊 How much did you enjoy the game?</div>
+        <div class="stars-container" id="enjoyStarsContainer">
+            <span class="star" data-value="1">☆</span>
+            <span class="star" data-value="2">☆</span>
+            <span class="star" data-value="3">☆</span>
+            <span class="star" data-value="4">☆</span>
+            <span class="star" data-value="5">☆</span>
+        </div>
+        <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
+    </div>
+    <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
+    <!-- ======================================================= -->
+
     <div class="button-group">
-        <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
-        <button id="restartBtn">🔄 PLAY AGAIN</button>
-        <button id="exitBtn">🚪 EXIT TO GAMES</button>
+        <button id="nextLevelBtn">NEXT LEVEL</button>
+        <button id="restartBtn">PLAY AGAIN</button>
+        <button id="exitBtn">EXIT TO GAMES</button>
     </div>
 </div>
 
@@ -505,6 +614,105 @@ class SoundManager {
 const soundManager = new SoundManager();
 
 // ============================================================
+// Rating System - مثل لعبة التفاح
+// ============================================================
+let painRating = 0;
+let enjoymentRating = 0;
+let ratingsSubmitted = false;
+let gameDataForSaving = null;
+
+function setupStarRating(containerId, callback, ratingTextId) {
+    const container = document.getElementById(containerId);
+    const stars = container.querySelectorAll('.star');
+    let currentRating = 0;
+    
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            const starValue = parseInt(star.dataset.value);
+            if (starValue <= rating) {
+                star.innerHTML = '★';
+                star.classList.add('selected');
+            } else {
+                star.innerHTML = '☆';
+                star.classList.remove('selected');
+            }
+        });
+        if (ratingTextId) {
+            const textEl = document.getElementById(ratingTextId);
+            if (textEl) {
+                if (containerId === 'painStarsContainer') {
+                    const painTexts = ['Very Severe Pain', 'Severe Pain', 'Moderate Pain', 'Mild Pain', 'No Pain'];
+                    textEl.innerHTML = painTexts[rating - 1] || 'Select rating';
+                } else {
+                    const enjoyTexts = ['Not at all', 'Slightly', 'Moderately', 'Very Much', 'Extremely'];
+                    textEl.innerHTML = enjoyTexts[rating - 1] || 'Select rating';
+                }
+            }
+        }
+    }
+    
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const value = parseInt(star.dataset.value);
+            currentRating = value;
+            updateStars(currentRating);
+            if (callback) callback(currentRating);
+        });
+        star.addEventListener('mouseenter', () => {
+            const value = parseInt(star.dataset.value);
+            updateStars(value);
+        });
+        star.addEventListener('mouseleave', () => {
+            updateStars(currentRating);
+        });
+    });
+    
+    return {
+        getRating: () => currentRating,
+        reset: () => { currentRating = 0; updateStars(0); }
+    };
+}
+
+let painRatingControl = null;
+let enjoymentRatingControl = null;
+
+function initRatingSystem() {
+    painRatingControl = setupStarRating('painStarsContainer', (rating) => {
+        painRating = rating;
+        checkRatingsComplete();
+    }, 'painRatingText');
+    
+    enjoymentRatingControl = setupStarRating('enjoyStarsContainer', (rating) => {
+        enjoymentRating = rating;
+        checkRatingsComplete();
+    }, 'enjoyRatingText');
+    
+    painRating = 0;
+    enjoymentRating = 0;
+    ratingsSubmitted = false;
+    if (painRatingControl) painRatingControl.reset();
+    if (enjoymentRatingControl) enjoymentRatingControl.reset();
+}
+
+function checkRatingsComplete() {
+    const ratingNote = document.getElementById('ratingNote');
+    if (painRating > 0 && enjoymentRating > 0 && !ratingsSubmitted) {
+        ratingNote.innerHTML = '✅ Ratings complete! You can now continue ✅';
+        ratingNote.style.color = '#88ff88';
+    } else {
+        ratingNote.innerHTML = '⭐ Please rate both pain level and enjoyment before continuing ⭐';
+        ratingNote.style.color = '#ffaa44';
+    }
+}
+
+function areRatingsComplete() {
+    return painRating > 0 && enjoymentRating > 0;
+}
+
+function getPainRating() { return painRating; }
+function getEnjoymentRating() { return enjoymentRating; }
+
+// ============================================================
 // Angle Math (3D)
 // ============================================================
 const AngleMath = {
@@ -572,7 +780,7 @@ let lastWrongHandTime = 0;
 let lastNotificationTime = 0;
 let currentGripSensitivity = 75;
 
-// History for metrics - فقط اللي نحتاجها
+// History for metrics
 let gripSuccessHistory = [];
 let elbowHistory = [];
 let wristSpeedHistory = [];
@@ -598,15 +806,12 @@ window.UpdateScoreFromUnity = function(score) {
     if (score > gameScore) soundManager.playCatchSound();
     gameScore = score;
     updateUI();
-    console.log("Score:", gameScore);
 };
 
 window.UpdateTimerFromUnity = function(timer) {
     gameTime = Math.ceil(timer);
     updateUI();
 };
-
-window.UpdateTotalStars = function(total) {};
 
 window.EndGameFromUnity = function(score) {
     if (gameEnded) return;
@@ -840,11 +1045,9 @@ async function initMediaPipe() {
             lastNotificationTime = Date.now();
         }
         
-        // 1. Hand in frame
         handInFrameHistory.push(isInside ? 1 : 0);
         if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
         
-        // 2. Grip with debounce
         const rawGrip = calculateGripFromLandmarks(handLandmarks);
         let isGripping = rawGrip;
         
@@ -862,7 +1065,6 @@ async function initMediaPipe() {
         gripSuccessHistory.push(isGripping ? 1 : 0);
         if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
         
-        // 3. Wrist speed
         let wristSpeed = 0;
         if (prevHandX !== null) {
             wristSpeed = Math.abs(handX - prevHandX);
@@ -872,19 +1074,16 @@ async function initMediaPipe() {
         prevHandX = handX;
         const smoothedWrist = wristFilter ? wristFilter.filter(wristSpeed) : wristSpeed;
         
-        // 4. Elbow angle
         const elbowAngle = calculateElbowAngle(handLandmarks);
         const smoothedElbow = elbowFilter ? elbowFilter.filter(elbowAngle) : elbowAngle;
         elbowHistory.push(smoothedElbow);
         if (elbowHistory.length > 1800) elbowHistory.shift();
         
-        // 5. External rotation
         const externalRot = calculateExternalRotation(handLandmarks);
         const smoothedExtRot = extRotFilter ? extRotFilter.filter(externalRot) : externalRot;
         externalRotHistory.push(smoothedExtRot);
         if (externalRotHistory.length > 1800) externalRotHistory.shift();
         
-        // 6. Shoulder shrug
         const shrug = calculateShoulderShrug(handY);
         const smoothedShrug = shrugFilter ? shrugFilter.filter(shrug) : shrug;
         shoulderShrugHistory.push(smoothedShrug);
@@ -929,7 +1128,6 @@ function endGame(score) {
     document.getElementById('finalAccuracy').innerHTML = accuracy;
     document.getElementById('finalGrip').innerHTML = gripActivation;
     document.getElementById('avgElbow').innerHTML = avgElbow;
-    document.getElementById('finalShoulder').innerHTML = "0";
     document.getElementById('finalWrist').innerHTML = avgWrist;
     document.getElementById('finalExtRot').innerHTML = avgExternalRot;
     document.getElementById('finalShrug').innerHTML = avgShrug;
@@ -949,34 +1147,42 @@ function endGame(score) {
         }
     }
     
-    document.getElementById('endPanel').style.display = 'flex';
+    gameDataForSaving = {
+        user_id: userId,
+        game: 'catching-stars',
+        level: finalLevel,
+        score: score,
+        stars_caught: score,
+        grip_activation: gripActivation,
+        accuracy: accuracy,
+        elbow_activation: avgElbow,
+        wrist_activation: avgWrist,
+        external_rotation: avgExternalRot,
+        shoulder_shrug: avgShrug,
+        affected_hand: affectedHand
+    };
     
-    if (userId && !dataSaved) {
-        dataSaved = true;
-        const saveData = {
-            user_id: userId,
-            game: 'catching-stars',
-            level: finalLevel,
-            score: score,
-            stars_caught: score,
-            grip_activation: gripActivation,
-            accuracy: accuracy,
-            elbow_activation: avgElbow,
-            shoulder_activation: 0,
-            wrist_activation: avgWrist,
-            external_rotation: avgExternalRot,
-            shoulder_shrug: avgShrug,
-            affected_hand: affectedHand
-        };
-        console.log("💾 Saving Stars data:", saveData);
+    document.getElementById('endPanel').style.display = 'flex';
+    initRatingSystem();
+    
+    if (camera) { camera.stop(); mediaPipeActive = false; }
+}
+
+function finalizeAndSave() {
+    if (gameDataForSaving && userId && areRatingsComplete() && !ratingsSubmitted) {
+        ratingsSubmitted = true;
+        gameDataForSaving.pain_score = getPainRating();
+        gameDataForSaving.enjoyment_score = getEnjoymentRating();
+        console.log("💾 Final save with ratings:", gameDataForSaving);
         fetch('/api/save-game-result/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(saveData)
-        }).then(r => r.json()).then(data => {
-            if (data.success) console.log("✅ Saved successfully");
-            else console.log("❌ Save failed:", data.error);
-        }).catch(err => console.log("Save error:", err));
+            body: JSON.stringify(gameDataForSaving)
+        }).then(r => r.json())
+          .then(d => {
+              if (d.success) console.log("✅ Saved with ratings!");
+              else console.error("❌ Save failed:", d.error);
+          }).catch(err => console.error("Save error:", err));
     }
 }
 
@@ -1099,6 +1305,7 @@ function waitForDjango(callback) {
         
         document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
         document.getElementById('trackingHand').innerHTML = affectedHandDisplay;
+        document.getElementById('finalAffectedHand').innerHTML = affectedHandDisplay;
         document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
         document.getElementById('levelValue').innerText = currentLevel;
         document.getElementById('finalLevel').innerText = currentLevel;
@@ -1134,16 +1341,31 @@ waitForDjango(() => {
 document.getElementById('startBtn').onclick = () => { soundManager.playButtonClick(); startGame(); };
 document.getElementById('nextLevelBtn').onclick = () => {
     soundManager.playButtonClick();
+    if (!areRatingsComplete()) {
+        showNotification("⭐ Please rate your pain level and enjoyment first!", false);
+        return;
+    }
+    finalizeAndSave();
     if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}`;
     else window.location.reload();
 };
 document.getElementById('restartBtn').onclick = () => {
     soundManager.playButtonClick();
+    if (!areRatingsComplete()) {
+        showNotification("⭐ Please rate your pain level and enjoyment first!", false);
+        return;
+    }
+    finalizeAndSave();
     if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}&force_level=${finalLevel}`;
     else window.location.reload();
 };
 document.getElementById('exitBtn').onclick = () => {
     soundManager.playButtonClick();
+    if (!areRatingsComplete()) {
+        showNotification("⭐ Please rate your pain level and enjoyment before exiting!", false);
+        return;
+    }
+    finalizeAndSave();
     setTimeout(() => window.location.href = "/patient/", 100);
 };
 document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });

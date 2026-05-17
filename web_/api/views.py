@@ -1246,7 +1246,8 @@ def api_save_game_result(request):
 
                 score = int(data.get('score', 0))
                 level = int(data.get('level', 1))
-
+                pain_score = data.get('pain_score', None)
+                enjoyment_score = data.get('enjoyment_score', None)
                 accuracy = 0
                 objects_caught = score
 
@@ -1267,6 +1268,8 @@ def api_save_game_result(request):
                     player_name=patient.user.name,
                     user_id=patient.user.id,
                     score=score,
+                    pain_score = pain_score,
+                    enjoyment_score = enjoyment_score,
                     duration=60,
                     accuracy=accuracy,
                     stars_caught=data.get('stars_caught', 0),
