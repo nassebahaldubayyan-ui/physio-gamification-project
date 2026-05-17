@@ -12,10 +12,13 @@ public class MatchingReceiver : MonoBehaviour
     public Transform handPoint;
 
     [Header("Hand Smoothing")]
-    [Range(5f, 50f)]
-    public float handFollowSpeed = 35f;
+    [Range(5f, 30f)]
+    public float handFollowSpeed = 30f;   
 
     private Vector3 targetHandPos;
+    private DraggableCar[] cachedCars = new DraggableCar[0];
+    private float lastCacheTime = -1f;
+    private float cacheRefreshInterval = 0.5f;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient udpClient;
@@ -24,10 +27,6 @@ public class MatchingReceiver : MonoBehaviour
     private TrackerPacket latestPacket;
     private object packetLock = new object();
 #endif
-
-    private DraggableCar[] cachedCars = new DraggableCar[0];
-    private float cacheRefreshInterval = 0.5f;
-    private float lastCacheTime = -1f;
 
     void Start()
     {
@@ -52,14 +51,14 @@ public class MatchingReceiver : MonoBehaviour
             receiveThread = new Thread(new ThreadStart(ReceiveData));
             receiveThread.IsBackground = true;
             receiveThread.Start();
-            Debug.Log($"MatchingReceiver started on port {port}");
+            Debug.Log($"MatchingReceiver started on port {port} (UDP)");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("MatchingReceiver disabled: " + e.Message);
+            Debug.LogWarning("MatchingReceiver: UDP disabled - " + e.Message);
         }
 #else
-        Debug.Log("MatchingReceiver: WebGL build - UDP disabled.");
+        Debug.Log("MatchingReceiver: WebGL build - UDP disabled, listening for JS packets.");
 #endif
     }
 
@@ -108,6 +107,7 @@ public class MatchingReceiver : MonoBehaviour
             cachedCars = FindObjectsOfType<DraggableCar>();
             lastCacheTime = Time.time;
         }
+
         if (handPoint != null)
             handPoint.position = Vector3.Lerp(handPoint.position, targetHandPos, Time.deltaTime * handFollowSpeed);
     }
@@ -117,7 +117,11 @@ public class MatchingReceiver : MonoBehaviour
         try
         {
             TrackerPacket packet = JsonUtility.FromJson<TrackerPacket>(json);
-            if (packet != null) UpdateGame(packet);
+            if (packet != null)
+            {
+                UpdateGame(packet);
+                Debug.Log($"Received JS packet: hand_closed={packet.hand_closed}, pos=({packet.palm_x},{packet.palm_y})");
+            }
         }
         catch (System.Exception e)
         {

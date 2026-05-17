@@ -373,28 +373,31 @@
             ⏱️ TIME: <span id="timerValue">60</span>s
         </div>
         <div class="notification-panel" id="notificationPanel"></div>
-        <div class="stats-panel">
-            <div>🖐️ X: <span id="handXPos">--</span>% | Y: <span id="handYPos">--</span>%</div>
-            <div>✊ GRIP: <span id="gripStatus" style="color:#ff8888">OPEN ✋</span></div>
-            <div>📐 ELBOW: <span id="elbowAngle">--</span>°</div>
+        <div class="stats-panel" id="statsPanel">
+            🤚 TRACKING: <span id="trackingHand">--</span><br>
+            🎯 <span id="handStatus">WAITING</span><br>
+            🖐️ HAND: X <span id="handXPos">--</span>% | Y <span id="handYPos">--</span>%<br>
+            ✊ GRIP: <span id="gripStatus">OPEN</span><br>
+            📐 ELBOW: <span id="elbowAngle">--</span>°<br>
+            ✋ WRIST: <span id="wristAct">--</span>%<br>
+            🔄 EXT ROT: <span id="externalRot">--</span>°<br>
+            ⬆️ SHRUG: <span id="shoulderShrug">--</span>%
         </div>
+
         <div class="sensitivity-bar">
-            🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
-            <div class="sensitivity-meter">
-                <div class="sensitivity-fill" id="sensitivityFill"></div>
-            </div>
-            <span style="font-size:9px">↓ easier &nbsp;&nbsp;&nbsp;&nbsp; harder →</span>
-        </div>
+        🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
+        <div class="sensitivity-meter"><div class="sensitivity-fill" id="sensitivityFill"></div></div>
     </div>
+</div>
 
     <div class="start-panel" id="startPanel">
         <h1>🚗 MATCHING GAME 🧩</h1>
         <div class="level-info" id="startLevelInfo">⭐ Level 1 - Easy</div>
-        <p>Match each colored car to its box!</p>
         <div class="instructions-box">
-            <div class="instruction-line"><span>✊</span><span>Close hand → GRAB car</span></div>
-            <div class="instruction-line"><span>🤚</span><span>Move hand → DRAG car</span></div>
-            <div class="instruction-line"><span>✋</span><span>Open hand over box → RELEASE</span></div>
+            <div class="instruction-line"><span>🖐️</span><span>Move your <span class="instruction-highlight" id="handInstruction">AFFECTED HAND</span></span></div>
+            <div class="instruction-line"><span>✊</span><span>Close hand → <span class="instruction-highlight">GRAB car</span></span></div>
+            <div class="instruction-line"><span>🤚</span><span>Move hand → <span class="instruction-highlight">DRAG car</span></span></div>
+            <div class="instruction-line"><span>✋</span><span>Open hand over box → <span class="instruction-highlight">RELEASE</span></span></div>
         </div>
         <button id="startBtn">▶️ START GAME</button>
     </div>
@@ -403,18 +406,14 @@
         <h2>🏆 GAME OVER 🏆</h2>
         <div class="final-score" id="finalScore">0</div>
         <div class="accuracy-data">
-            <div class="data-row">
-                <span class="data-label">🏆 Final Level</span>
-                <span class="data-value"><span id="finalLevel">1</span></span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">📐 Avg Elbow Angle</span>
-                <span class="data-value"><span id="avgElbowDisplay">--</span>°</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">✊ Grip Accuracy</span>
-                <span class="data-value"><span id="gripAccuracy">--</span>%</span>
-            </div>
+            <div class="data-row"><span class="data-label">🏆 Level</span><span class="data-value"><span id="finalLevel">1</span></span></div>
+            <div class="data-row"><span class="data-label">🚗 Cars Matched</span><span class="data-value"><span id="finalMatches">0</span></span></div>
+            <div class="data-row"><span class="data-label">🎯 Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
+            <div class="data-row"><span class="data-label">✊ Grip Activation</span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
+            <div class="data-row"><span class="data-label">📐 Elbow Angle</span><span class="data-value"><span id="avgElbowDisplay">--</span>°</span></div>
+            <div class="data-row"><span class="data-label">✋ Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
+            <div class="data-row"><span class="data-label">🔄 External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
+            <div class="data-row"><span class="data-label">⬆️ Shoulder Shrug</span><span class="data-value"><span id="finalShrug">--</span>%</span></div>
         </div>
         <div class="button-group">
             <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
@@ -426,48 +425,7 @@
     <script src="/static/matching_build/Build/matching_build.loader.js"></script>
 
     <script>
-        // ============================================================
-        // 🎮 Game Config
-        // ============================================================
-        const GAME_CONFIG = {
-            level1: {
-                levelNumber: 1,
-                gameDuration: 60,
-                gripSensitivity: 160,
-                levelName: "Easy",
-
-                carSpeed: 1.2,
-                spawnInterval: 2.5,
-                grabDistance: 1.8,
-                dropDistance: 1.8
-            },
-
-            level2: {
-                levelNumber: 2,
-                gameDuration: 50,
-                gripSensitivity: 130,
-                levelName: "Medium",
-
-                carSpeed: 2.0,
-                spawnInterval: 1.8,
-                grabDistance: 1.4,
-                dropDistance: 1.4
-            },
-
-            level3: {
-                levelNumber: 3,
-                gameDuration: 40,
-                gripSensitivity: 100,
-                levelName: "Hard",
-
-                carSpeed: 3.2,
-                spawnInterval: 1.0,
-                grabDistance: 1.0,
-                dropDistance: 1.0
-            }
-        };
-        const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
-
+       
         // ============================================================
         // Sound Manager  
         // ============================================================
@@ -539,6 +497,7 @@
             playButtonClick() { if (this.buttonSound) this.buttonSound(); }
             playMatchSound() { if (this.matchSound) this.matchSound(); }
             playGameStart() { if (this.startSound) this.startSound(); }
+            playWarning() { if (this.warningSound) this.warningSound(); }
             playLevelUp() { if (this.levelUpSound) this.levelUpSound(); }
             resumeAudio() {
                 if (this.audioContext && this.audioContext.state === 'suspended')
@@ -563,6 +522,62 @@
         };
 
         // ============================================================
+        // SmoothingFilter 
+        // ============================================================
+        class SmoothingFilter {
+            constructor(windowSize = 5) { this.windowSize = windowSize; this.values = []; }
+            filter(value) {
+                this.values.push(value);
+                if (this.values.length > this.windowSize) this.values.shift();
+                return this.values.reduce((a, b) => a + b, 0) / this.values.length;
+            }
+            reset() { this.values = []; }
+        }
+
+        // ============================================================
+        // 🎮 Game Config
+        // ============================================================
+        const GAME_CONFIG = {
+            level1: {
+                levelNumber: 1,
+                gameDuration: 60,
+                gripSensitivity: 160,
+                levelName: "Easy",
+
+                carSpeed: 1.2,
+                spawnInterval: 2.5,
+                grabDistance: 1.8,
+                dropDistance: 1.8
+
+            },
+
+            level2: {
+                levelNumber: 2,
+                gameDuration: 55,
+                gripSensitivity: 130,
+                levelName: "Medium",
+
+                carSpeed: 1.8,
+                spawnInterval: 2.0,
+                grabDistance: 1.5,
+                dropDistance: 1.5
+            },
+
+            level3: {
+                levelNumber: 3,
+                gameDuration: 50,
+                gripSensitivity: 100,
+                levelName: "Hard",
+
+                carSpeed: 2.5,
+                spawnInterval: 1.5,
+                grabDistance: 1.3,
+                dropDistance: 1.3
+            }
+        };
+        const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
+
+        // ============================================================
         // Game Variables
         // ============================================================
         let unityInstance = null;
@@ -581,6 +596,26 @@
         let camera = null;
         let dataSaved = false;
         let gameEnded = false;
+
+        let affectedHand = "right";
+        let affectedHandDisplay = "RIGHT HAND";
+        let targetMPLabel = "left";
+        let lastWrongHandTime = 0;
+        let lastNotificationTime = 0;
+
+        let gripSuccessHistory = [];
+        let wristSpeedHistory = [];
+        let externalRotHistory = [];
+        let shoulderShrugHistory = [];
+        let handInFrameHistory = [];
+        let prevHandX = null;
+
+        let lastGripState = false;
+        let gripDebounceTimer = null;
+        let currentGripState = false;
+
+        let elbowFilter, extRotFilter, shrugFilter, wristFilter;
+
 
         // ============================================================
         // Unity Callbacks  
@@ -645,13 +680,18 @@
             else cursor.classList.remove('gripping');
         }
 
-        function updateStatsDisplay(handX, handY, elbowAngle, isGripping) {
-            document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
-            document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
+        function updateStatsDisplay(handX, handY, elbowAngle, wristAct, externalRot, shrug, isGripping, isInside) {
+            document.getElementById('handXPos').innerHTML  = Math.round(handX * 100);
+            document.getElementById('handYPos').innerHTML  = Math.round(handY * 100);
             document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
+            document.getElementById('wristAct').innerHTML  = wristAct || 0;
+            document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
+            document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
+            document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
+            document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
             const gripSpan = document.getElementById('gripStatus');
-            if (isGripping) { gripSpan.innerHTML = 'CLOSED ✊'; gripSpan.style.color = '#88ff88'; }
-            else { gripSpan.innerHTML = 'OPEN ✋'; gripSpan.style.color = '#ff8888'; }
+            gripSpan.innerHTML = isGripping ? 'CLOSED ✊' : 'OPEN ✋';
+            gripSpan.style.color = isGripping ? '#88ff88' : '#ff8888';
         }
 
         function updateGripSensitivityDisplay(sensitivity) {
@@ -692,6 +732,74 @@
             updateSensitivityMeter(avg);
             return avg < currentGripSensitivity;
         }
+
+
+        // ============================================================
+        // Metric Calculations 
+        // ============================================================
+        function calculateAccuracy() {
+            if (handInFrameHistory.length === 0) return 100;
+            return Math.round((handInFrameHistory.filter(v => v === 1).length / handInFrameHistory.length) * 100);
+        }
+
+        function calculateGripActivation() {
+            if (gripSuccessHistory.length === 0) return 0;
+            return Math.round((gripSuccessHistory.filter(v => v === 1).length / gripSuccessHistory.length) * 100);
+        }
+
+        function calculateWristActivation() {
+            if (wristSpeedHistory.length === 0) return 0;
+            const avg = wristSpeedHistory.reduce((a, b) => a + b, 0) / wristSpeedHistory.length;
+            return Math.min(100, Math.round(avg * 200));
+        }
+
+        function calculateAvgElbow() {
+            if (elbowHistory.length === 0) return 0;
+            return Math.round(elbowHistory.reduce((a, b) => a + b, 0) / elbowHistory.length);
+        }
+
+        function calculateAvgExternalRot() {
+            if (externalRotHistory.length === 0) return 0;
+            return Math.round(externalRotHistory.reduce((a, b) => a + b, 0) / externalRotHistory.length);
+        }
+
+        function calculateAvgShrug() {
+            if (shoulderShrugHistory.length === 0) return 0;
+            return Math.round(shoulderShrugHistory.reduce((a, b) => a + b, 0) / shoulderShrugHistory.length);
+        }
+
+        // ============================================================
+        // Pose Calculations 
+        // ============================================================
+        function calculateGripFromLandmarks(landmarks) {
+            const tips = [4, 8, 12, 16, 20], mcps = [1, 5, 9, 13, 17];
+            let total = 0;
+            for (let i = 0; i < tips.length; i++)
+                total += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
+            const avg = total / tips.length;
+            updateSensitivityMeter(avg);
+            return avg < currentGripSensitivity;
+        }
+
+        function calculateElbowAngle(landmarks) {
+            try {
+                const wrist = landmarks[0], indexMCP = landmarks[5], middleMCP = landmarks[9];
+                return AngleMath.calculateAngle(wrist, indexMCP, middleMCP);
+            } catch(e) { return 90; }
+        }
+
+        function calculateExternalRotation(landmarks) {
+            try {
+                const indexMCP = landmarks[5], pinkyMCP = landmarks[17];
+                const dx = indexMCP.x - pinkyMCP.x, dy = indexMCP.y - pinkyMCP.y;
+                return Math.atan2(-dy, dx) * 180 / Math.PI;
+            } catch(e) { return 0; }
+        }
+
+        function calculateShoulderShrug(handY) {
+            return Math.min(100, Math.max(0, Math.round((1 - handY) * 100)));
+        }
+
 
         // ============================================================
         // Send to Unity  
@@ -741,7 +849,7 @@
 
             hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
             hands.setOptions({
-                maxNumHands: 1,
+                maxNumHands: 2,          
                 modelComplexity: 1,
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
@@ -750,31 +858,98 @@
             hands.onResults(results => {
                 if (!mediaPipeActive || !gameActive) return;
 
+                let correctHandDetected = false;
+                let handLandmarks = null;
+
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    const landmarks = results.multiHandLandmarks[0];
-                    const wrist = landmarks[0];
-                    const handX = 1 - wrist.x;
-                    const handY = wrist.y;
-                    const isGripping = calculateGripFromLandmarks(landmarks);
-
-                    gripHistory.push(isGripping ? 1 : 0);
-                    if (gripHistory.length > 500) gripHistory.shift();
-
-                    const elbowAngle = 80 + Math.sin(Date.now() / 1000) * 10;
-                    elbowHistory.push(elbowAngle);
-                    if (elbowHistory.length > 500) elbowHistory.shift();
-
-                    const packet = JSON.stringify({
-                        palm_x: handX,
-                        palm_y: 1 - handY,   // ✅ Unity يعكس Y
-                        hand_closed: isGripping,
-                        timestamp: Date.now() / 1000
-                    });
-                    sendToUnity('MatchingReceiver', 'ReceivePacketFromJS', packet);
-
-                    updateHandCursor(handX, handY, isGripping);
-                    updateStatsDisplay(handX, handY, elbowAngle, isGripping);
+                    for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                        const label = results.multiHandedness[i].label.toLowerCase();
+                        if (label === targetMPLabel) {
+                            correctHandDetected = true;
+                            handLandmarks = results.multiHandLandmarks[i];
+                            break;
+                        }
+                    }
                 }
+
+                if (!correctHandDetected) {
+                    if (Date.now() - lastWrongHandTime > 3000) {
+                        lastWrongHandTime = Date.now();
+                        showNotification(`⚠️ Please use your ${affectedHandDisplay}! ⚠️`);
+                        soundManager.playWarning();
+                    }
+                    handInFrameHistory.push(0);
+                    if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
+                    return;
+                }
+
+                const wrist = handLandmarks[0];
+                let handX = 1 - wrist.x;
+                let handY = wrist.y;
+
+                const isInside = (handX > 0.05 && handX < 0.95 && handY > 0.05 && handY < 0.95);
+                if (!isInside && Date.now() - lastNotificationTime > 3000) {
+                    showNotification("⚠️ Please return your hand to the center!");
+                    lastNotificationTime = Date.now();
+                }
+
+                handInFrameHistory.push(isInside ? 1 : 0);
+                if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
+
+                // Grip مع debounce
+                const rawGrip = calculateGripFromLandmarks(handLandmarks);
+                let isGripping = rawGrip;
+
+                if (rawGrip !== lastGripState) {
+                    if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
+                    gripDebounceTimer = setTimeout(() => { currentGripState = rawGrip; }, 100);
+                    isGripping = currentGripState;
+                } else {
+                    isGripping = currentGripState;
+                }
+                lastGripState = rawGrip;
+                gripSuccessHistory.push(isGripping ? 1 : 0);
+                if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
+
+                // Wrist speed
+                let wristSpeed = 0;
+                if (prevHandX !== null) {
+                    wristSpeed = Math.abs(handX - prevHandX);
+                    wristSpeedHistory.push(wristSpeed);
+                    if (wristSpeedHistory.length > 1800) wristSpeedHistory.shift();
+                }
+                prevHandX = handX;
+                const smoothedWrist = wristFilter ? wristFilter.filter(wristSpeed) : wristSpeed;
+
+                // Elbow — ✅ حقيقي بدل الـ fake sin()
+                const elbowAngle  = calculateElbowAngle(handLandmarks);
+                const smoothedElbow = elbowFilter ? elbowFilter.filter(elbowAngle) : elbowAngle;
+                elbowHistory.push(smoothedElbow);
+                if (elbowHistory.length > 1800) elbowHistory.shift();
+
+                // External rotation
+                const externalRot = calculateExternalRotation(handLandmarks);
+                const smoothedExtRot = extRotFilter ? extRotFilter.filter(externalRot) : externalRot;
+                externalRotHistory.push(smoothedExtRot);
+                if (externalRotHistory.length > 1800) externalRotHistory.shift();
+
+                // Shoulder shrug
+                const shrug = calculateShoulderShrug(handY);
+                const smoothedShrug = shrugFilter ? shrugFilter.filter(shrug) : shrug;
+                shoulderShrugHistory.push(smoothedShrug);
+                if (shoulderShrugHistory.length > 1800) shoulderShrugHistory.shift();
+
+                updateStatsDisplay(handX, handY, smoothedElbow, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
+                updateHandCursor(handX, handY, isGripping);
+
+                // إرسال لـ Unity
+                const packet = JSON.stringify({
+                    palm_x: handX,
+                    palm_y: 1 - handY,
+                    hand_closed: isGripping,
+                    timestamp: Date.now() / 1000
+                });
+                sendToUnity('MatchingReceiver', 'ReceivePacketFromJS', packet);
             });
 
             camera = new Camera(video, {
@@ -783,32 +958,36 @@
             });
             await camera.start();
             mediaPipeActive = true;
-            console.log("✅ MediaPipe started");
+            console.log("✅ MediaPipe started - Tracking:", targetMPLabel);
         }
+
 
         // ============================================================
         // Game Control
         // ============================================================
         function endGame(score) {
             gameActive = false;
-            if (camera) {
-                try { camera.stop(); } catch (e) { }
-                mediaPipeActive = false;
-            }
+            if (camera) { try { camera.stop(); } catch(e) {} mediaPipeActive = false; }
 
-            // ✅ الآن avgElbow معرّف بشكل صحيح
-            const avgElbow = calculateAvgElbow();
-            const gripAcc = calculateGripAccuracy();
+            const accuracy       = calculateAccuracy();
+            const gripActivation = calculateGripActivation();
+            const avgElbow       = calculateAvgElbow();
+            const avgWrist       = calculateWristActivation();
+            const avgExtRot      = calculateAvgExternalRot();
+            const avgShrug       = calculateAvgShrug();
 
-            document.getElementById('finalScore').innerHTML = score;
-            document.getElementById('gripAccuracy').innerHTML = gripAcc;
-            document.getElementById('finalLevel').innerHTML = finalLevel;
+            document.getElementById('finalScore').innerHTML    = score;
+            document.getElementById('finalMatches').innerHTML  = score;
+            document.getElementById('finalLevel').innerHTML    = finalLevel;
+            document.getElementById('finalAccuracy').innerHTML = accuracy;
+            document.getElementById('finalGrip').innerHTML     = gripActivation;
             document.getElementById('avgElbowDisplay').innerHTML = avgElbow;
+            document.getElementById('finalWrist').innerHTML    = avgWrist;
+            document.getElementById('finalExtRot').innerHTML   = avgExtRot;
+            document.getElementById('finalShrug').innerHTML    = avgShrug;
 
-            let canAdvance = false;
-            if (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2) canAdvance = true;
-            if (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3) canAdvance = true;
-
+            let canAdvance = (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2)
+                          || (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3);
             const nextBtn = document.getElementById('nextLevelBtn');
             if (canAdvance && finalLevel < 3) {
                 nextBtn.style.display = 'block';
@@ -816,9 +995,9 @@
             } else {
                 nextBtn.style.display = 'none';
             }
-
             document.getElementById('endPanel').style.display = 'flex';
 
+            // ✅ حفظ كامل مثل لعبة النجوم
             if (userId && !dataSaved) {
                 dataSaved = true;
                 const saveData = {
@@ -826,10 +1005,17 @@
                     game: 'matching-game',
                     level: finalLevel,
                     score: score,
-                    grip_accuracy: gripAcc,
-                    avg_elbow: avgElbow
+                    matches_made: score,
+                    grip_activation: gripActivation,
+                    accuracy: accuracy,
+                    elbow_activation: avgElbow,
+                    shoulder_activation: 0,
+                    wrist_activation: avgWrist,
+                    external_rotation: avgExtRot,
+                    shoulder_shrug: avgShrug,
+                    affected_hand: affectedHand
                 };
-                console.log("💾 Saving:", saveData);
+                console.log("💾 Saving Matching data:", saveData);
                 fetch('/api/save-game-result/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -841,31 +1027,46 @@
             }
         }
 
-        function startGame() {
-            if (!unityInstance) {
-                showNotification('⏳ Loading game...');
-                setTimeout(startGame, 500);
-                return;
-            }
 
-            gameEnded = false;
-            dataSaved = false;
+
+
+
+
+        // ============================================================
+        // Start Game 
+        // ============================================================
+        function startGame() {
+            if (!unityInstance) { showNotification('⏳ Loading game...'); setTimeout(startGame, 500); return; }
+
+            gameEnded = false; dataSaved = false;
             soundManager.playGameStart();
 
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
                     stream.getTracks().forEach(t => t.stop());
                     document.getElementById('startPanel').style.display = 'none';
-                    document.getElementById('endPanel').style.display = 'none';
+                    document.getElementById('endPanel').style.display   = 'none';
 
-                    gameActive = true;
-                    gameScore = 0;
-                    gameTime = GAME_CONFIG[`level${currentLevel}`]?.gameDuration || 60;
+                    gameActive = true; gameScore = 0;
+                    const cfg = GAME_CONFIG[`level${currentLevel}`];
+                    gameTime = cfg?.gameDuration || 60;
+                    currentGripSensitivity = cfg?.gripSensitivity || 75;
                     finalLevel = currentLevel;
-                    gripHistory = [];
-                    elbowHistory = [];
-                    updateUI();
 
+                    elbowFilter   = new SmoothingFilter(5);
+                    extRotFilter  = new SmoothingFilter(5);
+                    shrugFilter   = new SmoothingFilter(5);
+                    wristFilter   = new SmoothingFilter(5);
+
+                    lastGripState = false; currentGripState = false;
+                    if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
+
+                    gripSuccessHistory = []; elbowHistory = []; wristSpeedHistory = [];
+                    externalRotHistory = []; shoulderShrugHistory = []; handInFrameHistory = [];
+                    prevHandX = null;
+
+                    document.getElementById('sensitivityValue').innerText = currentGripSensitivity;
+                    updateUI();
                     sendConfigToUnity(currentLevel);
                     startGameUnity();
 
@@ -873,12 +1074,9 @@
                     else mediaPipeActive = true;
 
                     soundManager.resumeAudio();
-                    showNotification('🎮 GAME STARTED! Close hand to grab cars!');
+                    showNotification(`🎮 GAME STARTED! Use your ${affectedHandDisplay}! 🎮`, true);
                 })
-                .catch(err => {
-                    console.error('Camera error:', err);
-                    showNotification('❌ Please allow camera access!');
-                });
+                .catch(err => { console.error('Camera error:', err); showNotification('❌ Please allow camera access!'); });
         }
 
         // ============================================================
@@ -939,14 +1137,27 @@
         // ============================================================
         function waitForDjango(callback) {
             if (window.DJANGO_USER_ID) {
-                userId = window.DJANGO_USER_ID;
+                userId      = window.DJANGO_USER_ID;
                 patientName = window.DJANGO_PATIENT_NAME || "Guest";
                 currentLevel = window.DJANGO_LEVEL || 1;
+
+                // ✅ جديد: اليد المصابة
+                affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
+                if (affectedHand !== 'left' && affectedHand !== 'right') affectedHand = 'right';
+                affectedHandDisplay = affectedHand === "right" ? "RIGHT HAND" : "LEFT HAND";
+                targetMPLabel       = affectedHand === "right" ? "left" : "right";
+
+                document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
+                document.getElementById('trackingHand').innerHTML    = affectedHandDisplay;
+                document.getElementById('startLevelInfo').innerHTML  =
+                    `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
+                document.getElementById('levelValue').innerText = currentLevel;
+
                 callback();
             } else {
                 const params = new URLSearchParams(window.location.search);
-                const urlUserId = params.get('user_id');
-                const forceLevel = params.get('force_level');
+                const urlUserId   = params.get('user_id');
+                const forceLevel  = params.get('force_level');
                 if (urlUserId) {
                     userId = parseInt(urlUserId);
                     if (forceLevel) currentLevel = parseInt(forceLevel);
@@ -956,7 +1167,6 @@
                 }
             }
         }
-
         // ============================================================
         // Initialization
         // ============================================================
