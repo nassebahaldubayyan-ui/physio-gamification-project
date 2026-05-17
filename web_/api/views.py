@@ -168,6 +168,7 @@ def game_catching_stars(request):
                 current_level = last_level
     
     print(f"✅ Final level: {current_level}")
+    affected_hand = patient.affected_hand  # 'right' or 'left'
     
     file_path = os.path.join('static', 'Star_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -183,9 +184,11 @@ def game_catching_stars(request):
         window.DJANGO_USER_ID = {user_id};
         window.DJANGO_PATIENT_NAME = "{patient_name}";
         window.DJANGO_LEVEL = {current_level};
+        window.DJANGO_AFFECTED_HAND = "{affected_hand}";
         console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
                     "Patient:", window.DJANGO_PATIENT_NAME, 
-                    "Level:", window.DJANGO_LEVEL);
+                    "Level:", window.DJANGO_LEVEL,
+                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
     </script>
     """
     
@@ -313,7 +316,7 @@ def game_catching_objects(request):
                 current_level = last_level
     
     print(f"✅ Final level: {current_level}")
-    
+    affected_hand = patient.affected_hand  # 'right' or 'left'
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
@@ -335,12 +338,14 @@ def game_catching_objects(request):
         window.DJANGO_USER_ID = {user_id};
         window.DJANGO_PATIENT_NAME = "{patient_name}";
         window.DJANGO_LEVEL = {current_level};
+        window.DJANGO_AFFECTED_HAND = "{affected_hand}";
         console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
                     "Patient:", window.DJANGO_PATIENT_NAME, 
-                    "Level:", window.DJANGO_LEVEL);
+                    "Level:", window.DJANGO_LEVEL,
+                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
     </script>
     """
-    
+
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
     
     print(f"{'='*50}\n")
@@ -1267,12 +1272,12 @@ def api_save_game_result(request):
                     stars_caught=data.get('stars_caught', 0),
                     matches_made=data.get('matches_made', 0),
                     objects_caught=objects_caught,
-                    shoulder_activation=0,
-                    elbow_activation=0,
-                    wrist_activation=0,
-                    grip_activation=0,
-                    external_rotation=0,
-                    shoulder_shrug=0,
+                    shoulder_activation=int(data.get('shoulder_activation', 0)),
+                    elbow_activation=int(data.get('elbow_activation', 0)),
+                    wrist_activation=int(data.get('wrist_activation', 0)),
+                    grip_activation=int(data.get('grip_activation', 0)),
+                    external_rotation=int(data.get('external_rotation', 0)),
+                    shoulder_shrug=int(data.get('shoulder_shrug', 0)),
                     completed=1,
                     session_date=timezone.now()
                 )
