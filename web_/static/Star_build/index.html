@@ -323,13 +323,14 @@
     </div>
     <div class="notification-panel" id="notificationPanel"></div>
     <div class="stats-panel" id="statsPanel">
+        🤚 TRACKING: <span id="trackingHand">--</span> | 🎯 <span id="handStatus">WAITING</span><br>
         🖐️ HAND: X <span id="handX">--</span>% | Y <span id="handY">--</span>%<br>
         ✊ GRIP: <span id="gripStatus">OPEN</span><br>
         📐 ELBOW: <span id="elbowAngle">--</span>°<br>
         💪 SHOULDER: <span id="shoulderAct">--</span>%<br>
         ✋ WRIST: <span id="wristAct">--</span>%<br>
         🔄 EXT ROT: <span id="externalRot">--</span>°<br>
-        🎯 STATUS: <span id="handStatus">WAITING</span>
+        ⬆️ SHRUG: <span id="shoulderShrug">--</span>%
     </div>
     <div class="sensitivity-bar">
         🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
@@ -340,12 +341,11 @@
 <div class="start-panel" id="startPanel">
     <h1>⭐ CATCHING STARS ⭐</h1>
     <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
-    <div class="level-info" id="affectedHandInfo" style="color:#88ff88; font-size:14px;"></div>
     <h2>📖 HOW TO PLAY</h2>
     <div class="instructions-box">
         <div class="instruction-line"><div class="instruction-icon">🖐️</div><div class="instruction-text">Move your <span class="instruction-highlight" id="handInstruction">AFFECTED HAND</span></div></div>
         <div class="instruction-line"><div class="instruction-icon">✊</div><div class="instruction-text"><span class="instruction-highlight">CLOSE YOUR HAND</span> to catch a star</div></div>
-        <div class="instruction-line"><div class="instruction-icon">🎒</div><div class="instruction-text">Move <span class="instruction-highlight">STAR ABOVE THE BAG</span> to score</div></div>
+        <div class="instruction-line"><div class="instruction-icon">🎒</div><div class="instruction-text">Move <span class="instruction-highlight">STAR TO THE BAG</span> to score</div></div>
         <div class="instruction-line"><div class="instruction-icon">⭐</div><div class="instruction-text">Each star = <span class="instruction-highlight">+1 POINT</span></div></div>
     </div>
     <button id="startBtn">▶️ START GAME</button>
@@ -359,10 +359,11 @@
         <div class="data-row"><span class="data-label">⭐ Stars Collected</span><span class="data-value"><span id="finalScoreDetail">0</span></span></div>
         <div class="data-row"><span class="data-label">🎯 Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
         <div class="data-row"><span class="data-label">✊ Grip Activation</span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
-        <div class="data-row"><span class="data-label">📐 Avg Elbow Angle</span><span class="data-value"><span id="avgElbow">--</span>°</span></div>
+        <div class="data-row"><span class="data-label">📐 Elbow Angle</span><span class="data-value"><span id="avgElbow">--</span>°</span></div>
         <div class="data-row"><span class="data-label">💪 Shoulder Activation</span><span class="data-value"><span id="finalShoulder">--</span>%</span></div>
         <div class="data-row"><span class="data-label">✋ Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
         <div class="data-row"><span class="data-label">🔄 External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
+        <div class="data-row"><span class="data-label">⬆️ Shoulder Shrug</span><span class="data-value"><span id="finalShrug">--</span>%</span></div>
     </div>
     <div class="button-group">
         <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
@@ -375,7 +376,7 @@
 
 <script>
 // ============================================================
-// Sound Manager (نفس لعبة التفاح)
+// Sound Manager
 // ============================================================
 class SoundManager {
     constructor() {
@@ -505,7 +506,7 @@ class SoundManager {
 const soundManager = new SoundManager();
 
 // ============================================================
-// Angle Math (3D - نفس لعبة التفاح)
+// Angle Math (3D)
 // ============================================================
 const AngleMath = {
     calculateAngle3D(p1, p2, p3) {
@@ -521,7 +522,7 @@ const AngleMath = {
 };
 
 // ============================================================
-// Smoothing Filter (نفس لعبة التفاح)
+// Smoothing Filter
 // ============================================================
 class SmoothingFilter {
     constructor(windowSize = 5) {
@@ -563,7 +564,7 @@ let userId = null;
 let patientName = "Guest";
 let affectedHand = "right";
 let affectedHandDisplay = "Right";
-let targetMPLabel = "Left";
+let targetMPLabel = "left";
 let mediaPipeActive = false;
 let hands = null, camera = null;
 let dataSaved = false;
@@ -571,22 +572,24 @@ let gameEnded = false;
 let lastWrongHandTime = 0;
 let lastNotificationTime = 0;
 let currentGripSensitivity = 75;
-let totalStarsSpawned = 0;
 
-// History for metrics
+// History for metrics (مثل لعبة التفاح)
 let gripSuccessHistory = [];
 let elbowHistory = [];
-let shoulderHistory = [];
-let wristHistory = [];
+let shoulderXHistory = [];     // ← لتخزين X positions عشان نحسب range
+let wristSpeedHistory = [];    // ← لتخزين سرعة الحركة
 let externalRotHistory = [];
+let shoulderShrugHistory = [];
 let handInFrameHistory = [];
-let handXHistory = [];
+
+// Variables for speed calculation
+let prevHandX = null;
 
 // Smoothing filters
-let elbowFilter, shoulderFilter, wristFilter, extRotFilter, handXFilter;
+let elbowFilter, extRotFilter, shrugFilter, wristFilter;
 
 // ============================================================
-// Unity Callbacks (نفس لعبة التفاح)
+// Unity Callbacks
 // ============================================================
 window.UpdateScoreFromUnity = function(score) {
     if (score > gameScore) soundManager.playCatchSound();
@@ -601,7 +604,7 @@ window.UpdateTimerFromUnity = function(timer) {
 };
 
 window.UpdateTotalStars = function(total) {
-    totalStarsSpawned = total;
+    // Not used for metrics but kept for compatibility
 };
 
 window.EndGameFromUnity = function(score) {
@@ -643,13 +646,14 @@ function showNotification(msg, isSuccess = false) {
     setTimeout(() => div.remove(), 2500);
 }
 
-function updateStatsDisplay(handX, handY, elbowAngle, shoulderAct, wristAct, externalRot, isGripping, isInside) {
+function updateStatsDisplay(handX, handY, elbowAngle, shoulderAct, wristAct, externalRot, shrug, isGripping, isInside) {
     document.getElementById('handX').innerHTML = Math.round(handX * 100);
     document.getElementById('handY').innerHTML = Math.round(handY * 100);
     document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
     document.getElementById('shoulderAct').innerHTML = shoulderAct || 0;
     document.getElementById('wristAct').innerHTML = wristAct || 0;
     document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
+    document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
     document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
     document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
     const gripSpan = document.getElementById('gripStatus');
@@ -673,7 +677,7 @@ function updateSensitivityMeter(currentAngle) {
 }
 
 // ============================================================
-// Metric Calculations (مخصصة للعبة النجوم)
+// Metric Calculations (مثل لعبة التفاح)
 // ============================================================
 function calculateAccuracy() {
     if (handInFrameHistory.length === 0) return 100;
@@ -687,14 +691,38 @@ function calculateGripActivation() {
     return Math.round((success / gripSuccessHistory.length) * 100);
 }
 
-function getAverage(arr) {
-    if (arr.length === 0) return 0;
-    const sum = arr.reduce((a, b) => a + b, 0);
-    return Math.round(sum / arr.length);
+function calculateShoulderActivation() {
+    if (shoulderXHistory.length < 2) return 0;
+    const range = Math.max(...shoulderXHistory) - Math.min(...shoulderXHistory);
+    return Math.min(100, Math.round(range * 100));
+}
+
+function calculateWristActivation() {
+    if (wristSpeedHistory.length === 0) return 0;
+    const avgSpeed = wristSpeedHistory.reduce((a, b) => a + b, 0) / wristSpeedHistory.length;
+    return Math.min(100, Math.round(avgSpeed * 200));
+}
+
+function calculateAvgElbow() {
+    if (elbowHistory.length === 0) return 0;
+    const sum = elbowHistory.reduce((a, b) => a + b, 0);
+    return Math.round(sum / elbowHistory.length);
+}
+
+function calculateAvgExternalRot() {
+    if (externalRotHistory.length === 0) return 0;
+    const sum = externalRotHistory.reduce((a, b) => a + b, 0);
+    return Math.round(sum / externalRotHistory.length);
+}
+
+function calculateAvgShrug() {
+    if (shoulderShrugHistory.length === 0) return 0;
+    const sum = shoulderShrugHistory.reduce((a, b) => a + b, 0);
+    return Math.round(sum / shoulderShrugHistory.length);
 }
 
 // ============================================================
-// Pose Calculations من MediaPipe Hands
+// Pose Calculations from MediaPipe Hands
 // ============================================================
 function calculateGripFromLandmarks(landmarks) {
     const fingerTips = [4, 8, 12, 16, 20];
@@ -709,6 +737,7 @@ function calculateGripFromLandmarks(landmarks) {
     return avgAngle < currentGripSensitivity;
 }
 
+// Elbow angle estimation from hand landmarks
 function calculateElbowAngle(landmarks) {
     try {
         const wrist = landmarks[0];
@@ -718,26 +747,20 @@ function calculateElbowAngle(landmarks) {
     } catch(e) { return 90; }
 }
 
-function calculateShoulderActivation(handX) {
-    const distanceFromCenter = Math.abs(handX - 0.5);
-    return Math.min(100, Math.round((distanceFromCenter / 0.4) * 100));
-}
-
-function calculateWristActivation(handX, prevHandX) {
-    if (prevHandX === null) return 0;
-    const movement = Math.abs(handX - prevHandX);
-    return Math.min(100, Math.round(movement * 200));
-}
-
+// External rotation (without Math.abs - preserves direction)
 function calculateExternalRotation(landmarks) {
     try {
         const indexMCP = landmarks[5];
         const pinkyMCP = landmarks[17];
         const dx = indexMCP.x - pinkyMCP.x;
         const dy = indexMCP.y - pinkyMCP.y;
-        const angle = Math.atan2(-dy, dx) * 180 / Math.PI;
-        return Math.abs(angle);
+        return Math.atan2(-dy, dx) * 180 / Math.PI;
     } catch(e) { return 0; }
+}
+
+// Shoulder shrug from hand height
+function calculateShoulderShrug(handY) {
+    return Math.min(100, Math.max(0, Math.round((1 - handY) * 100)));
 }
 
 // ============================================================
@@ -769,7 +792,7 @@ function startGameUnity() {
 }
 
 // ============================================================
-// MediaPipe (نفس طريقة لعبة التفاح بالضبط)
+// MediaPipe (نفس طريقة لعبة التفاح)
 // ============================================================
 async function initMediaPipe() {
     const video = document.createElement('video');
@@ -783,8 +806,6 @@ async function initMediaPipe() {
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
     });
-    
-    let prevHandX = null;
     
     hands.onResults(results => {
         if (!mediaPipeActive || !gameActive) return;
@@ -830,44 +851,56 @@ async function initMediaPipe() {
             lastNotificationTime = Date.now();
         }
         
-        // Record hand in frame
+        // ============================================================
+        // Record metrics (مثل لعبة التفاح)
+        // ============================================================
+        
+        // 1. Hand in frame (for accuracy)
         handInFrameHistory.push(isInside ? 1 : 0);
         if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
         
-        handXHistory.push(handX);
-        if (handXHistory.length > 1800) handXHistory.shift();
+        // 2. Shoulder X positions (for range calculation)
+        shoulderXHistory.push(handX);
+        if (shoulderXHistory.length > 1800) shoulderXHistory.shift();
         
-        // Grip detection (main for this game)
+        // 3. Grip activation
         const isGripping = calculateGripFromLandmarks(handLandmarks);
         gripSuccessHistory.push(isGripping ? 1 : 0);
         if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
         
-        // Elbow angle
+        // 4. Wrist activation (speed - مثل لعبة التفاح)
+        let wristSpeed = 0;
+        if (prevHandX !== null) {
+            wristSpeed = Math.abs(handX - prevHandX);
+            wristSpeedHistory.push(wristSpeed);
+            if (wristSpeedHistory.length > 1800) wristSpeedHistory.shift();
+        }
+        prevHandX = handX;
+        const smoothedWrist = wristFilter ? wristFilter.filter(wristSpeed) : wristSpeed;
+        
+        // 5. Elbow angle
         const elbowAngle = calculateElbowAngle(handLandmarks);
         const smoothedElbow = elbowFilter ? elbowFilter.filter(elbowAngle) : elbowAngle;
         elbowHistory.push(smoothedElbow);
         if (elbowHistory.length > 1800) elbowHistory.shift();
         
-        // Shoulder activation
-        const shoulderAct = calculateShoulderActivation(handX);
-        const smoothedShoulder = shoulderFilter ? shoulderFilter.filter(shoulderAct) : shoulderAct;
-        shoulderHistory.push(smoothedShoulder);
-        if (shoulderHistory.length > 1800) shoulderHistory.shift();
-        
-        // Wrist activation (movement speed)
-        const wristAct = calculateWristActivation(handX, prevHandX);
-        const smoothedWrist = wristFilter ? wristFilter.filter(wristAct) : wristAct;
-        wristHistory.push(smoothedWrist);
-        if (wristHistory.length > 1800) wristHistory.shift();
-        prevHandX = handX;
-        
-        // External rotation
+        // 6. External rotation
         const externalRot = calculateExternalRotation(handLandmarks);
         const smoothedExtRot = extRotFilter ? extRotFilter.filter(externalRot) : externalRot;
         externalRotHistory.push(smoothedExtRot);
         if (externalRotHistory.length > 1800) externalRotHistory.shift();
         
-        updateStatsDisplay(handX, handY, smoothedElbow, smoothedShoulder, smoothedWrist, smoothedExtRot, isGripping, isInside);
+        // 7. Shoulder shrug
+        const shrug = calculateShoulderShrug(handY);
+        const smoothedShrug = shrugFilter ? shrugFilter.filter(shrug) : shrug;
+        shoulderShrugHistory.push(smoothedShrug);
+        if (shoulderShrugHistory.length > 1800) shoulderShrugHistory.shift();
+        
+        // Update live display (shoulder activation يعرض القيمة الحالية)
+        const currentShoulder = shoulderXHistory.length > 0 ? 
+            Math.min(100, Math.round((Math.max(...shoulderXHistory) - Math.min(...shoulderXHistory)) * 100)) : 0;
+        
+        updateStatsDisplay(handX, handY, smoothedElbow, currentShoulder, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
         updateHandCursor(handX, handY, isGripping);
         
         if (unityInstance && typeof unityInstance.sendMessage === 'function') {
@@ -888,7 +921,7 @@ async function initMediaPipe() {
 }
 
 // ============================================================
-// End Game (نفس طريقة لعبة التفاح)
+// End Game (مثل لعبة التفاح)
 // ============================================================
 function endGame(score) {
     gameActive = false;
@@ -896,10 +929,11 @@ function endGame(score) {
     
     const accuracy = calculateAccuracy();
     const gripActivation = calculateGripActivation();
-    const avgElbow = getAverage(elbowHistory);
-    const avgShoulder = getAverage(shoulderHistory);
-    const avgWrist = getAverage(wristHistory);
-    const avgExternalRot = getAverage(externalRotHistory);
+    const avgElbow = calculateAvgElbow();
+    const avgShoulder = calculateShoulderActivation();
+    const avgWrist = calculateWristActivation();
+    const avgExternalRot = calculateAvgExternalRot();
+    const avgShrug = calculateAvgShrug();
     
     document.getElementById('finalScore').innerHTML = score;
     document.getElementById('finalScoreDetail').innerHTML = score;
@@ -909,6 +943,7 @@ function endGame(score) {
     document.getElementById('finalShoulder').innerHTML = avgShoulder;
     document.getElementById('finalWrist').innerHTML = avgWrist;
     document.getElementById('finalExtRot').innerHTML = avgExternalRot;
+    document.getElementById('finalShrug').innerHTML = avgShrug;
     document.getElementById('finalLevel').innerHTML = finalLevel;
     
     let canAdvance = false;
@@ -941,6 +976,7 @@ function endGame(score) {
             shoulder_activation: avgShoulder,
             wrist_activation: avgWrist,
             external_rotation: avgExternalRot,
+            shoulder_shrug: avgShrug,
             affected_hand: affectedHand
         };
         console.log("💾 Saving Stars data:", saveData);
@@ -956,7 +992,7 @@ function endGame(score) {
 }
 
 // ============================================================
-// Start Game (نفس طريقة لعبة التفاح)
+// Start Game
 // ============================================================
 function startGame() {
     gameEnded = false;
@@ -978,19 +1014,19 @@ function startGame() {
             
             // Reset filters
             elbowFilter = new SmoothingFilter(5);
-            shoulderFilter = new SmoothingFilter(5);
-            wristFilter = new SmoothingFilter(5);
             extRotFilter = new SmoothingFilter(5);
-            handXFilter = new SmoothingFilter(3);
+            shrugFilter = new SmoothingFilter(5);
+            wristFilter = new SmoothingFilter(5);
             
             // Reset histories
             gripSuccessHistory = [];
             elbowHistory = [];
-            shoulderHistory = [];
-            wristHistory = [];
+            shoulderXHistory = [];
+            wristSpeedHistory = [];
             externalRotHistory = [];
+            shoulderShrugHistory = [];
             handInFrameHistory = [];
-            handXHistory = [];
+            prevHandX = null;
             
             document.getElementById('sensitivityValue').innerText = currentGripSensitivity;
             updateUI();
@@ -1010,7 +1046,7 @@ function startGame() {
 }
 
 // ============================================================
-// Unity Loader (نفس لعبة التفاح)
+// Unity Loader
 // ============================================================
 const canvas = document.querySelector("#unity-canvas");
 
@@ -1078,8 +1114,8 @@ function waitForDjango(callback) {
         // Camera mirror fix
         targetMPLabel = affectedHand === "right" ? "left" : "right";
         
-        document.getElementById('affectedHandInfo').innerHTML = `🖐️ TRACKING: ${affectedHandDisplay}`;
         document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
+        document.getElementById('trackingHand').innerHTML = affectedHandDisplay;
         document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
         document.getElementById('levelValue').innerText = currentLevel;
         document.getElementById('finalLevel').innerText = currentLevel;
@@ -1091,7 +1127,10 @@ function waitForDjango(callback) {
         const forceLevel = urlParams.get("force_level");
         if (urlUserId) {
             userId = parseInt(urlUserId);
-            if (forceLevel) currentLevel = parseInt(forceLevel);
+            if (forceLevel) {currentLevel = parseInt(forceLevel);
+                document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
+                document.getElementById('levelValue').innerText = currentLevel;
+                }
             callback();
         } else {
             setTimeout(() => waitForDjango(callback), 100);
