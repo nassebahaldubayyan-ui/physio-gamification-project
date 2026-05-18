@@ -56,21 +56,13 @@ def edit_patient_profile(request):
     return render(request, 'patient/edit-patient-profile.html')
 
 def capture_video(request):
-    print("🔥 capture_video VIEW HIT")
     user_id = request.session.get("user_id")
-    print("SESSION USER ID:", user_id)
     affected_hand = None
 
     if user_id:
         patient = Patients.objects.filter(user_id=user_id).first()
-        if patient:
-            affected_hand = patient.affected_hand
-            print("FOUND PATIENT:", patient.id)
-            print("AFFECTED HAND:", affected_hand)
-        else:
-            print("❌ No patient found for user_id:", user_id)
-    else:
-        print("❌ No user_id in session")
+        affected_hand = patient.affected_hand
+            
 
     if not affected_hand:
         affected_hand = "right"
@@ -1329,8 +1321,6 @@ def api_save_initial_assessment(request):
         data = json.loads(request.body)
         user_id = data.get("user_id")
         patient = Patients.objects.get(user__id=user_id)
-        print("USER ID RECEIVED:", user_id)
-        print("PATIENT FOUND:", patient)
         
         patient.shoulder_strength = data.get("shoulder_strength", 0)
         patient.elbow_strength = data.get("elbow_strength", 0)
