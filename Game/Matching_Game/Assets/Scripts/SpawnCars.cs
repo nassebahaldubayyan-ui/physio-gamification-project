@@ -12,7 +12,7 @@ public class SpawnCars : MonoBehaviour
     public Transform blueBasket;
 
     [Header("Spawn Settings")]
-    public float spawnInterval = 2f;
+    public float spawnInterval = 4f;
     public float carLifeTime = 20f;
 
     [Header("Spawn Position")]
