@@ -237,6 +237,60 @@
             transform: scale(1.02);
         }
 
+        .rating-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .rating-title {
+            color: #ffdd88;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+
+        .star {
+            font-size: 40px;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .star:hover {
+            transform: scale(1.1);
+        }
+
+        .star.selected {
+            color: #ffcc44;
+            text-shadow: 0 0 10px #ffaa44;
+        }
+
+        .rating-text {
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+
+        .rating-note {
+            text-align: center;
+            font-size: 11px;
+            color: #ffaa44;
+            margin-top: 5px;
+        }
+
         .instruction-line {
             display: flex;
             align-items: center;
@@ -266,28 +320,33 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
-            padding: 25px 35px;
-            border-radius: 30px;
+            background: linear-gradient(135deg, #1a1f3a, #0f1225);
+            padding: 35px 50px;
+            border-radius: 35px;
             text-align: center;
             z-index: 200;
-            border: 2px solid #44ff88;
-            min-width: 320px;
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-            backdrop-filter: blur(20px);
+            border: 2px solid #ffcc44;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
             pointer-events: auto;
+            min-width: 500px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .end-panel h2 {
-            color: #88ffaa;
-            font-size: 26px;
+            color: #ffdd88;
+            font-size: 36px;
+            letter-spacing: 2px;
         }
 
-        .final-score {
-            font-size: 48px;
-            color: #44ff88;
+        .end-panel .final-score {
+            font-size: 52px;
+            color: #ffaa44;
+            margin: 10px 0 20px;
             font-weight: bold;
         }
 
@@ -311,13 +370,15 @@
         }
 
         .data-label {
-            color: #88ffaa;
+            color: #ffdd88;
             font-weight: bold;
         }
 
         .data-value {
-            color: white;
+            color: #ffffff;
             font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
         }
 
         .data-value span {
@@ -356,6 +417,10 @@
         #nextLevelBtn:hover {
             background: #ffcc66;
         }
+
+        .end-panel {
+            display: none;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
@@ -374,58 +439,109 @@
         </div>
         <div class="notification-panel" id="notificationPanel"></div>
         <div class="stats-panel" id="statsPanel">
-            🤚 TRACKING: <span id="trackingHand">--</span><br>
-            🎯 <span id="handStatus">WAITING</span><br>
-            🖐️ HAND: X <span id="handXPos">--</span>% | Y <span id="handYPos">--</span>%<br>
-            ✊ GRIP: <span id="gripStatus">OPEN</span><br>
-            📐 ELBOW: <span id="elbowAngle">--</span>°<br>
-            ✋ WRIST: <span id="wristAct">--</span>%<br>
-            🔄 EXT ROT: <span id="externalRot">--</span>°<br>
-            ⬆️ SHRUG: <span id="shoulderShrug">--</span>%
+            TRACKING: <span id="trackingHand">--</span><br>
+            <span id="handStatus">WAITING</span><br>
+            HAND: X <span id="handXPos">--</span>% | Y <span id="handYPos">--</span>%<br>
+            GRIP: <span id="gripStatus">OPEN</span><br>
+            ELBOW: <span id="elbowAngle">--</span>°<br>
+            WRIST: <span id="wristAct">--</span>%<br>
+            EXT ROT: <span id="externalRot">--</span>°<br>
+            SHRUG: <span id="shoulderShrug">--</span>%
         </div>
 
         <div class="sensitivity-bar">
-        🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
-        <div class="sensitivity-meter"><div class="sensitivity-fill" id="sensitivityFill"></div></div>
+            🎯 GRIP: <span id="sensitivityValue">75</span>°<br>
+            <div class="sensitivity-meter">
+                <div class="sensitivity-fill" id="sensitivityFill"></div>
+            </div>
+        </div>
     </div>
-</div>
 
     <div class="start-panel" id="startPanel">
-        <h1>🚗 MATCHING GAME 🧩</h1>
+        <h1> MATCHING GAME </h1>
         <div class="level-info" id="startLevelInfo">⭐ Level 1 - Easy</div>
+        <h2>HOW TO PLAY</h2>
         <div class="instructions-box">
-            <div class="instruction-line"><span>🖐️</span><span>Move your <span class="instruction-highlight" id="handInstruction">AFFECTED HAND</span></span></div>
-            <div class="instruction-line"><span>✊</span><span>Close hand → <span class="instruction-highlight">GRAB car</span></span></div>
-            <div class="instruction-line"><span>🤚</span><span>Move hand → <span class="instruction-highlight">DRAG car</span></span></div>
-            <div class="instruction-line"><span>✋</span><span>Open hand over box → <span class="instruction-highlight">RELEASE</span></span></div>
+            <div class="instruction-line"><span>🖐️</span><span>Move your <span class="instruction-highlight"
+                        id="handInstruction">AFFECTED HAND</span></span></div>
+            <div class="instruction-line"><span>✊</span><span>Close hand → <span class="instruction-highlight">GRAB
+                        car</span></span></div>
+            <div class="instruction-line"><span>🤚</span><span>Move hand → <span class="instruction-highlight">DRAG
+                        car</span></span></div>
+            <div class="instruction-line"><span>✋</span><span>Open hand over box → <span
+                        class="instruction-highlight">RELEASE</span></span></div>
         </div>
         <button id="startBtn">▶️ START GAME</button>
     </div>
 
     <div class="end-panel" id="endPanel">
-        <h2>🏆 GAME OVER 🏆</h2>
+        <h2> GAME OVER </h2>
         <div class="final-score" id="finalScore">0</div>
         <div class="accuracy-data">
-            <div class="data-row"><span class="data-label">🏆 Level</span><span class="data-value"><span id="finalLevel">1</span></span></div>
-            <div class="data-row"><span class="data-label">🚗 Cars Matched</span><span class="data-value"><span id="finalMatches">0</span></span></div>
-            <div class="data-row"><span class="data-label">🎯 Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
-            <div class="data-row"><span class="data-label">✊ Grip Activation</span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
-            <div class="data-row"><span class="data-label">📐 Elbow Angle</span><span class="data-value"><span id="avgElbowDisplay">--</span>°</span></div>
-            <div class="data-row"><span class="data-label">✋ Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
-            <div class="data-row"><span class="data-label">🔄 External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
-            <div class="data-row"><span class="data-label">⬆️ Shoulder Shrug</span><span class="data-value"><span id="finalShrug">--</span>%</span></div>
+            <div class="data-row"><span class="data-label"> Level</span><span class="data-value"><span
+                        id="finalLevel">1</span></span></div>
+            <div class="data-row"><span class="data-label"> Cars Matched</span><span class="data-value"><span
+                        id="finalMatches">0</span></span></div>
+
+            <div class="data-row"><span class="data-label"> Accuracy</span><span class="data-value"><span
+                        id="finalAccuracy">--</span>%</span></div>
+            <div class="data-row"><span class="data-label"> Grip </span><span class="data-value"><span
+                        id="finalGrip">--</span>%</span></div>
+
+            <div class="data-row"><span class="data-label"> Elbow Angle</span><span class="data-value"><span
+                        id="avgElbowDisplay">--</span>°</span></div>
+            <div class="data-row"><span class="data-label"> Wrist Activation</span><span class="data-value"><span
+                        id="finalWrist">--</span>%</span></div>
+
+            <div class="data-row"><span class="data-label"> External Rotation</span><span class="data-value"><span
+                        id="finalExtRot">--</span>°</span></div>
+            <div class="data-row"><span class="data-label"> Shrug</span><span class="data-value"><span
+                        id="finalShrug">--</span>%</span></div>
+
+            <div class="data-row"> <span class="data-label">Affected Hand</span> <span class="data-value"
+                    id="finalAffectedHand">--</span></div>
         </div>
+
+        <div class="rating-section">
+            <div class="rating-title">😖 How much pain did you feel during the game?</div>
+            <div class="stars-container" id="painStarsContainer">
+                <span class="star" data-value="1">☆</span>
+                <span class="star" data-value="2">☆</span>
+                <span class="star" data-value="3">☆</span>
+                <span class="star" data-value="4">☆</span>
+                <span class="star" data-value="5">☆</span>
+            </div>
+            <div class="rating-text" id="painRatingText">No pain → Severe pain</div>
+        </div>
+
+        <div class="rating-section">
+            <div class="rating-title">😊 How much did you enjoy the game?</div>
+            <div class="stars-container" id="enjoyStarsContainer">
+                <span class="star" data-value="1">☆</span>
+                <span class="star" data-value="2">☆</span>
+                <span class="star" data-value="3">☆</span>
+                <span class="star" data-value="4">☆</span>
+                <span class="star" data-value="5">☆</span>
+            </div>
+            <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
+        </div>
+        <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
+        <!-- ======================================================= -->
+
+
+
+
         <div class="button-group">
-            <button id="nextLevelBtn">⬆️ NEXT LEVEL</button>
-            <button id="restartBtn">🔄 PLAY AGAIN</button>
-            <button id="exitBtn">🚪 EXIT</button>
+            <button id="nextLevelBtn"> NEXT LEVEL</button>
+            <button id="restartBtn"> PLAY AGAIN</button>
+            <button id="exitBtn">EXIT TO GAMES </button>
         </div>
     </div>
 
     <script src="/static/matching_build/Build/matching_build.loader.js"></script>
 
     <script>
-       
+
         // ============================================================
         // Sound Manager  
         // ============================================================
@@ -505,6 +621,107 @@
             }
         }
         const soundManager = new SoundManager();
+
+
+
+        // ============================================================
+        // Rating System 
+        // ============================================================
+        let painRating = 0;
+        let enjoymentRating = 0;
+        let ratingsSubmitted = false;
+        let gameDataForSaving = null;
+
+        function setupStarRating(containerId, callback, ratingTextId) {
+            const container = document.getElementById(containerId);
+            const stars = container.querySelectorAll('.star');
+            let currentRating = 0;
+
+            function updateStars(rating) {
+                stars.forEach((star, index) => {
+                    const starValue = parseInt(star.dataset.value);
+                    if (starValue <= rating) {
+                        star.innerHTML = '★';
+                        star.classList.add('selected');
+                    } else {
+                        star.innerHTML = '☆';
+                        star.classList.remove('selected');
+                    }
+                });
+                if (ratingTextId) {
+                    const textEl = document.getElementById(ratingTextId);
+                    if (textEl) {
+                        if (containerId === 'painStarsContainer') {
+                            const painTexts = ['Very Severe Pain', 'Severe Pain', 'Moderate Pain', 'Mild Pain', 'No Pain'];
+                            textEl.innerHTML = painTexts[rating - 1] || 'Select rating';
+                        } else {
+                            const enjoyTexts = ['Not at all', 'Slightly', 'Moderately', 'Very Much', 'Extremely'];
+                            textEl.innerHTML = enjoyTexts[rating - 1] || 'Select rating';
+                        }
+                    }
+                }
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const value = parseInt(star.dataset.value);
+                    currentRating = value;
+                    updateStars(currentRating);
+                    if (callback) callback(currentRating);
+                });
+                star.addEventListener('mouseenter', () => {
+                    const value = parseInt(star.dataset.value);
+                    updateStars(value);
+                });
+                star.addEventListener('mouseleave', () => {
+                    updateStars(currentRating);
+                });
+            });
+
+            return {
+                getRating: () => currentRating,
+                reset: () => { currentRating = 0; updateStars(0); }
+            };
+        }
+
+        let painRatingControl = null;
+        let enjoymentRatingControl = null;
+
+        function initRatingSystem() {
+            painRatingControl = setupStarRating('painStarsContainer', (rating) => {
+                painRating = rating;
+                checkRatingsComplete();
+            }, 'painRatingText');
+
+            enjoymentRatingControl = setupStarRating('enjoyStarsContainer', (rating) => {
+                enjoymentRating = rating;
+                checkRatingsComplete();
+            }, 'enjoyRatingText');
+
+            painRating = 0;
+            enjoymentRating = 0;
+            ratingsSubmitted = false;
+            if (painRatingControl) painRatingControl.reset();
+            if (enjoymentRatingControl) enjoymentRatingControl.reset();
+        }
+
+        function checkRatingsComplete() {
+            const ratingNote = document.getElementById('ratingNote');
+            if (painRating > 0 && enjoymentRating > 0 && !ratingsSubmitted) {
+                ratingNote.innerHTML = '✅ Ratings complete! You can now continue ✅';
+                ratingNote.style.color = '#88ff88';
+            } else {
+                ratingNote.innerHTML = '⭐ Please rate both pain level and enjoyment before continuing ⭐';
+                ratingNote.style.color = '#ffaa44';
+            }
+        }
+
+        function areRatingsComplete() {
+            return painRating > 0 && enjoymentRating > 0;
+        }
+
+        function getPainRating() { return painRating; }
+        function getEnjoymentRating() { return enjoymentRating; }
 
         // ============================================================
         // Angle Math  
@@ -681,10 +898,10 @@
         }
 
         function updateStatsDisplay(handX, handY, elbowAngle, wristAct, externalRot, shrug, isGripping, isInside) {
-            document.getElementById('handXPos').innerHTML  = Math.round(handX * 100);
-            document.getElementById('handYPos').innerHTML  = Math.round(handY * 100);
+            document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
+            document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
             document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
-            document.getElementById('wristAct').innerHTML  = wristAct || 0;
+            document.getElementById('wristAct').innerHTML = wristAct || 0;
             document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
             document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
             document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
@@ -785,7 +1002,7 @@
             try {
                 const wrist = landmarks[0], indexMCP = landmarks[5], middleMCP = landmarks[9];
                 return AngleMath.calculateAngle(wrist, indexMCP, middleMCP);
-            } catch(e) { return 90; }
+            } catch (e) { return 90; }
         }
 
         function calculateExternalRotation(landmarks) {
@@ -793,7 +1010,7 @@
                 const indexMCP = landmarks[5], pinkyMCP = landmarks[17];
                 const dx = indexMCP.x - pinkyMCP.x, dy = indexMCP.y - pinkyMCP.y;
                 return Math.atan2(-dy, dx) * 180 / Math.PI;
-            } catch(e) { return 0; }
+            } catch (e) { return 0; }
         }
 
         function calculateShoulderShrug(handY) {
@@ -833,7 +1050,6 @@
                 return;
             }
             try {
-                // ✅ يطابق GameManager.cs
                 unityInstance.sendMessage('GameManager', 'StartGameFromHTML');
                 console.log("StartGameFromHTML sent to Unity");
             } catch (e) { console.error("StartGameFromHTML error:", e); }
@@ -849,7 +1065,7 @@
 
             hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
             hands.setOptions({
-                maxNumHands: 2,          
+                maxNumHands: 2,
                 modelComplexity: 1,
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
@@ -896,7 +1112,6 @@
                 handInFrameHistory.push(isInside ? 1 : 0);
                 if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
 
-                // Grip مع debounce
                 const rawGrip = calculateGripFromLandmarks(handLandmarks);
                 let isGripping = rawGrip;
 
@@ -911,7 +1126,6 @@
                 gripSuccessHistory.push(isGripping ? 1 : 0);
                 if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
 
-                // Wrist speed
                 let wristSpeed = 0;
                 if (prevHandX !== null) {
                     wristSpeed = Math.abs(handX - prevHandX);
@@ -921,19 +1135,16 @@
                 prevHandX = handX;
                 const smoothedWrist = wristFilter ? wristFilter.filter(wristSpeed) : wristSpeed;
 
-                // Elbow — ✅ حقيقي بدل الـ fake sin()
-                const elbowAngle  = calculateElbowAngle(handLandmarks);
+                const elbowAngle = calculateElbowAngle(handLandmarks);
                 const smoothedElbow = elbowFilter ? elbowFilter.filter(elbowAngle) : elbowAngle;
                 elbowHistory.push(smoothedElbow);
                 if (elbowHistory.length > 1800) elbowHistory.shift();
 
-                // External rotation
                 const externalRot = calculateExternalRotation(handLandmarks);
                 const smoothedExtRot = extRotFilter ? extRotFilter.filter(externalRot) : externalRot;
                 externalRotHistory.push(smoothedExtRot);
                 if (externalRotHistory.length > 1800) externalRotHistory.shift();
 
-                // Shoulder shrug
                 const shrug = calculateShoulderShrug(handY);
                 const smoothedShrug = shrugFilter ? shrugFilter.filter(shrug) : shrug;
                 shoulderShrugHistory.push(smoothedShrug);
@@ -942,7 +1153,6 @@
                 updateStatsDisplay(handX, handY, smoothedElbow, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
                 updateHandCursor(handX, handY, isGripping);
 
-                // إرسال لـ Unity
                 const packet = JSON.stringify({
                     palm_x: handX,
                     palm_y: 1 - handY,
@@ -967,27 +1177,27 @@
         // ============================================================
         function endGame(score) {
             gameActive = false;
-            if (camera) { try { camera.stop(); } catch(e) {} mediaPipeActive = false; }
+            if (camera) { try { camera.stop(); } catch (e) { } mediaPipeActive = false; }
 
-            const accuracy       = calculateAccuracy();
+            const accuracy = calculateAccuracy();
             const gripActivation = calculateGripActivation();
-            const avgElbow       = calculateAvgElbow();
-            const avgWrist       = calculateWristActivation();
-            const avgExtRot      = calculateAvgExternalRot();
-            const avgShrug       = calculateAvgShrug();
+            const avgElbow = calculateAvgElbow();
+            const avgWrist = calculateWristActivation();
+            const avgExtRot = calculateAvgExternalRot();
+            const avgShrug = calculateAvgShrug();
 
-            document.getElementById('finalScore').innerHTML    = score;
-            document.getElementById('finalMatches').innerHTML  = score;
-            document.getElementById('finalLevel').innerHTML    = finalLevel;
+            document.getElementById('finalScore').innerHTML = score;
+            document.getElementById('finalMatches').innerHTML = score;
+            document.getElementById('finalLevel').innerHTML = finalLevel;
             document.getElementById('finalAccuracy').innerHTML = accuracy;
-            document.getElementById('finalGrip').innerHTML     = gripActivation;
+            document.getElementById('finalGrip').innerHTML = gripActivation;
             document.getElementById('avgElbowDisplay').innerHTML = avgElbow;
-            document.getElementById('finalWrist').innerHTML    = avgWrist;
-            document.getElementById('finalExtRot').innerHTML   = avgExtRot;
-            document.getElementById('finalShrug').innerHTML    = avgShrug;
+            document.getElementById('finalWrist').innerHTML = avgWrist;
+            document.getElementById('finalExtRot').innerHTML = avgExtRot;
+            document.getElementById('finalShrug').innerHTML = avgShrug;
 
             let canAdvance = (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2)
-                          || (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3);
+                || (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3);
             const nextBtn = document.getElementById('nextLevelBtn');
             if (canAdvance && finalLevel < 3) {
                 nextBtn.style.display = 'block';
@@ -995,40 +1205,44 @@
             } else {
                 nextBtn.style.display = 'none';
             }
-            document.getElementById('endPanel').style.display = 'flex';
 
-            // ✅ حفظ كامل مثل لعبة النجوم
-            if (userId && !dataSaved) {
-                dataSaved = true;
-                const saveData = {
-                    user_id: userId,
-                    game: 'matching-game',
-                    level: finalLevel,
-                    score: score,
-                    matches_made: score,
-                    grip_activation: gripActivation,
-                    accuracy: accuracy,
-                    elbow_activation: avgElbow,
-                    shoulder_activation: 0,
-                    wrist_activation: avgWrist,
-                    external_rotation: avgExtRot,
-                    shoulder_shrug: avgShrug,
-                    affected_hand: affectedHand
-                };
-                console.log("💾 Saving Matching data:", saveData);
+
+            gameDataForSaving = {
+                user_id: userId,
+                game: 'matching-game',
+                level: finalLevel,
+                score: score,
+                matches_made: score,
+                grip_activation: gripActivation,
+                accuracy: accuracy,
+                elbow_activation: avgElbow,
+                shoulder_activation: 0,
+                wrist_activation: avgWrist,
+                external_rotation: avgExtRot,
+                shoulder_shrug: avgShrug,
+                affected_hand: affectedHand
+            };
+
+            document.getElementById('endPanel').style.display = 'flex';
+            initRatingSystem();
+        }
+
+        function finalizeAndSave() {
+            if (gameDataForSaving && userId && areRatingsComplete() && !ratingsSubmitted) {
+                ratingsSubmitted = true;
+                gameDataForSaving.pain_score = getPainRating();
+                gameDataForSaving.enjoyment_score = getEnjoymentRating();
+                console.log("💾 Final save with ratings:", gameDataForSaving);
                 fetch('/api/save-game-result/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(saveData)
+                    body: JSON.stringify(gameDataForSaving)
                 }).then(r => r.json()).then(data => {
-                    if (data.success) console.log("✅ Saved successfully");
-                    else console.log("❌ Save failed:", data.error);
-                }).catch(err => console.log("Save error:", err));
+                    if (data.success) console.log("✅ Saved with ratings!");
+                    else console.error("❌ Save failed:", data.error);
+                }).catch(err => console.error("Save error:", err));
             }
         }
-
-
-
 
 
 
@@ -1045,7 +1259,7 @@
                 .then(stream => {
                     stream.getTracks().forEach(t => t.stop());
                     document.getElementById('startPanel').style.display = 'none';
-                    document.getElementById('endPanel').style.display   = 'none';
+                    document.getElementById('endPanel').style.display = 'none';
 
                     gameActive = true; gameScore = 0;
                     const cfg = GAME_CONFIG[`level${currentLevel}`];
@@ -1053,10 +1267,10 @@
                     currentGripSensitivity = cfg?.gripSensitivity || 75;
                     finalLevel = currentLevel;
 
-                    elbowFilter   = new SmoothingFilter(5);
-                    extRotFilter  = new SmoothingFilter(5);
-                    shrugFilter   = new SmoothingFilter(5);
-                    wristFilter   = new SmoothingFilter(5);
+                    elbowFilter = new SmoothingFilter(5);
+                    extRotFilter = new SmoothingFilter(5);
+                    shrugFilter = new SmoothingFilter(5);
+                    wristFilter = new SmoothingFilter(5);
 
                     lastGripState = false; currentGripState = false;
                     if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
@@ -1137,7 +1351,7 @@
         // ============================================================
         function waitForDjango(callback) {
             if (window.DJANGO_USER_ID) {
-                userId      = window.DJANGO_USER_ID;
+                userId = window.DJANGO_USER_ID;
                 patientName = window.DJANGO_PATIENT_NAME || "Guest";
                 currentLevel = window.DJANGO_LEVEL || 1;
 
@@ -1145,19 +1359,20 @@
                 affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
                 if (affectedHand !== 'left' && affectedHand !== 'right') affectedHand = 'right';
                 affectedHandDisplay = affectedHand === "right" ? "RIGHT HAND" : "LEFT HAND";
-                targetMPLabel       = affectedHand === "right" ? "left" : "right";
+                targetMPLabel = affectedHand === "right" ? "left" : "right";
 
                 document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
-                document.getElementById('trackingHand').innerHTML    = affectedHandDisplay;
-                document.getElementById('startLevelInfo').innerHTML  =
+                document.getElementById('trackingHand').innerHTML = affectedHandDisplay;
+                document.getElementById('finalAffectedHand').innerHTML = affectedHandDisplay;
+                document.getElementById('startLevelInfo').innerHTML =
                     `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
                 document.getElementById('levelValue').innerText = currentLevel;
 
                 callback();
             } else {
                 const params = new URLSearchParams(window.location.search);
-                const urlUserId   = params.get('user_id');
-                const forceLevel  = params.get('force_level');
+                const urlUserId = params.get('user_id');
+                const forceLevel = params.get('force_level');
                 if (urlUserId) {
                     userId = parseInt(urlUserId);
                     if (forceLevel) currentLevel = parseInt(forceLevel);
@@ -1180,19 +1395,34 @@
         });
 
         // ============================================================
-        // Event Listeners
+        // Event Listeners 
         // ============================================================
         document.getElementById('startBtn').onclick = () => { soundManager.playButtonClick(); startGame(); };
         document.getElementById('nextLevelBtn').onclick = () => {
             soundManager.playButtonClick();
+            if (!areRatingsComplete()) {
+                showNotification("⭐ Please rate your pain level and enjoyment first!", false);
+                return;
+            }
+            finalizeAndSave();
             window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel + 1}`;
         };
         document.getElementById('restartBtn').onclick = () => {
             soundManager.playButtonClick();
+            if (!areRatingsComplete()) {
+                showNotification("⭐ Please rate your pain level and enjoyment first!", false);
+                return;
+            }
+            finalizeAndSave();
             window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}`;
         };
         document.getElementById('exitBtn').onclick = () => {
             soundManager.playButtonClick();
+            if (!areRatingsComplete()) {
+                showNotification("⭐ Please rate your pain level and enjoyment before exiting!", false);
+                return;
+            }
+            finalizeAndSave();
             setTimeout(() => window.location.href = "/patient/", 100);
         };
         document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });

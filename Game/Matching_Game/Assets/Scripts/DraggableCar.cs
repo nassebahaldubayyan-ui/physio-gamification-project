@@ -5,32 +5,33 @@ public class DraggableCar : MonoBehaviour
     public ColorType color;
 
     [Header("Drag thresholds (world units)")]
-    public float grabDistance = 2.2f;        
+    public float grabDistance = 3.3f;
     public float dropDistance = 2.0f;
 
     [Header("Spawn Protection")]
-    public float spawnGracePer = 0.2f;       
+    public float spawnGracePer = 0.2f;
 
     [Header("Dragging")]
     [Range(10f, 50f)]
-    public float followSpeed = 35f;          
+    public float followSpeed = 35f;
 
     private bool isHolding = false;
     private bool handClosed = false;
     private float spawnTime;
     private Transform handPoint;
-    private CircleCollider2D carCollider;
+    private BoxCollider2D carCollider;
+
     private Basket[] cachedBaskets;
 
     void Start()
     {
         spawnTime = Time.time;
 
-        carCollider = GetComponent<CircleCollider2D>();
+        carCollider = GetComponent<BoxCollider2D>();
         if (carCollider == null)
-            carCollider = gameObject.AddComponent<CircleCollider2D>();
+            carCollider = gameObject.AddComponent<BoxCollider2D>();
 
-        carCollider.radius = 0.8f;  
+        carCollider.size = new Vector2(2.5f, 1.5f);
 
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
