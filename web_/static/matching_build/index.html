@@ -237,14 +237,14 @@
             transform: scale(1.02);
         }
 
-
         .rating-section {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 20px;
             padding: 15px 20px;
             margin: 5px 0;
             width: 100%;
         }
+
         .rating-title {
             color: #ffdd88;
             font-size: 18px;
@@ -252,12 +252,14 @@
             margin-bottom: 10px;
             text-align: center;
         }
+
         .stars-container {
             display: flex;
             justify-content: center;
             gap: 12px;
             margin: 10px 0;
         }
+
         .star {
             font-size: 40px;
             cursor: pointer;
@@ -265,19 +267,23 @@
             transition: all 0.2s ease;
             user-select: none;
         }
+
         .star:hover {
             transform: scale(1.1);
         }
+
         .star.selected {
             color: #ffcc44;
             text-shadow: 0 0 10px #ffaa44;
         }
+
         .rating-text {
             text-align: center;
             font-size: 12px;
             color: #aaa;
             margin-top: 8px;
         }
+
         .rating-note {
             text-align: center;
             font-size: 11px;
@@ -309,7 +315,7 @@
             text-align: left;
         }
 
-       .end-panel {
+        .end-panel {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -320,7 +326,7 @@
             text-align: center;
             z-index: 200;
             border: 2px solid #ffcc44;
-            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
             pointer-events: auto;
             min-width: 500px;
             max-width: 90vw;
@@ -330,6 +336,7 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+
         .end-panel h2 {
             color: #ffdd88;
             font-size: 36px;
@@ -361,10 +368,12 @@
         .data-row:last-child {
             border-bottom: none;
         }
+
         .data-label {
             color: #ffdd88;
             font-weight: bold;
         }
+
         .data-value {
             color: #ffffff;
             font-family: monospace;
@@ -407,6 +416,10 @@
 
         #nextLevelBtn:hover {
             background: #ffcc66;
+        }
+
+        .end-panel {
+            display: none;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
@@ -465,50 +478,59 @@
         <h2> GAME OVER </h2>
         <div class="final-score" id="finalScore">0</div>
         <div class="accuracy-data">
-            <div class="data-row"><span class="data-label"> Level</span><span class="data-value"><span id="finalLevel">1</span></span></div>
-            <div class="data-row"><span class="data-label"> Cars Matched</span><span class="data-value"><span  id="finalMatches">0</span></span></div>
-           
-            <div class="data-row"><span class="data-label"> Accuracy</span><span class="data-value"><span id="finalAccuracy">--</span>%</span></div>
-            <div class="data-row"><span class="data-label"> Grip </span><span class="data-value"><span id="finalGrip">--</span>%</span></div>
-           
-            <div class="data-row"><span class="data-label"> Elbow Angle</span><span class="data-value"><span  id="avgElbowDisplay">--</span>°</span></div>
-            <div class="data-row"><span class="data-label"> Wrist Activation</span><span class="data-value"><span id="finalWrist">--</span>%</span></div>
-           
-            <div class="data-row"><span class="data-label"> External Rotation</span><span class="data-value"><span id="finalExtRot">--</span>°</span></div>
-            <div class="data-row"><span class="data-label"> Shrug</span><span class="data-value"><span  id="finalShrug">--</span>%</span></div>
-           
-            <div class="data-row"> <span class="data-label">Affected Hand</span> <span class="data-value" id="finalAffectedHand">--</span></div>
+            <div class="data-row"><span class="data-label"> Level</span><span class="data-value"><span
+                        id="finalLevel">1</span></span></div>
+            <div class="data-row"><span class="data-label"> Cars Matched</span><span class="data-value"><span
+                        id="finalMatches">0</span></span></div>
+
+            <div class="data-row"><span class="data-label"> Accuracy</span><span class="data-value"><span
+                        id="finalAccuracy">--</span>%</span></div>
+            <div class="data-row"><span class="data-label"> Grip </span><span class="data-value"><span
+                        id="finalGrip">--</span>%</span></div>
+
+            <div class="data-row"><span class="data-label"> Elbow Angle</span><span class="data-value"><span
+                        id="avgElbowDisplay">--</span>°</span></div>
+            <div class="data-row"><span class="data-label"> Wrist Activation</span><span class="data-value"><span
+                        id="finalWrist">--</span>%</span></div>
+
+            <div class="data-row"><span class="data-label"> External Rotation</span><span class="data-value"><span
+                        id="finalExtRot">--</span>°</span></div>
+            <div class="data-row"><span class="data-label"> Shrug</span><span class="data-value"><span
+                        id="finalShrug">--</span>%</span></div>
+
+            <div class="data-row"> <span class="data-label">Affected Hand</span> <span class="data-value"
+                    id="finalAffectedHand">--</span></div>
         </div>
 
-         <div class="rating-section">
-        <div class="rating-title">😖 How much pain did you feel during the game?</div>
-        <div class="stars-container" id="painStarsContainer">
-            <span class="star" data-value="1">☆</span>
-            <span class="star" data-value="2">☆</span>
-            <span class="star" data-value="3">☆</span>
-            <span class="star" data-value="4">☆</span>
-            <span class="star" data-value="5">☆</span>
+        <div class="rating-section">
+            <div class="rating-title">😖 How much pain did you feel during the game?</div>
+            <div class="stars-container" id="painStarsContainer">
+                <span class="star" data-value="1">☆</span>
+                <span class="star" data-value="2">☆</span>
+                <span class="star" data-value="3">☆</span>
+                <span class="star" data-value="4">☆</span>
+                <span class="star" data-value="5">☆</span>
+            </div>
+            <div class="rating-text" id="painRatingText">No pain → Severe pain</div>
         </div>
-        <div class="rating-text" id="painRatingText">No pain → Severe pain</div>
-    </div>
 
-    <div class="rating-section">
-        <div class="rating-title">😊 How much did you enjoy the game?</div>
-        <div class="stars-container" id="enjoyStarsContainer">
-            <span class="star" data-value="1">☆</span>
-            <span class="star" data-value="2">☆</span>
-            <span class="star" data-value="3">☆</span>
-            <span class="star" data-value="4">☆</span>
-            <span class="star" data-value="5">☆</span>
+        <div class="rating-section">
+            <div class="rating-title">😊 How much did you enjoy the game?</div>
+            <div class="stars-container" id="enjoyStarsContainer">
+                <span class="star" data-value="1">☆</span>
+                <span class="star" data-value="2">☆</span>
+                <span class="star" data-value="3">☆</span>
+                <span class="star" data-value="4">☆</span>
+                <span class="star" data-value="5">☆</span>
+            </div>
+            <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
         </div>
-        <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
-    </div>
-    <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
-    <!-- ======================================================= -->
+        <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
+        <!-- ======================================================= -->
 
 
 
-        
+
         <div class="button-group">
             <button id="nextLevelBtn"> NEXT LEVEL</button>
             <button id="restartBtn"> PLAY AGAIN</button>
@@ -600,8 +622,8 @@
         }
         const soundManager = new SoundManager();
 
-        
-        
+
+
         // ============================================================
         // Rating System 
         // ============================================================
