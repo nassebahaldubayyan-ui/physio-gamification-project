@@ -134,6 +134,66 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
+        /* Notification Bell with Badge */
+.notification-bell {
+    position: relative;
+    background: #f1f5f9;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-bell:hover {
+    background: #e2e8f0;
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 0 2px white;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+/* Flash animation for attention */
+@keyframes flash {
+    0%, 100% { background-color: #f1f5f9; }
+    50% { background-color: #fee2e2; border: 2px solid #ef4444; }
+}
+
+.notification-bell.attention {
+    animation: flash 1s ease-in-out 3;
+}
+
         .games-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -377,7 +437,6 @@
             padding: 50px;
         }
 
-        /* Custom Logout Modal Styles */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -435,6 +494,85 @@
                 text-align: center;
             }
         }
+
+    /* Notification Bell with Red Badge */
+.notification-bell {
+    position: relative;
+    background: #f1f5f9;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-bell:hover {
+    background: #e2e8f0;
+    transform: scale(1.1);
+}
+
+/* RED BADGE ON BELL */
+.notification-bell.red-bell {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+    color: #dc2626;
+    animation: shake 0.5s ease-in-out;
+}
+
+.notification-bell.red-bell:hover {
+    background: #fecaca;
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 0 2px white;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* Flash animation for attention */
+@keyframes flash {
+    0%, 100% { background-color: #f1f5f9; }
+    50% { background-color: #fee2e2; border: 2px solid #ef4444; }
+}
+
+.notification-bell.attention {
+    animation: flash 1s ease-in-out 3;
+}
     </style>
 </head>
 <body>
@@ -455,20 +593,24 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button class="profile-btn" onclick="window.location.href='{% url 'profile' %}'" title="User Profile">
-                    <i class="fas fa-user"></i>
-                </button>
-                <button class="settings-btn" onclick="window.location.href='{% url 'settings' %}'" title="Settings">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
+    <button class="profile-btn" onclick="window.location.href='{% url 'profile' %}'" title="User Profile">
+        <i class="fas fa-user"></i>
+    </button>
+    <button class="settings-btn" onclick="window.location.href='{% url 'settings' %}'" title="Settings">
+        <i class="fas fa-cog"></i>
+    </button>
+    <button class="notification-bell" id="notificationBell" onclick="showAssessmentDialog()" title="Assessment Required">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notificationBadge" style="display: none;">!</span>
+    </button>
+</div>
         </div>
 
-        <!-- Assessment Warning -->
+        <!-- Assessment Warning (Red Banner) -->
         <div class="assessment-warning" id="assessmentWarning" style="display: none;">
             <i class="fas fa-exclamation-triangle"></i>
-            Please complete your initial assessment video to unlock games.
-            <button onclick="window.location.href='{% url 'capture_video' %}'">
+            ⚠️ Please complete your initial assessment video to unlock games.
+            <button onclick="showAssessmentDialog()">
                 <i class="fas fa-video"></i> Take Assessment Now
             </button>
         </div>
@@ -544,17 +686,289 @@
         let patientName = localStorage.getItem('patientName') || 'Amal';
         let affectedHand = localStorage.getItem('affectedHand') || 'right';
         
-        let hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-        let assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-        let assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
-        
         // ============================================
-        // INITIALIZATION
+        // INITIALIZATION - SHOW POPUP FIRST!
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            loadPatientData();
-            checkAssessmentStatus();
-        });
+    loadPatientData();
+    
+    // Update bell color
+    updateNotificationBell();
+    
+    // FORCE SHOW POPUP
+    setTimeout(function() {
+        const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+        const completed = localStorage.getItem('assessmentCompleted') === 'true';
+        
+        if (!hasVideo && !completed) {
+            console.log('🚨 FORCING POPUP TO SHOW!');
+            localStorage.removeItem('assessmentSkipped');
+            sessionStorage.removeItem('assessmentShownThisSession');
+            sessionStorage.removeItem('popupShown');
+            showAssessmentDialog();
+            disableGameCards();
+        } else {
+            enableGameCards();
+        }
+    }, 1000);
+});
+    
+    // FORCE SHOW POPUP - IGNORE EVERYTHING
+    setTimeout(function() {
+        // Check if popup should show
+        const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+        const completed = localStorage.getItem('assessmentCompleted') === 'true';
+        
+        if (!hasVideo && !completed) {
+            console.log('🚨 FORCING POPUP TO SHOW!');
+            // Remove any blocking flags
+            localStorage.removeItem('assessmentSkipped');
+            sessionStorage.removeItem('assessmentShownThisSession');
+            sessionStorage.removeItem('popupShown');
+            
+            // Show popup
+            showAssessmentDialog();
+            
+            // Disable games
+            disableGameCards();
+        } else {
+            enableGameCards();
+        }
+    }, 1000);
+        // ============================================
+        // MAIN FUNCTION: CHECK AND SHOW POPUP
+        // ============================================
+        // ============================================
+// MAIN FUNCTION: CHECK AND SHOW POPUP
+// ============================================
+function checkAndShowAssessmentPopup() {
+    const currentPatientId = localStorage.getItem('patientId');
+    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+    const completed = localStorage.getItem('assessmentCompleted') === 'true';
+    const skipped = localStorage.getItem('assessmentSkipped') === 'true';
+    
+    console.log('🔍 Assessment Check:', { 
+        patientId: currentPatientId,
+        hasVideo, 
+        completed, 
+        skipped 
+    });
+    
+    // If assessment completed - enable games
+    if (hasVideo || completed) {
+        console.log('✅ Assessment completed - games enabled');
+        enableGameCards();
+        document.getElementById('assessmentWarning').style.display = 'none';
+        return;
+    }
+    
+    // If user clicked Later - show red warning only
+    if (skipped) {
+        console.log('⚠️ User skipped assessment - showing red warning');
+        disableGameCards();
+        document.getElementById('assessmentWarning').style.display = 'flex';
+        return;
+    }
+    
+    // NEW PATIENT or NOT COMPLETED - FORCE SHOW POPUP
+    console.log('📢 MUST SHOW assessment popup!');
+    disableGameCards();
+    
+    // Force show popup with multiple attempts
+    forceShowPopup();
+}
+
+// ============================================
+// FORCE SHOW POPUP - MULTIPLE ATTEMPTS
+// ============================================
+function forceShowPopup() {
+    // Remove any existing dialog first
+    const existingDialog = document.querySelector('.assessment-popup');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+    
+    // Clear any flags that might prevent popup
+    sessionStorage.removeItem('assessmentShownThisSession');
+    sessionStorage.removeItem('popupShown');
+    
+    // Show popup immediately
+    showAssessmentDialog();
+    
+    // Backup: Show again after 1 second if not visible
+    setTimeout(function() {
+        const dialog = document.querySelector('.assessment-popup');
+        if (!dialog) {
+            console.log('⚠️ Popup not visible, trying again...');
+            showAssessmentDialog();
+        }
+    }, 1000);
+    
+    // Second backup: Show again after 3 seconds
+    setTimeout(function() {
+        const dialog = document.querySelector('.assessment-popup');
+        if (!dialog) {
+            console.log('⚠️ Popup still not visible, forcing again...');
+            showAssessmentDialog();
+        }
+    }, 3000);
+}
+
+// ============================================
+// SHOW ASSESSMENT DIALOG (POPUP) - SIMPLE VERSION
+// ============================================
+function showAssessmentDialog() {
+    console.log('🎯 showAssessmentDialog() called');
+    
+    // Remove any existing dialog
+    const existingDialog = document.querySelector('.assessment-popup');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+    
+    // Get patient name
+    const patientName = localStorage.getItem('patientName') || 'Player';
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'assessment-popup';
+    dialog.id = 'assessmentPopup';
+    dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999999;
+        backdrop-filter: blur(8px);
+    `;
+    
+    dialog.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 40px;
+            padding: 40px 35px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            color: white;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        ">
+            <div style="font-size: 70px; margin-bottom: 20px;">🎥</div>
+            <h2 style="font-size: 28px; margin-bottom: 15px;">Initial Assessment Required</h2>
+            <p style="margin-bottom: 15px; line-height: 1.5;">
+                Welcome ${patientName}! As this is your first time, we need to record an assessment video.
+            </p>
+            <p style="margin-bottom: 25px; font-size: 14px; opacity: 0.9;">
+                This helps us track your progress and customize your therapy plan.
+            </p>
+            <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px; margin-bottom: 25px;">
+                <p style="font-size: 14px;">
+                    <i class="fas fa-camera"></i> Camera permission needed
+                </p>
+                <p style="font-size: 12px; opacity: 0.8;">One-time requirement for therapy tracking</p>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="popupOkBtn" style="
+                    padding: 14px 30px;
+                    background: white;
+                    color: #667eea;
+                    border: none;
+                    border-radius: 50px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-check"></i> OK, Start Assessment
+                </button>
+                <button id="popupLaterBtn" style="
+                    padding: 14px 30px;
+                    background: transparent;
+                    color: white;
+                    border: 2px solid white;
+                    border-radius: 50px;
+                    font-size: 16px;
+                    cursor: pointer;
+                ">
+                    <i class="fas fa-clock"></i> Later
+                </button>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+                ⚠️ You cannot play games until you complete the assessment.
+            </p>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    console.log('✅ Popup added to DOM');
+    
+    // OK button
+    const okBtn = document.getElementById('popupOkBtn');
+    if (okBtn) {
+        okBtn.onclick = function() {
+            dialog.remove();
+            showNotification('Redirecting to assessment page...', 'info');
+            window.location.href = "{% url 'capture_video' %}";
+        };
+    }
+    
+    // Later button
+const laterBtn = document.getElementById('popupLaterBtn');
+if (laterBtn) {
+    laterBtn.onclick = function() {
+        dialog.remove();
+        localStorage.setItem('assessmentSkipped', 'true');
+        localStorage.setItem('hasAssessmentVideo', 'false');
+        localStorage.setItem('assessmentCompleted', 'false');
+        showNotification('Please complete the assessment to unlock games.', 'warning');
+        document.getElementById('assessmentWarning').style.display = 'flex';
+        
+        // 🔴 Update bell to RED
+        updateNotificationBell();
+    };
+}
+}
+
+
+// ============================================
+// UPDATE NOTIFICATION BELL (RED COLOR)
+// ============================================
+function updateNotificationBell() {
+    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
+    const completed = localStorage.getItem('assessmentCompleted') === 'true';
+    const badge = document.getElementById('notificationBadge');
+    const bell = document.getElementById('notificationBell');
+    
+    // If assessment NOT completed
+    if (!hasVideo && !completed) {
+        if (badge) {
+            badge.style.display = 'flex';
+            badge.textContent = '!';
+        }
+        if (bell) {
+            // Add red bell class
+            bell.classList.add('red-bell');
+            bell.classList.add('attention');
+            setTimeout(function() {
+                if (bell) bell.classList.remove('attention');
+            }, 3000);
+        }
+        console.log('🔔 Notification bell: RED - Assessment required');
+    } else {
+        // Assessment completed - normal bell
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        if (bell) {
+            bell.classList.remove('red-bell');
+            bell.classList.remove('attention');
+        }
+        console.log('🔔 Notification bell: NORMAL - Assessment completed');
+    }
+}
 
         // ============================================
         // LOAD AVATAR ON DASHBOARD
@@ -577,327 +991,135 @@
         }
 
         // ============================================
-        // LOAD PATIENT DATA (Statistics cards removed)
+        // LOAD PATIENT DATA
         // ============================================
         function loadPatientData() {
-            // Get data from localStorage
-            patientId = localStorage.getItem('patientId') || '7';
-            patientName = localStorage.getItem('patientName') || 'Amal';
-            affectedHand = localStorage.getItem('affectedHand') || 'right';
-            
-            // Update UI with patient info
-            const patientNameEl = document.getElementById('patientName');
-            const patientIdEl = document.getElementById('patientId');
-            const affectedHandBadge = document.getElementById('affectedHandBadge');
-            const patientConditionEl = document.getElementById('patientCondition');
-            
-            if (patientNameEl) patientNameEl.textContent = patientName;
-            if (patientIdEl) patientIdEl.textContent = patientId;
-            
-            // Set affected hand badge
-            const handText = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
-            if (affectedHandBadge) {
-                affectedHandBadge.textContent = handText;
-            }
-            
-            // Check if patient has completed assessment
-            hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-            assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-            
-            // Set patient condition (without statistics)
-            if (!hasVideo && !assessmentCompleted) {
-                if (patientConditionEl) patientConditionEl.textContent = 'New Patient';
-            } else if (patientId === '4') {
-                if (patientConditionEl) patientConditionEl.textContent = 'Movement Disorder';
-            } else if (patientId === '5') {
-                if (patientConditionEl) patientConditionEl.textContent = 'Arm Weakness';
-            } else if (patientId === '6') {
-                if (patientConditionEl) patientConditionEl.textContent = 'Motor Disability';
-            } else {
-                if (patientConditionEl) patientConditionEl.textContent = 'Patient';
-            }
-            
-            // Update game progress only (statistics were removed)
-            const game1Progress = document.getElementById('game1Progress');
-            const game2Progress = document.getElementById('game2Progress');
-            const game3Progress = document.getElementById('game3Progress');
-            
-            if (!hasVideo && !assessmentCompleted) {
-                if (game1Progress) game1Progress.textContent = '0%';
-                if (game2Progress) game2Progress.textContent = '0%';
-                if (game3Progress) game3Progress.textContent = '0%';
-            } else if (patientId === '4') {
-                if (game1Progress) game1Progress.textContent = '82%';
-                if (game2Progress) game2Progress.textContent = '82%';
-                if (game3Progress) game3Progress.textContent = '82%';
-            } else if (patientId === '5') {
-                if (game1Progress) game1Progress.textContent = '79%';
-                if (game2Progress) game2Progress.textContent = '79%';
-                if (game3Progress) game3Progress.textContent = '79%';
-            } else if (patientId === '6') {
-                if (game1Progress) game1Progress.textContent = '81%';
-                if (game2Progress) game2Progress.textContent = '81%';
-                if (game3Progress) game3Progress.textContent = '81%';
-            } else {
-                if (game1Progress) game1Progress.textContent = '0%';
-                if (game2Progress) game2Progress.textContent = '0%';
-                if (game3Progress) game3Progress.textContent = '0%';
-            }
-            
-            // Load avatar from localStorage
-            loadAvatarOnDashboard();
-            
-            // Hide loading, show dashboard
-            const loadingEl = document.getElementById('loading');
-            const dashboardEl = document.getElementById('dashboard');
-            
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (dashboardEl) dashboardEl.style.display = 'block';
-        }
-
-        // ============================================
-        // CHECK ASSESSMENT STATUS
-        // ============================================
-        function checkAssessmentStatus() {
-    // localStorage.removeItem('assessmentCompleted');
-    // localStorage.removeItem('hasAssessmentVideo');
+    console.log("🟢 loadPatientData() started");
     
-    // Get assessment status from localStorage
-    const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-    const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-    const isFirstTime = localStorage.getItem('firstTime') === null;
-    
-    console.log('Assessment Check:', { hasVideo, assessmentCompleted, isFirstTime });
-    
-    // Case 1: User has already completed assessment
-    if (hasVideo || assessmentCompleted) {
-        console.log('User has completed assessment');
-        enableGameCards();
-        return;
-    }
-    
-    // Case 2: User is new (first time)
-    if (isFirstTime) {
-        console.log('First time user - showing assessment dialog');
-        localStorage.setItem('firstTime', 'false');
-        setTimeout(() => {
-            showAssessmentDialog();
-        }, 2000);
-        return;
-    }
-    
-    // Case 3: Returning user who hasn't completed assessment
-    if (!hasVideo && !assessmentCompleted) {
-        console.log('Returning user without assessment - showing warning');
-        disableGameCards();
-        return;
-    }
-}
-        // ============================================
-        // SHOW ASSESSMENT DIALOG
-        // ============================================
-        function showAssessmentDialog() {
-            // Check if already shown in this session
-            if (sessionStorage.getItem('assessmentShownThisSession')) {
-                console.log('Assessment already shown this session');
-                return;
-            }
-            
-            // Remove any existing dialog
-            const existingDialog = document.querySelector('.camera-dialog');
-            if (existingDialog) {
-                existingDialog.remove();
-            }
-            
-            const dialog = document.createElement('div');
-            dialog.className = 'camera-dialog';
-            dialog.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.6);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                backdrop-filter: blur(5px);
-                animation: fadeIn 0.3s ease;
-            `;
-            
-            dialog.innerHTML = `
-                <div style="
-                    background: white;
-                    border-radius: 30px;
-                    padding: 40px;
-                    max-width: 450px;
-                    width: 90%;
-                    text-align: center;
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-                    animation: slideUp 0.3s ease;
-                ">
-                    <div style="font-size: 64px; margin-bottom: 20px;">📹</div>
-                    <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">Initial Assessment Required</h3>
-                    <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
-                        Welcome! As this is your first time, we need to record an assessment video.<br>
-                        <small style="color: #94a3b8;">This helps us track your progress and customize your therapy plan.</small>
-                    </p>
-                    <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
-                        <p style="color: #1e293b; font-weight: 600; margin-bottom: 5px;">Camera permission needed:</p>
-                        <p style="color: #64748b; font-size: 14px;">We'll need access to your camera to record the assessment. This is a one-time requirement.</p>
-                    </div>
-                    <div style="display: flex; gap: 15px;">
-                        <button id="cameraYes" style="
-                            flex: 2;
-                            padding: 14px;
-                            background: linear-gradient(135deg, #10b981, #059669);
-                            color: white;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 8px;
-                        ">
-                            <i class="fas fa-video"></i> Allow Camera & Record
-                        </button>
-                        <button id="cameraNo" style="
-                            flex: 1;
-                            padding: 14px;
-                            background: #f1f5f9;
-                            color: #475569;
-                            border: none;
-                            border-radius: 12px;
-                            font-size: 16px;
-                            font-weight: 600;
-                            cursor: pointer;
-                        ">
-                            Not Now
-                        </button>
-                    </div>
-                    <p style="color: #ef4444; font-size: 13px; margin-top: 15px; font-weight: 500;">
-                        ⚠️ You cannot play games until you complete the assessment.
-                    </p>
-                </div>
-            `;
-            
-            document.body.appendChild(dialog);
-            sessionStorage.setItem('assessmentShownThisSession', 'true');
-            
-            document.getElementById('cameraYes').addEventListener('click', function() {
-                dialog.remove();
-                requestCameraAndGoToVideo();
-            });
-            
-            document.getElementById('cameraNo').addEventListener('click', function() {
-                dialog.remove();
-                localStorage.setItem('assessmentSkipped', 'true');
-                showNotification('Assessment required. You cannot play games until you complete it.', 'error');
-                disableGameCards();
-            });
-        }
-
-        async function checkAssessmentStatusFromDB() {
     try {
-        const patientId = localStorage.getItem('patientId');
-        if (!patientId) return;
+        // Get data from localStorage
+        patientId = localStorage.getItem('patientId') || '7';
+        patientName = localStorage.getItem('patientName') || 'Amal';
+        affectedHand = localStorage.getItem('affectedHand') || 'right';
         
-        const response = await fetch(`/api/check-assessment/?patient_id=${patientId}`);
-        const data = await response.json();
+        console.log("📊 Data loaded:", { patientId, patientName, affectedHand });
         
-        console.log('Assessment status from DB:', data);
+        // Update UI with patient info
+        const patientNameEl = document.getElementById('patientName');
+        const patientIdEl = document.getElementById('patientId');
+        const affectedHandBadge = document.getElementById('affectedHandBadge');
+        const patientConditionEl = document.getElementById('patientCondition');
         
-        if (data.success && data.assessment_completed) {
-            localStorage.setItem('assessmentCompleted', 'true');
-            localStorage.setItem('hasAssessmentVideo', 'true');
-            enableGameCards();
-            console.log('✅ Assessment completed - games enabled');
-        } else {
-            localStorage.setItem('assessmentCompleted', 'false');
-            localStorage.setItem('hasAssessmentVideo', 'false');
-            disableGameCards();
-            console.log('❌ Assessment NOT completed - games disabled');
-            
-            // ✅ FORCE SHOW DIALOG
-            setTimeout(function() {
-                showAssessmentDialog();
-            }, 500);
+        console.log("🔍 Elements found:", {
+            patientNameEl: !!patientNameEl,
+            patientIdEl: !!patientIdEl,
+            affectedHandBadge: !!affectedHandBadge,
+            patientConditionEl: !!patientConditionEl
+        });
+        
+        if (patientNameEl) patientNameEl.textContent = patientName;
+        if (patientIdEl) patientIdEl.textContent = patientId;
+        
+        // Set affected hand badge
+        const handText = affectedHand === 'right' ? 'Right Hand' : 'Left Hand';
+        if (affectedHandBadge) {
+            affectedHandBadge.textContent = handText;
         }
+        
+        // Set patient condition
+        if (patientConditionEl) patientConditionEl.textContent = 'Patient';
+        
+        // Update game progress
+        const game1Progress = document.getElementById('game1Progress');
+        const game2Progress = document.getElementById('game2Progress');
+        const game3Progress = document.getElementById('game3Progress');
+        
+        if (game1Progress) game1Progress.textContent = '0%';
+        if (game2Progress) game2Progress.textContent = '0%';
+        if (game3Progress) game3Progress.textContent = '0%';
+        
+        // Load avatar
+        loadAvatarOnDashboard();
+        
+        // Hide loading, show dashboard
+        const loadingEl = document.getElementById('loading');
+        const dashboardEl = document.getElementById('dashboard');
+        
+        console.log("🔄 Hiding loading, showing dashboard");
+        
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (dashboardEl) dashboardEl.style.display = 'block';
+        
+        console.log("✅ loadPatientData() completed successfully");
+        
     } catch (error) {
-        console.error('Error checking assessment:', error);
-        // Fallback to localStorage
-        const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-        const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-        if (hasVideo || assessmentCompleted) {
-            enableGameCards();
-        } else {
-            disableGameCards();
-            setTimeout(function() {
-                showAssessmentDialog();
-            }, 500);
+        console.error("❌ Error in loadPatientData:", error);
+        // Show error on screen
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) {
+            loadingEl.innerHTML = `Error loading data: ${error.message}<br>Check console for details`;
+            loadingEl.style.color = '#ef4444';
         }
     }
 }
 
+        function testPopup() {
+    console.log('🧪 Manual popup test');
+    // Clear flags
+    localStorage.removeItem('hasAssessmentVideo');
+    localStorage.removeItem('assessmentCompleted');
+    localStorage.removeItem('assessmentSkipped');
+    sessionStorage.clear();
+    // Show popup
+    showAssessmentDialog();
+    // Disable games
+    disableGameCards();
+}
+
         // ============================================
-        // REQUEST CAMERA AND GO TO VIDEO
+        // DISABLE GAME CARDS
         // ============================================
-        async function requestCameraAndGoToVideo() {
-            try {
-                const loadingDialog = document.createElement('div');
-                loadingDialog.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10001;
-                `;
-                loadingDialog.innerHTML = `
-                    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center;">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #667eea;"></i>
-                        <p style="margin-top: 15px; color: #1e293b;">Requesting camera access...</p>
-                    </div>
-                `;
-                document.body.appendChild(loadingDialog);
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                stream.getTracks().forEach(track => track.stop());
-                
-                loadingDialog.remove();
-                window.location.href = "{% url 'capture_video' %}";
-                
-            } catch (error) {
-                console.error('Camera permission error:', error);
-                alert('Camera access is required for new players. Please allow camera access and try again.');
-                showAssessmentDialog();
+        function disableGameCards() {
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.classList.add('disabled');
+            });
+        }
+
+        // ============================================
+        // ENABLE GAME CARDS
+        // ============================================
+        function enableGameCards() {
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.classList.remove('disabled');
+            });
+            
+            // Hide warning banner
+            const warningBanner = document.getElementById('assessmentWarning');
+            if (warningBanner) {
+                warningBanner.style.display = 'none';
             }
         }
 
         // ============================================
-        // GAME ACCESS CONTROL
+        // CHECK GAME ACCESS
         // ============================================
         function checkGameAccess(gameNumber) {
             const hasVideo = localStorage.getItem('hasAssessmentVideo') === 'true';
-            const assessmentCompleted = localStorage.getItem('assessmentCompleted') === 'true';
-            const assessmentSkipped = localStorage.getItem('assessmentSkipped') === 'true';
+            const completed = localStorage.getItem('assessmentCompleted') === 'true';
             
-            if (hasVideo || assessmentCompleted) {
+            if (hasVideo || completed) {
                 goToGame(gameNumber);
             } else {
-                showNotification('Please complete your initial assessment video first.', 'error');
+                showNotification('Please complete your initial assessment video first!', 'warning');
                 showAssessmentDialog();
             }
         }
 
+        // ============================================
+        // GO TO GAME
+        // ============================================
         function goToGame(gameNumber) {
             if (gameNumber === 1) {
                 window.location.href = "{% url 'game_catching_stars' %}";
@@ -906,40 +1128,6 @@
             } else if (gameNumber === 3) {
                 window.location.href = "{% url 'game_catching_objects' %}";
             }
-        }
-
-        // ============================================
-        // DISABLE/ENABLE GAME CARDS
-        // ============================================
-        function disableGameCards() {
-            const gameCards = document.querySelectorAll('.game-card');
-            gameCards.forEach(card => {
-                card.classList.add('disabled');
-                card.setAttribute('title', 'Complete initial assessment to play games');
-            });
-            
-            const warningEl = document.getElementById('assessmentWarning');
-            if (warningEl) {
-                warningEl.style.display = 'flex';
-            }
-        }
-
-        function enableGameCards() {
-            const gameCards = document.querySelectorAll('.game-card');
-            gameCards.forEach(card => {
-                card.classList.remove('disabled');
-                card.removeAttribute('title');
-            });
-            
-            // Remove warning message if exists
-            const warningMsg = document.querySelector('.assessment-warning');
-            if (warningMsg) {
-                warningMsg.style.display = 'none';
-            }
-            
-            // Ensure localStorage is set correctly
-            localStorage.setItem('hasAssessmentVideo', 'true');
-            localStorage.setItem('assessmentCompleted', 'true');
         }
 
         // ============================================
@@ -976,7 +1164,7 @@
                 background: ${colors[type] || colors.info};
                 color: white;
                 font-weight: 500;
-                z-index: 9999;
+                z-index: 99999;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.2);
                 animation: slideIn 0.3s ease;
                 max-width: 350px;
@@ -1008,7 +1196,7 @@
         }
 
         // ============================================
-        // CUSTOM LOGOUT FUNCTION
+        // LOGOUT FUNCTION
         // ============================================
         function logoutPatient() {
             const modal = document.createElement('div');
@@ -1053,7 +1241,7 @@
                     </div>
                     <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
                     <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
-                        Are you sure you want to log out?
+                        Are you sure you want to log out? Your progress will be saved.
                     </p>
                     <div style="display: flex; gap: 15px;">
                         <button id="confirmLogout" style="
