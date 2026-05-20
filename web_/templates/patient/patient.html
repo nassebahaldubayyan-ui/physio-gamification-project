@@ -82,6 +82,69 @@
             flex-wrap: wrap;
         }
 
+
+        /* Message Button with Red Notification */
+.message-btn {
+    background: #f1f5f9;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.message-btn:hover {
+    background: #e2e8f0;
+    transform: scale(1.1);
+}
+
+/* RED STYLE when there are new messages */
+.message-btn.has-new {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 2px solid #ef4444;
+    animation: shake 0.5s ease-in-out;
+}
+
+.message-btn.has-new:hover {
+    background: #fecaca;
+}
+
+.message-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+
         .level-badge {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
@@ -603,13 +666,17 @@
         <i class="fas fa-bell"></i>
         <span class="notification-badge" id="notificationBadge" style="display: none;">!</span>
     </button>
+    <button class="message-btn" id="messageBtn" onclick="goToChatAndClear()" title="Messages">
+        <i class="fas fa-envelope"></i>
+        <span class="message-badge" id="messageBadge" style="display: none;">!</span>
+    </button>
 </div>
         </div>
 
         <!-- Assessment Warning (Red Banner) -->
         <div class="assessment-warning" id="assessmentWarning" style="display: none;">
             <i class="fas fa-exclamation-triangle"></i>
-            ⚠️ Please complete your initial assessment video to unlock games.
+            Please complete your initial assessment video to unlock games.
             <button onclick="showAssessmentDialog()">
                 <i class="fas fa-video"></i> Take Assessment Now
             </button>
@@ -1085,6 +1152,80 @@ function updateNotificationBell() {
                 card.classList.add('disabled');
             });
         }
+
+    // ============================================
+// MESSAGE NOTIFICATION SYSTEM
+// ============================================
+const patientIdForMessages = localStorage.getItem('patientId');
+const doctorIdForMessages = '3'; // Change to actual doctor ID
+
+async function checkForNewMessages() {
+    try {
+        const response = await fetch(`/api/messages/?user_id=${patientIdForMessages}&user_type=patient&other_id=${doctorIdForMessages}&other_type=doctor`);
+        const data = await response.json();
+        
+        if (data.success && data.messages) {
+            // Get last seen message timestamp
+            let lastSeen = localStorage.getItem('lastMessageSeen');
+            const messageBtn = document.getElementById('messageBtn');
+            const messageBadge = document.getElementById('messageBadge');
+            
+            // Count unread messages from doctor
+            let unreadCount = 0;
+            
+            if (lastSeen) {
+                unreadCount = data.messages.filter(msg => {
+                    return msg.sender_type === 'doctor' && new Date(msg.created_at) > new Date(lastSeen);
+                }).length;
+            } else {
+                // First time - show unread from last 24 hours
+                const oneDayAgo = new Date();
+                oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+                unreadCount = data.messages.filter(msg => {
+                    return msg.sender_type === 'doctor' && new Date(msg.created_at) > oneDayAgo;
+                }).length;
+            }
+            
+            if (unreadCount > 0) {
+                // Make button RED
+                messageBtn.classList.add('has-new');
+                messageBadge.style.display = 'flex';
+                messageBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                console.log(`🔴 ${unreadCount} new message(s) - Button is RED`);
+            } else {
+                // Normal button
+                messageBtn.classList.remove('has-new');
+                messageBadge.style.display = 'none';
+                console.log(`⚪ No new messages - Button normal`);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking messages:', error);
+    }
+}
+
+// Go to chat and clear notification
+function goToChatAndClear() {
+    // Mark all messages as read
+    localStorage.setItem('lastMessageSeen', new Date().toISOString());
+    
+    // Remove red style immediately
+    const messageBtn = document.getElementById('messageBtn');
+    const messageBadge = document.getElementById('messageBadge');
+    messageBtn.classList.remove('has-new');
+    messageBadge.style.display = 'none';
+    
+    // Redirect to chat page
+    window.location.href = "{% url 'patient_chat' %}";
+}
+
+// Start checking for new messages every 10 seconds
+setInterval(() => {
+    checkForNewMessages();
+}, 10000);
+
+// Initial check
+checkForNewMessages();
 
         // ============================================
         // ENABLE GAME CARDS
