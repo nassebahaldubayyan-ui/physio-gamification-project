@@ -471,7 +471,7 @@
                         shoulder: true,
                         elbow: false,
                         hand: false,
-                        rotation: false
+                        rotation: true
                     };
 
                 case 4:
@@ -1027,8 +1027,7 @@
                     lm[12], 
                     lm[14], 
                     lm[16], 
-                    lm[24], 
-                    "right"
+                    lm[24]
                 );
             } else {
 
@@ -1046,8 +1045,7 @@
                     lm[11], 
                     lm[13], 
                     lm[15], 
-                    lm[23], 
-                    "left"
+                    lm[23]
                 );
                 
             }
@@ -1144,61 +1142,69 @@
         
         function calculateShoulderRotation(shoulder, elbow, wrist, hip) {
 
-            const elbowAngle = calculateAngle(shoulder, elbow, wrist);
-
-            if (elbowAngle < 30 || elbowAngle > 150) return 0;
-
-            const forearm = {
-                x: wrist.x - elbow.x,
-                y: wrist.y - elbow.y
-            };
-
-            const upperArm = {
+            const upper = {
                 x: elbow.x - shoulder.x,
-                y: elbow.y - shoulder.y
+                y: elbow.y - shoulder.y,
+                z: elbow.z - shoulder.z
             };
 
-            const dot = upperArm.x * forearm.x + upperArm.y * forearm.y;
+            const lower = {
+                x: wrist.x - elbow.x,
+                y: wrist.y - elbow.y,
+                z: wrist.z - elbow.z
+            };
 
-            const mag1 = Math.hypot(upperArm.x, upperArm.y);
-            const mag2 = Math.hypot(forearm.x, forearm.y);
+            const torso = {
+                x: hip.x - shoulder.x,
+                y: hip.y - shoulder.y,
+                z: hip.z - shoulder.z
+            };
 
-            if (mag1 * mag2 === 0) return 0;
+            const normalize = (v) => {
+                const mag = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+                return mag === 0 ? {x:0,y:0,z:0} : {
+                    x: v.x/mag,
+                    y: v.y/mag,
+                    z: v.z/mag
+                };
+            };
 
-            let cosTheta = dot / (mag1 * mag2);
-            cosTheta = Math.max(-1, Math.min(1, cosTheta));
+            const u = normalize(upper);
+            const l = normalize(lower);
+            const t = normalize(torso);
 
-            let angle = Math.acos(cosTheta) * 180 / Math.PI;
+            const referenceNormal = {
+                x: u.y*t.z - u.z*t.y,
+                y: u.z*t.x - u.x*t.z,
+                z: u.x*t.y - u.y*t.x
+            };
 
-            const wristToHip = Math.hypot(
-                wrist.x - hip.x,
-                wrist.y - hip.y
+            const rotationAxis = {
+                x: u.y*l.z - u.z*l.y,
+                y: u.z*l.x - u.x*l.z,
+                z: u.x*l.y - u.y*l.x
+            };
+
+            const dot = u.x*l.x + u.y*l.y + u.z*l.z;
+
+            let angle = Math.atan2(
+                Math.sqrt(
+                    rotationAxis.x**2 +
+                    rotationAxis.y**2 +
+                    rotationAxis.z**2
+                ),
+                dot
             );
 
-            const shoulderToHip = Math.hypot(
-                shoulder.x - hip.x,
-                shoulder.y - hip.y
+            const sign = Math.sign(
+                rotationAxis.x * referenceNormal.x +
+                rotationAxis.y * referenceNormal.y +
+                rotationAxis.z * referenceNormal.z
             );
 
-            let distanceNorm = wristToHip / (shoulderToHip * 1.5);
+            angle = angle * (-sign) * (180 / Math.PI);
 
-            distanceNorm = Math.max(0, Math.min(1, distanceNorm));
-
-            const minROM = 60;
-            const maxROM = 150;
-
-            let rotation = ((angle - minROM) / (maxROM - minROM)) * 100;
-
-            const spatialBoost = distanceNorm * 25;
-
-            let finalRotation = rotation + spatialBoost;
-
-            if (!window._prevRotation) window._prevRotation = 0;
-
-            finalRotation = window._prevRotation * 0.7 + finalRotation * 0.3;
-            window._prevRotation = finalRotation;
-
-            return Math.max(0, Math.min(100, finalRotation));
+            return angle;
         }
 
         function updateAngleGridState() {
