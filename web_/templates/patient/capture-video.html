@@ -785,7 +785,7 @@
                 this.freezeUI = false;
                 this.maxAngles = {
                     shoulder: 0,
-                    elbow: 0,
+                    elbow: 180,
                     shoulder_external_rotation: 0,
                     hand_open: 0
                 };
@@ -836,9 +836,9 @@
                     p.rightShoulderAngle || p.leftShoulderAngle || 0
                 );
 
-                this.maxAngles.elbow = Math.max(
+                this.maxAngles.elbow = Math.min(
                     this.maxAngles.elbow,
-                    p.rightElbowAngle || p.leftElbowAngle || 0
+                    p.rightElbowAngle || p.leftElbowAngle || 180
                 );
                 this.maxAngles.shoulder_external_rotation = Math.max(
                     this.maxAngles.shoulder_external_rotation,
