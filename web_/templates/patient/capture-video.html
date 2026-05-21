@@ -892,8 +892,6 @@
                         this.finishAssessment();
                     }
                 }
-                document.getElementById("feedbackText").innerHTML =
-                     `<i class="fas fa-wave-square"></i> Angle: ${angle.toFixed(1)}° | Reps: ${this.repCount}`;
             }
 
             async finishAssessment() {
@@ -940,29 +938,7 @@
             open = Math.max(0, Math.min(100, open));
             return open;
         }
-        function calculateHandOpenPercentage(hand) {
-            const tips = [8, 12, 16, 20];
-            const mcps = [5, 9, 13, 17];
-
-            let total = 0;
-
-            for (let i = 0; i < tips.length; i++) {
-                const tip = hand[tips[i]];
-                const mcp = hand[mcps[i]];
-
-                const distance = Math.sqrt(
-                    Math.pow(tip.x - mcp.x, 2) +
-                    Math.pow(tip.y - mcp.y, 2)
-                );
-
-                total += distance;
-            }
-
-            let percentage = (total / 0.8) * 100;
-            percentage = Math.max(0, Math.min(100, percentage));
-
-            return percentage;
-        }
+    
         let assessmentFinished = false;
         let prevAngles = {
             leftShoulder: 0,
@@ -981,25 +957,7 @@
         const pose = new Pose({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
         });
-        function isValidRotationPose(elbowAngle, shoulder, elbow, hip) {
-
-            
-            const elbowValid = elbowAngle > 75 && elbowAngle < 105;
-
-            
-            const dx = Math.abs(elbow.x - shoulder.x);
-            const dy = Math.abs(elbow.y - shoulder.y);
-            const distance = Math.sqrt(dx*dx + dy*dy);
-
-            const torsoLength = Math.sqrt(
-                (hip.x - shoulder.x)**2 +
-                (hip.y - shoulder.y)**2
-            );
-
-            const armCloseToBody = distance < torsoLength * 0.45;
-
-            return elbowValid && armCloseToBody;
-        }
+        
         pose.setOptions({
             modelComplexity: 1,
             smoothLandmarks: true,
