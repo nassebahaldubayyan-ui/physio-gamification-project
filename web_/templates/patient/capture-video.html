@@ -426,12 +426,9 @@
     <script>
         
         let voiceGuideActive = false;
-        let currentInstructionIdx = 0;
         let speechUtter = null;
         let speechSynth = window.speechSynthesis;
         let poseTracker = {
-            shoulderAngle: 0,
-            elbowAngle: 0
         };
 
         let handTracker = {
@@ -517,7 +514,7 @@
         }
         
         const instructionSteps = [
-            { text: "Take 3 steps back", duration: 7 },
+            { text: "Take 3 steps back", duration: 5 },
             { text: "Stand still", duration: 5 },
             { text: "Move your arm up and down", duration: 5 },
             { text: "Open and close your fist", duration: 5 },
@@ -785,7 +782,7 @@
                 this.freezeUI = false;
                 this.maxAngles = {
                     shoulder: 0,
-                    elbow: 0,
+                    elbow: 180,
                     shoulder_external_rotation: 0,
                     hand_open: 0
                 };
@@ -796,19 +793,9 @@
                 this.hand = null;
                 this.peakReached = false;
                 this.lastRepTime = 0;
-                this.smoothedAngle = 0;
-                this.smoothingFactor = 0.2;
-
-                this.rom = {
-                    shoulder: 0,
-                    elbow: 0,
-                    shoulder_external_rotation: 0,
-                    hand_open: 0
-                };
-
+                
                 this.repCount = 0;
                 this.isMoving = false;
-                this.lastPeak = 0;
                 this.REPS_TARGET = 5;
             }
 
@@ -823,7 +810,6 @@
                 if (!this.pose || !this.hand) return;
 
                 this.trackMaxAngles();
-                this.detectReps();
             }
 
             trackMaxAngles() {
@@ -831,69 +817,40 @@
                 const h = this.hand;
                 if (!p || !h) return;
 
-                this.maxAngles.shoulder = Math.max(
-                    this.maxAngles.shoulder,
-                    p.rightShoulderAngle || p.leftShoulderAngle || 0
-                );
+                const isRight = affectedHand === "right";
+                const active = getActiveMetrics(); 
 
-                this.maxAngles.elbow = Math.max(
-                    this.maxAngles.elbow,
-                    p.rightElbowAngle || p.leftElbowAngle || 0
-                );
-                this.maxAngles.shoulder_external_rotation = Math.max(
-                    this.maxAngles.shoulder_external_rotation,
-                    p.rightShoulderExternalRotation || p.leftShoulderExternalRotation || 0
-                );
-
-                this.maxAngles.hand_open = Math.max(
-                    this.maxAngles.hand_open,
-                    h.openPercentage || 0
-                );
-            }
-
-            detectReps() {
-
-                let angle = 0;
-
-                if (currentStep === 3) angle = this.pose.activeShoulderAngle;
-                else if (currentStep === 5) angle = this.pose.activeElbowAngle;
-                else if (currentStep === 4) angle = this.hand.openPercentage;
-                else return;
-                if (isNaN(angle)) return;
-
-                const maxROM = this.rom.shoulder || 1;
-                if (this.rom.shoulder < 20) return;
-                const highThreshold = maxROM * 0.7;
-                const lowThreshold = maxROM * 0.3;
-
-                const now = Date.now();
-                if (!this.lastRepTime) this.lastRepTime = 0;
-
-                const MIN_TIME_BETWEEN_REPS = 800;
-
-                if (!this.isMoving && angle > highThreshold) {
-                    this.isMoving = true;
-                    this.peakReached = true;
+                if (active.shoulder) {
+                    this.maxAngles.shoulder = Math.max(
+                        this.maxAngles.shoulder,
+                        (isRight ? p.rightShoulderAngle : p.leftShoulderAngle) || 0
+                    );
                 }
 
-                if (this.isMoving && angle < lowThreshold && this.peakReached) {
-
-                    if (now - this.lastRepTime > MIN_TIME_BETWEEN_REPS) {
-                        this.repCount++;
-                        this.lastRepTime = now;
-
-                        
-                    }
-
-                    this.isMoving = false;
-                    this.peakReached = false;
-
-                    if (this.repCount >= this.REPS_TARGET) {
-                        this.finishAssessment();
-                    }
+                if (active.elbow) {
+                    this.maxAngles.elbow = Math.min(
+                        this.maxAngles.elbow,
+                        (isRight ? p.rightElbowAngle : p.leftElbowAngle) || 180
+                    );
                 }
-                document.getElementById("feedbackText").innerHTML =
-                     `<i class="fas fa-wave-square"></i> Angle: ${angle.toFixed(1)}° | Reps: ${this.repCount}`;
+
+                if (active.rotation) {
+                    const extRot = isRight
+                        ? (p.rightShoulderExternalRotation || 0)
+                        : (p.leftShoulderExternalRotation || 0);
+
+                    this.maxAngles.shoulder_external_rotation = Math.max(
+                        this.maxAngles.shoulder_external_rotation,
+                        extRot
+                    );
+                }
+
+                if (active.hand) {
+                    this.maxAngles.hand_open = Math.max(
+                        this.maxAngles.hand_open,
+                        h.openPercentage || 0
+                    );
+                }
             }
 
             async finishAssessment() {
@@ -940,29 +897,7 @@
             open = Math.max(0, Math.min(100, open));
             return open;
         }
-        function calculateHandOpenPercentage(hand) {
-            const tips = [8, 12, 16, 20];
-            const mcps = [5, 9, 13, 17];
-
-            let total = 0;
-
-            for (let i = 0; i < tips.length; i++) {
-                const tip = hand[tips[i]];
-                const mcp = hand[mcps[i]];
-
-                const distance = Math.sqrt(
-                    Math.pow(tip.x - mcp.x, 2) +
-                    Math.pow(tip.y - mcp.y, 2)
-                );
-
-                total += distance;
-            }
-
-            let percentage = (total / 0.8) * 100;
-            percentage = Math.max(0, Math.min(100, percentage));
-
-            return percentage;
-        }
+    
         let assessmentFinished = false;
         let prevAngles = {
             leftShoulder: 0,
@@ -981,25 +916,7 @@
         const pose = new Pose({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
         });
-        function isValidRotationPose(elbowAngle, shoulder, elbow, hip) {
-
-            
-            const elbowValid = elbowAngle > 75 && elbowAngle < 105;
-
-            
-            const dx = Math.abs(elbow.x - shoulder.x);
-            const dy = Math.abs(elbow.y - shoulder.y);
-            const distance = Math.sqrt(dx*dx + dy*dy);
-
-            const torsoLength = Math.sqrt(
-                (hip.x - shoulder.x)**2 +
-                (hip.y - shoulder.y)**2
-            );
-
-            const armCloseToBody = distance < torsoLength * 0.45;
-
-            return elbowValid && armCloseToBody;
-        }
+        
         pose.setOptions({
             modelComplexity: 1,
             smoothLandmarks: true,
@@ -1029,6 +946,11 @@
                 ? poseTracker.activeElbowAngle
                 : 0;
 
+            if (!active.rotation) {
+                poseTracker.rightShoulderExternalRotation = 0;
+                poseTracker.leftShoulderExternalRotation  = 0;
+            }
+
             if (!active.hand) {
                 handTracker.openPercentage = 0;
                 handTracker.thumbAngle = 0;
@@ -1038,117 +960,122 @@
                 handTracker.pinkyAngle = 0;
             }
         }
-        function onFrameUpdate(poseTracker, handTracker) {
+                function onFrameUpdate(poseTracker, handTracker) {
             applyActiveMetrics();
             assessment.attachTrackers(poseTracker, handTracker);
             assessment.update();
         }
+        function isPalmFacingCamera(handLandmarks) {
+
+            const wrist = handLandmarks[0];
+            const indexMCP = handLandmarks[5];
+            const pinkyMCP = handLandmarks[17];
+
+            const v1 = {
+                x: indexMCP.x - wrist.x,
+                y: indexMCP.y - wrist.y,
+                z: indexMCP.z - wrist.z
+            };
+
+            const v2 = {
+                x: pinkyMCP.x - wrist.x,
+                y: pinkyMCP.y - wrist.y,
+                z: pinkyMCP.z - wrist.z
+            };
+
+            const normal = {
+                x: v1.y * v2.z - v1.z * v2.y,
+                y: v1.z * v2.x - v1.x * v2.z,
+                z: v1.x * v2.y - v1.y * v2.x
+            };
+
+            const isRight = affectedHand === "right";
+
+            if (isRight) {
+                return normal.z < -0.02;
+            } else {
+                return normal.z > 0.02;
+            }
+        }
 
         pose.onResults((results) => {
-
-            if (!results.poseLandmarks) {
-                poseTracker.shoulderAngle = 0;
-                poseTracker.elbowAngle = 0;
-                return;
-            }
+            if (!results.poseLandmarks) return;
 
             const lm = results.poseLandmarks;
-            if (affectedHand === "right") {
-
-                poseTracker.rightShoulderAngle = smoothAngle(
-                    prevAngles.rightShoulder,
-                    calculateAngle(lm[24], lm[12], lm[14])
-                );
-
-                poseTracker.rightElbowAngle = smoothAngle(
-                    prevAngles.rightElbow,
-                    calculateAngle(lm[12], lm[14], lm[16])
-                );
-                poseTracker.rightShoulderExternalRotation =
-                calculateShoulderRotation(
-                    lm[12], 
-                    lm[14], 
-                    lm[16], 
-                    lm[24], 
-                    "right"
-                );
-            } else {
-
-                poseTracker.leftShoulderAngle = smoothAngle(
-                    prevAngles.leftShoulder,
-                    calculateAngle(lm[23], lm[11], lm[13])
-                );
-
-                poseTracker.leftElbowAngle = smoothAngle(
-                    prevAngles.leftElbow,
-                    calculateAngle(lm[11], lm[13], lm[15])
-                );
-                poseTracker.leftShoulderExternalRotation =
-                calculateShoulderRotation(
-                    lm[11], 
-                    lm[13], 
-                    lm[15], 
-                    lm[23], 
-                    "left"
-                );
-                
-            }
-            
-            if (affectedHand === "right") {
-                prevAngles.rightShoulder = poseTracker.rightShoulderAngle;
-                prevAngles.rightElbow = poseTracker.rightElbowAngle;
-            } else {
-                prevAngles.leftShoulder = poseTracker.leftShoulderAngle;
-                prevAngles.leftElbow = poseTracker.leftElbowAngle;
-            }
             const active = getActiveMetrics();
+            const isRight = affectedHand === "right";
 
             if (active.shoulder) {
-                poseTracker.activeShoulderAngle =
-                    affectedHand === "right"
-                        ? poseTracker.rightShoulderAngle
-                        : poseTracker.leftShoulderAngle;
+                if (isRight) {
+                    poseTracker.rightShoulderAngle = smoothAngle(
+                        prevAngles.rightShoulder,
+                        calculateAngle(lm[24], lm[12], lm[14])
+                    );
+                    prevAngles.rightShoulder = poseTracker.rightShoulderAngle;
+                } else {
+                    poseTracker.leftShoulderAngle = smoothAngle(
+                        prevAngles.leftShoulder,
+                        calculateAngle(lm[23], lm[11], lm[13])
+                    );
+                    prevAngles.leftShoulder = poseTracker.leftShoulderAngle;
+                }
+                poseTracker.activeShoulderAngle = isRight
+                    ? poseTracker.rightShoulderAngle
+                    : poseTracker.leftShoulderAngle;
             }
 
             if (active.elbow) {
-                poseTracker.activeElbowAngle =
-                    affectedHand === "right"
-                        ? poseTracker.rightElbowAngle
-                        : poseTracker.leftElbowAngle;
+                if (isRight) {
+                    poseTracker.rightElbowAngle = smoothAngle(
+                        prevAngles.rightElbow,
+                        calculateAngle(lm[12], lm[14], lm[16])
+                    );
+                    prevAngles.rightElbow = poseTracker.rightElbowAngle;
+                } else {
+                    poseTracker.leftElbowAngle = smoothAngle(
+                        prevAngles.leftElbow,
+                        calculateAngle(lm[11], lm[13], lm[15])
+                    );
+                    prevAngles.leftElbow = poseTracker.leftElbowAngle;
+                }
+                poseTracker.activeElbowAngle = isRight
+                    ? poseTracker.rightElbowAngle
+                    : poseTracker.leftElbowAngle;
+            }
+
+            if (active.rotation) {
+                if (isRight) {
+                    poseTracker.rightShoulderExternalRotation =
+                        calculateShoulderExternalRotation(lm[12], lm[14], lm[16]);
+                } else {
+                    poseTracker.leftShoulderExternalRotation =
+                        calculateShoulderExternalRotation(lm[11], lm[13], lm[15]);
+                }
             }
         });
-
         hands.onResults((results) => {
             handTracker.openPercentage = 0;
             if (!results.multiHandLandmarks || !results.multiHandedness) return;
 
-            const count = Math.min(
-                results.multiHandLandmarks.length,
-                results.multiHandedness.length
-            );
-
             for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-
                 let label = results.multiHandedness[i].label.toLowerCase();
                 const hand = results.multiHandLandmarks[i];
                 if (label === "left") label = "right";
                 else if (label === "right") label = "left";
                 if (label !== affectedHand) continue;
-                handTracker.thumbAngle = calculateAngle(hand[1], hand[2], hand[4]);
-                handTracker.indexAngle = calculateAngle(hand[5], hand[6], hand[8]);
-                handTracker.middleAngle = calculateAngle(hand[9], hand[10], hand[12]);
-                handTracker.ringAngle = calculateAngle(hand[13], hand[14], hand[16]);
-                handTracker.pinkyAngle = calculateAngle(hand[17], hand[18], hand[20]);
 
                 const active = getActiveMetrics();
-
-                if (active.hand) {
-                    handTracker.openPercentage =
-                        calculateHandOpenPercentageFromAngles(handTracker);
+                if (active.hand && isPalmFacingCamera(hand)) {
+                    handTracker.thumbAngle  = calculateAngle(hand[1], hand[2], hand[4]);
+                    handTracker.indexAngle  = calculateAngle(hand[5], hand[6], hand[8]);
+                    handTracker.middleAngle = calculateAngle(hand[9], hand[10], hand[12]);
+                    handTracker.ringAngle   = calculateAngle(hand[13], hand[14], hand[16]);
+                    handTracker.pinkyAngle  = calculateAngle(hand[17], hand[18], hand[20]);
+                    handTracker.openPercentage = calculateHandOpenPercentageFromAngles(handTracker);
                 } else {
                     handTracker.openPercentage = 0;
                 }
-                break; 
+                break;
             }
         });
 
@@ -1184,65 +1111,38 @@
             return angle;
         }
         
-        function calculateShoulderRotation(shoulder, elbow, wrist, hip) {
+        function calculateShoulderExternalRotation(shoulder, elbow, wrist) {
+            if (!shoulder || !elbow || !wrist) return 0;
 
-            const elbowAngle = calculateAngle(shoulder, elbow, wrist);
+            const isRight = affectedHand === "right";
 
-            if (elbowAngle < 30 || elbowAngle > 150) return 0;
-
-            const forearm = {
-                x: wrist.x - elbow.x,
-                y: wrist.y - elbow.y
-            };
-
-            const upperArm = {
-                x: elbow.x - shoulder.x,
-                y: elbow.y - shoulder.y
-            };
-
-            const dot = upperArm.x * forearm.x + upperArm.y * forearm.y;
-
-            const mag1 = Math.hypot(upperArm.x, upperArm.y);
-            const mag2 = Math.hypot(forearm.x, forearm.y);
-
-            if (mag1 * mag2 === 0) return 0;
-
-            let cosTheta = dot / (mag1 * mag2);
-            cosTheta = Math.max(-1, Math.min(1, cosTheta));
-
-            let angle = Math.acos(cosTheta) * 180 / Math.PI;
-
-            const wristToHip = Math.hypot(
-                wrist.x - hip.x,
-                wrist.y - hip.y
+           
+            const upperArmLen = Math.sqrt(
+                Math.pow(elbow.x - shoulder.x, 2) +
+                Math.pow(elbow.y - shoulder.y, 2)
             );
+            if (upperArmLen < 0.01) return 0;
 
-            const shoulderToHip = Math.hypot(
-                shoulder.x - hip.x,
-                shoulder.y - hip.y
-            );
+            const uAxN = (elbow.x - shoulder.x) / upperArmLen;
+            const uAyN = (elbow.y - shoulder.y) / upperArmLen;
 
-            let distanceNorm = wristToHip / (shoulderToHip * 1.5);
+            
+            const fAx = wrist.x - elbow.x;
+            const fAy = wrist.y - elbow.y;
+            const forearmLen = Math.sqrt(fAx * fAx + fAy * fAy);
+            if (forearmLen < 0.01) return 0;
 
-            distanceNorm = Math.max(0, Math.min(1, distanceNorm));
+            const fAxN = fAx / forearmLen;
+            const fAyN = fAy / forearmLen;
 
-            const minROM = 60;
-            const maxROM = 150;
-
-            let rotation = ((angle - minROM) / (maxROM - minROM)) * 100;
-
-            const spatialBoost = distanceNorm * 25;
-
-            let finalRotation = rotation + spatialBoost;
-
-            if (!window._prevRotation) window._prevRotation = 0;
-
-            finalRotation = window._prevRotation * 0.7 + finalRotation * 0.3;
-            window._prevRotation = finalRotation;
-
-            return Math.max(0, Math.min(100, finalRotation));
+            const perpX = isRight ? -uAyN :  uAyN;
+            const perpY = isRight ?  uAxN : -uAxN;
+            const dotPerp  = fAxN * perpX + fAyN * perpY;
+            const dotAlong = fAxN * uAxN  + fAyN * uAyN;
+            let angle = Math.atan2(dotPerp, dotAlong) * (180 / Math.PI);
+            angle = Math.max(0, Math.min(90, angle));
+            return angle * 2;
         }
-
         function updateAngleGridState() {
             const active = getActiveMetrics();
 
