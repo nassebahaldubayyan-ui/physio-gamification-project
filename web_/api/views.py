@@ -146,7 +146,7 @@ def game_catching_stars(request):
             current_level = get_level_from_assessment(patient)
             print("📊 No previous sessions")
         else:
-            level_thresholds = {1: 10, 2: 20, 3: 999}
+            level_thresholds = {1: 8, 2: 16, 3: 999}
             last_level = last_session.level
             last_score = last_session.score
         
@@ -294,7 +294,7 @@ def game_catching_objects(request):
             current_level = get_level_from_assessment(patient)
             print("📊 No previous sessions")
         else:
-            level_thresholds = {1: 20, 2: 40, 3: 999}
+            level_thresholds = {1: 18, 2: 36, 3: 999}
             last_level = last_session.level
             last_score = last_session.score
         
