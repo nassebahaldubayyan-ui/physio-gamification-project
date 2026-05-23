@@ -529,6 +529,7 @@
                 gender: document.getElementById('genderInput').value,
                 affected_hand: document.getElementById('affectedHandInput').value,
                 address: document.getElementById('addressInput').value.trim(),
+                avatar: localStorage.getItem('userAvatar') || ''
             };
 
             if (!updatedData.email || !updatedData.phone) {

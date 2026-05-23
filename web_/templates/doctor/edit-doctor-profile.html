@@ -527,7 +527,8 @@
                 phone: document.getElementById('phone').value.trim(),
                 specialty: document.getElementById('specialty').value.trim(),
                 hospital: document.getElementById('hospital').value.trim(),
-                experience: document.getElementById('experience').value
+                experience: document.getElementById('experience').value,
+                avatar: localStorage.getItem('doctorAvatar') || ''
             };
 
             if (!updatedData.name || !updatedData.email || !updatedData.phone) {

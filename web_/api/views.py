@@ -1041,6 +1041,8 @@ def api_update_patient_profile(request):
 
         user.email = data.get('email', user.email)
         user.phone = data.get('phone', user.phone)
+        if data.get('avatar'):
+            user.avatar = data.get('avatar')
         user.save()
 
         patient = Patients.objects.filter(user=user).first()
@@ -1079,6 +1081,8 @@ def api_update_doctor_profile(request):
         user.name = data.get('name', user.name)
         user.email = data.get('email', user.email)
         user.phone = data.get('phone', user.phone)
+        if data.get('avatar'):
+            user.avatar = data.get('avatar')
         user.save()
 
         doctor = Doctors.objects.filter(user=user).first()
