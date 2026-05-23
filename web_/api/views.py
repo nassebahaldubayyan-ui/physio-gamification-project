@@ -1101,6 +1101,17 @@ def api_update_doctor_profile(request):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
     
 @require_http_methods(["GET"])
+def api_get_avatar(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+        user = Users.objects.get(id=user_id)
+        return JsonResponse({"success": True, "avatar": user.avatar or ''})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500) 
+      
+@require_http_methods(["GET"])
 def api_get_my_doctor_data(request):
     try:
         user_id = request.session.get('user_id')

@@ -429,7 +429,7 @@
     <div class="container">
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="avatar" id="sidebarAvatar"><i class="fas fa-user-circle"></i></div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
                 <p id="doctorInfo">Physiotherapy • #3</p>
             </div>
@@ -732,8 +732,36 @@
             if(e.target===document.getElementById('addModal')) closeAddModal(); 
             if(e.target===document.getElementById('deleteModal')) closeDeleteModal(); 
         };
-        
-        document.addEventListener('DOMContentLoaded', () => { loadPatients(); });
+        async function loadDoctorInfo() {
+            try {
+                const response = await fetch('/api/my-doctor-data/');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('doctorName').textContent = data.doctor.name || 'Doctor';
+                    document.getElementById('doctorInfo').textContent = `${data.doctor.specialty || 'Physiotherapy'} • #${data.doctor.doctor_id || ''}`;
+                }
+            } catch (e) {
+                console.error('Error loading doctor info');
+            }
+        }
+
+        async function loadSidebarAvatar() {
+            try {
+                const response = await fetch('/api/get-avatar/');
+                const data = await response.json();
+                const avatarDiv = document.getElementById('sidebarAvatar');
+                if (data.success && data.avatar && avatarDiv) {
+                    avatarDiv.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                }
+            } catch (e) {
+                console.error('Error loading avatar');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDoctorInfo();
+            loadSidebarAvatar();
+            loadPatients();
+        });
     </script>
 </body>
 </html>
