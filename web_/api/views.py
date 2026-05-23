@@ -26,7 +26,63 @@ def doctor_login(request):
     return render(request, 'doctor-login.html')
 
 def profile(request):
-    return render(request, 'profile.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('/gamer-login/')
+
+    try:
+        user = Users.objects.get(id=user_id)
+    except Users.DoesNotExist:
+        return redirect('/gamer-login/')
+
+    context = {'user': user, 'role': user.role}
+
+    if user.role == 'doctor':
+        try:
+            doctor = Doctors.objects.get(user=user)
+        except Doctors.DoesNotExist:
+            doctor = None
+
+        patient_count = Patients.objects.filter(
+            assigned_doctor_id=user.id
+        ).count()
+
+        total_sessions = GameSessions.objects.filter(
+            patient__assigned_doctor_id=user.id
+        ).count()
+
+        context.update({
+            'doctor': doctor,
+            'patient_count': patient_count,
+            'total_sessions': total_sessions,
+        })
+
+    else:
+        try:
+            patient = Patients.objects.get(user=user)
+        except Patients.DoesNotExist:
+            patient = None
+
+        from django.db.models import Avg, Count
+        stats = GameSessions.objects.filter(
+            patient__user=user
+        ).aggregate(
+            avg_accuracy=Avg('accuracy'),
+            total_sessions=Count('id'),
+        )
+
+        avg_accuracy = stats['avg_accuracy']
+        accuracy_display = (
+            f"{round(avg_accuracy)}%" if avg_accuracy is not None else "0%"
+        )
+
+        context.update({
+            'patient': patient,
+            'accuracy_display': accuracy_display,
+            'total_sessions': stats['total_sessions'] or 0,
+        })
+
+    return render(request, 'profile.html', context)
 
 def settings(request):
     return render(request, 'settings.html')
