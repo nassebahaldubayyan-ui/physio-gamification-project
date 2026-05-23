@@ -36,11 +36,24 @@ def select_patient(request):
 
 # Patient Pages
 def patient_dashboard(request):
-    patient = Patients.objects.first()
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('/gamer-login/')
+    
+    patient = Patients.objects.filter(user_id=user_id).first()
+    if not patient:
+        return redirect('/gamer-login/')
+
     level = patient.current_level or 1
+    has_assessment = patient.has_assessment_video == 1
 
     return render(request, 'patient/patient.html', {
-        'level': level
+        'level': level,
+        'has_assessment': has_assessment,
+        'patient_name': patient.user.name,
+        'patient_id': patient.patient_id,
+        'affected_hand': patient.affected_hand or 'right',
+        'user_id': patient.user.id,
     })
 
 def patient_chat(request):
