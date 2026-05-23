@@ -1033,19 +1033,30 @@ def api_update_patient_profile(request):
         data = json.loads(request.body)
 
         user = Users.objects.get(id=user_id)
-        user.name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+
+        if data.get('first_name') or data.get('last_name'):
+            user.name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+        elif data.get('name'):
+            user.name = data.get('name')
+
         user.email = data.get('email', user.email)
         user.phone = data.get('phone', user.phone)
         user.save()
 
         patient = Patients.objects.filter(user=user).first()
         if patient:
-            patient.date_of_birth = data.get('date_of_birth', patient.date_of_birth)
-            patient.gender = data.get('gender', patient.gender)
-            patient.affected_hand = data.get('affected_hand', patient.affected_hand)
-            patient.address = data.get('address', patient.address)
-            patient.city = data.get('city', patient.city)
-            patient.country = data.get('country', patient.country)
+            if data.get('date_of_birth'):
+                patient.date_of_birth = data.get('date_of_birth')
+            if data.get('gender'):
+                patient.gender = data.get('gender')
+            if data.get('affected_hand'):
+                patient.affected_hand = data.get('affected_hand')
+            if data.get('address') is not None:
+                patient.address = data.get('address')
+            if data.get('city') is not None:
+                patient.city = data.get('city')
+            if data.get('country') is not None:
+                patient.country = data.get('country')
             patient.save()
 
         return JsonResponse({"success": True, "message": "Profile updated successfully"})
