@@ -31,7 +31,7 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
 8. Physiotherapists can review progress through the medical dashboard.
 
 ---
-### notes to the team:
+#### *notes to the team:
 ## befor you start working on the project
 1) first go to file that contain you git copy path 
 2) open cmd write cd paste path here
