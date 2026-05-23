@@ -1023,6 +1023,95 @@ def api_get_my_patient_data(request):
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
+def api_update_patient_profile(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        data = json.loads(request.body)
+
+        user = Users.objects.get(id=user_id)
+        user.name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+        user.email = data.get('email', user.email)
+        user.phone = data.get('phone', user.phone)
+        user.save()
+
+        patient = Patients.objects.filter(user=user).first()
+        if patient:
+            patient.date_of_birth = data.get('date_of_birth', patient.date_of_birth)
+            patient.gender = data.get('gender', patient.gender)
+            patient.affected_hand = data.get('affected_hand', patient.affected_hand)
+            patient.address = data.get('address', patient.address)
+            patient.city = data.get('city', patient.city)
+            patient.country = data.get('country', patient.country)
+            patient.save()
+
+        return JsonResponse({"success": True, "message": "Profile updated successfully"})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_update_doctor_profile(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        data = json.loads(request.body)
+
+        user = Users.objects.get(id=user_id)
+        user.name = data.get('name', user.name)
+        user.email = data.get('email', user.email)
+        user.phone = data.get('phone', user.phone)
+        user.save()
+
+        doctor = Doctors.objects.filter(user=user).first()
+        if doctor:
+            doctor.specialty = data.get('specialty', doctor.specialty)
+            doctor.hospital = data.get('hospital', doctor.hospital)
+            if data.get('experience'):
+                doctor.experience = int(data.get('experience'))
+            doctor.save()
+
+        return JsonResponse({"success": True, "message": "Profile updated successfully"})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+@require_http_methods(["GET"])
+def api_get_my_doctor_data(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        user = Users.objects.get(id=user_id)
+        doctor = Doctors.objects.filter(user=user).first()
+
+        return JsonResponse({
+            "success": True,
+            "doctor": {
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone or "",
+                "doctor_id": doctor.doctor_id if doctor else "",
+                "specialty": doctor.specialty if doctor else "",
+                "license_number": doctor.license_number if doctor else "",
+                "hospital": doctor.hospital if doctor else "",
+                "experience": doctor.experience if doctor else "",
+            }
+        })
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+     
+@csrf_exempt
 @require_http_methods(["GET"])
 def api_get_messages(request):
     """Get messages between two users"""
