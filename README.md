@@ -45,18 +45,20 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
    - Physiotherapists review patient progress and adjust rehabilitation plans based on objective performance data.
 
 ---
+---
+---
 #### *notes to the team:
-## befor you start working on the project
-1) first go to file that contain you git copy path 
-2) open cmd write cd paste path here
-3) git pull
+## Befor you start working on the project
+1) First go to file that contain you git copy path 
+2) Open cmd write cd paste path here
+3) Git pull
 4) DO NOT forget to git push after you finish!
 -----
 ## Database Setup (SQLite_web)
 
 This project uses **SQLite** as the database and **sqlite_web** to provide a simple web interface for viewing and managing the database.
 
-## 1. Install SQLite_web
+### 1. Install SQLite_web
 
 > This step is done only once during initial setup.
 
@@ -66,7 +68,7 @@ Run the following command in your terminal:
 pip install sqlite-web
 ```
 
-## 2. Run SQLite_web
+### 2. Run SQLite_web
 
 To start the web interface for your database, run this line in vscode:
 
@@ -80,10 +82,6 @@ The interface will be available at:
 http://127.0.0.1:8080
 ```
 
-## 3. View the DataBase inside VScode:
+### 3. View the DataBase inside VScode:
 
 ctrl + shift + p 🡢 sqlite: open database 🡢 choose database
-
-# to activate environment for website and run django
-1) venv\Scripts\activate
-2) python manage.py runserver 
