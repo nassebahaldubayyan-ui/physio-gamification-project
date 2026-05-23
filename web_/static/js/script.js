@@ -120,7 +120,7 @@ function formatTime(dateString) {
 }
 
 // ============================================
-// PATIENT LOGIN FUNCTION 
+// PATIENT LOGIN FUNCTION
 // ============================================
 
 async function loginGamer() {
@@ -679,8 +679,8 @@ function showNotification(message, type = 'info') {
     notification.className = 'custom-notification';
     
     const icon = type === 'success' ? 'fa-check-circle' : 
-                 type === 'error' ? 'fa-exclamation-circle' : 
-                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+                type === 'error' ? 'fa-exclamation-circle' : 
+                type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
     
     notification.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(message)}`;
     

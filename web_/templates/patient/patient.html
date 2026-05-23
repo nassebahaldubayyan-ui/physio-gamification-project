@@ -84,53 +84,53 @@
 
 
         /* Message Button with Red Notification */
-.message-btn {
-    background: #f1f5f9;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+        .message-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
 }
 
-.message-btn:hover {
-    background: #e2e8f0;
-    transform: scale(1.1);
+        .message-btn:hover {
+            background: #e2e8f0;
+            transform: scale(1.1);
 }
 
-/* RED STYLE when there are new messages */
-.message-btn.has-new {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 2px solid #ef4444;
-    animation: shake 0.5s ease-in-out;
+        /* RED STYLE when there are new messages */
+        .message-btn.has-new {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 2px solid #ef4444;
+            animation: shake 0.5s ease-in-out;
 }
 
-.message-btn.has-new:hover {
-    background: #fecaca;
+        .message-btn.has-new:hover {
+            background: #fecaca;
 }
 
-.message-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: white;
-    font-size: 11px;
-    font-weight: bold;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulse 1.5s infinite;
+        .message-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 1.5s infinite;
 }
 
 @keyframes shake {
@@ -198,42 +198,42 @@
         }
 
         /* Notification Bell with Badge */
-.notification-bell {
-    position: relative;
-    background: #f1f5f9;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        .notification-bell {
+            position: relative;
+            background: #f1f5f9;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 }
 
-.notification-bell:hover {
-    background: #e2e8f0;
-    transform: scale(1.1);
+        .notification-bell:hover {
+            background: #e2e8f0;
+            transform: scale(1.1);
 }
 
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulse 1.5s infinite;
-    box-shadow: 0 0 0 2px white;
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 0 2px white;
 }
 
 @keyframes pulse {
@@ -253,8 +253,8 @@
     50% { background-color: #fee2e2; border: 2px solid #ef4444; }
 }
 
-.notification-bell.attention {
-    animation: flash 1s ease-in-out 3;
+        .notification-bell.attention {
+            animation: flash 1s ease-in-out 3;
 }
 
         .games-grid {
@@ -559,55 +559,55 @@
         }
 
     /* Notification Bell with Red Badge */
-.notification-bell {
-    position: relative;
-    background: #f1f5f9;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+            .notification-bell {
+                position: relative;
+                background: #f1f5f9;
+                border: none;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                font-size: 24px;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
 }
 
-.notification-bell:hover {
-    background: #e2e8f0;
-    transform: scale(1.1);
+            .notification-bell:hover {
+                background: #e2e8f0;
+                transform: scale(1.1);
 }
 
-/* RED BADGE ON BELL */
-.notification-bell.red-bell {
-    background: #fee2e2;
-    border: 2px solid #ef4444;
-    color: #dc2626;
-    animation: shake 0.5s ease-in-out;
+    /* RED BADGE ON BELL */
+            .notification-bell.red-bell {
+                background: #fee2e2;
+                border: 2px solid #ef4444;
+                color: #dc2626;
+                animation: shake 0.5s ease-in-out;
 }
 
-.notification-bell.red-bell:hover {
-    background: #fecaca;
-    transform: scale(1.1);
+            .notification-bell.red-bell:hover {
+                background: #fecaca;
+                transform: scale(1.1);
 }
 
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulse 1.5s infinite;
-    box-shadow: 0 0 0 2px white;
+            .notification-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                font-size: 12px;
+                font-weight: bold;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: pulse 1.5s infinite;
+                box-shadow: 0 0 0 2px white;
 }
 
 @keyframes pulse {
@@ -633,8 +633,8 @@
     50% { background-color: #fee2e2; border: 2px solid #ef4444; }
 }
 
-.notification-bell.attention {
-    animation: flash 1s ease-in-out 3;
+        .notification-bell.attention {
+            animation: flash 1s ease-in-out 3;
 }
     </style>
 </head>
@@ -764,7 +764,7 @@
                 enableGameCards();
             }
         });
-       
+
         function showAssessmentDialog() {
             const existingDialog = document.querySelector('.assessment-popup');
             if (existingDialog) {
@@ -927,7 +927,7 @@
             disableGameCards();
         }
 
-   
+
         function disableGameCards() {
             const gameCards = document.querySelectorAll('.game-card');
             gameCards.forEach(card => {
@@ -1029,8 +1029,8 @@
             notification.className = 'custom-notification';
             
             const icon = type === 'success' ? 'fa-check-circle' : 
-                         type === 'error' ? 'fa-exclamation-circle' : 
-                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
             
             notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
             

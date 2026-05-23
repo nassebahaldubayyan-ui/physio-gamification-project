@@ -1,5 +1,5 @@
 /* ============================================
-   STATUS BADGES
+STATUS BADGES
    ============================================ */
 .status-badge {
     padding: 6px 12px;
@@ -20,7 +20,7 @@
 }
 
 /* ============================================
-   LOGOUT MODAL ANIMATIONS
+LOGOUT MODAL ANIMATIONS
    ============================================ */
 @keyframes fadeIn {
     from {
@@ -65,7 +65,7 @@
 }
 
 /* ============================================
-   CUSTOM NOTIFICATION
+CUSTOM NOTIFICATION
    ============================================ */
 .custom-notification {
     cursor: pointer;
@@ -78,7 +78,7 @@
 }
 
 /* ============================================
-   LOGOUT MODAL
+LOGOUT MODAL
    ============================================ */
 .logout-modal {
     position: fixed;
@@ -95,7 +95,7 @@
 }
 
 /* ============================================
-   AFFECTED HAND BADGE
+AFFECTED HAND BADGE
    ============================================ */
 .affected-hand-badge {
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);

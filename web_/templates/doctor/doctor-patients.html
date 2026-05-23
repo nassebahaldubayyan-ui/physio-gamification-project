@@ -7,59 +7,387 @@
     <title>Patients List - Rehabilitation System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f1f5f9; }
-        .container { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 30px 20px; }
-        .doctor-info { text-align: center; padding-bottom: 30px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .avatar { width: 100px; height: 100px; background: transparent; border-radius: 50%; margin: 0 auto 15px; border: 4px solid #60a5fa; display: flex; align-items: center; justify-content: center; font-size: 60px; color: #60a5fa; }
-        .doctor-info h4 { font-size: 22px; margin-bottom: 5px; }
-        .doctor-info p { color: #cbd5e1; font-size: 14px; }
-        .sidebar ul { list-style: none; }
-        .sidebar li { padding: 15px 20px; margin: 8px 0; border-radius: 12px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; color: white; }
-        .sidebar li i { font-size: 20px; width: 24px; }
-        .sidebar li.active { background: rgba(255,255,255,0.15); border-left: 4px solid #60a5fa; }
-        .sidebar li:hover:not(.active) { background: rgba(255,255,255,0.08); transform: translateX(5px); }
-        .sidebar-bottom { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-bottom p { padding: 12px 20px; margin: 5px 0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: white; }
-        .sidebar-bottom p:hover { background: rgba(255,255,255,0.1); }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
-        .page-header h2 { color: #1e293b; font-size: 32px; font-weight: 700; }
-        .search-bar { background: white; padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 10px; width: 300px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .search-bar input { border: none; outline: none; flex: 1; font-size: 16px; }
-        .search-bar i { color: #94a3b8; }
-        .add-patient-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .add-patient-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16,185,129,0.3); }
-        .patients-table { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px 10px; color: #64748b; font-weight: 600; font-size: 14px; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 15px 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f8fafc; }
-        .patient-avatar-small { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #dbeafe; color: #1d4ed8; }
-        .btn-details { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; margin-right: 8px; }
-        .btn-details:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
-        .btn-delete { padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
-        .btn-delete:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
-        .btn-back { margin-top: 25px; padding: 12px 30px; background: #e2e8f0; color: #475569; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
-        .btn-back:hover { background: #cbd5e1; transform: translateY(-2px); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 10000; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 30px; padding: 35px; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; }
-        .modal-content h3 { font-size: 28px; color: #1e293b; margin-bottom: 20px; text-align: center; }
-        .close-modal { float: right; font-size: 28px; cursor: pointer; color: #94a3b8; }
-        .close-modal:hover { color: #ef4444; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; }
-        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; }
-        .form-group input:focus, .form-group select:focus { border-color: #3b82f6; outline: none; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .modal-buttons { display: flex; gap: 15px; margin-top: 25px; }
-        .modal-buttons button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        .btn-submit { background: #10b981; color: white; }
-        .btn-cancel { background: #f1f5f9; color: #475569; }
-        .delete-modal { max-width: 400px; text-align: center; }
+        *
+        {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body
+        {
+            background: #f1f5f9;
+        }
+        .container
+        {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar
+        {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 30px 20px;
+        }
+        .doctor-info
+        {
+            text-align: center;
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .avatar
+        {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 4px solid #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #60a5fa;
+        }
+        .doctor-info h4
+        {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .doctor-info p
+        {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        .sidebar ul
+        {
+            list-style: none;
+        }
+        .sidebar li
+        {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+        }
+        .sidebar li i
+        {
+            font-size: 20px;
+            width: 24px;
+        }
+        .sidebar li.active
+        {
+            background: rgba(255,255,255,0.15);
+            border-left: 4px solid #60a5fa;
+        }
+        .sidebar li:hover:not(.active)
+        {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        .sidebar-bottom
+        {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-bottom p
+        {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+        .sidebar-bottom p:hover
+        {
+            background: rgba(255,255,255,0.1);
+        }
+        .main-content
+        {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .page-header
+        {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .page-header h2
+        {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .search-bar
+        {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 300px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .search-bar input
+        {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 16px;
+        }
+        .search-bar i
+        {
+            color: #94a3b8;
+        }
+        .add-patient-btn
+        {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .add-patient-btn:hover
+        {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16,185,129,0.3);
+        }
+        .patients-table
+        {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        table
+        {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th
+        {
+            text-align: left;
+            padding: 15px 10px;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td
+        {
+            padding: 15px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+        tr:last-child td
+        {
+            border-bottom: none;
+        }
+        tr:hover td
+        {
+            background: #f8fafc;
+        }
+        .patient-avatar-small
+        {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        .status-badge
+        {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .btn-details
+        {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        .btn-details:hover
+        {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+        .btn-delete
+        {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-delete:hover
+        {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+        }
+        .btn-back
+        {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-back:hover
+        {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        .modal
+        {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content
+        {
+            background: white;
+            border-radius: 30px;
+            padding: 35px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-content h3
+        {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .close-modal
+        {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+        .close-modal:hover
+        {
+            color: #ef4444;
+        }
+        .form-group
+        {
+            margin-bottom: 20px;
+        }
+        .form-group label
+        {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .form-group input, .form-group select
+        {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .form-group input:focus, .form-group select:focus
+        {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .form-row
+        {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .modal-buttons
+        {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .modal-buttons button
+        {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-submit
+        {
+            background: #10b981;
+            color: white;
+        }
+        .btn-cancel
+        {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .delete-modal
+        {
+            max-width: 400px;
+            text-align: center;
+        }
         
         /* Notification Styles - Same as messages page */
         @keyframes slideIn {
@@ -240,11 +568,11 @@
             return age + ' years';
         }
 
-        function filterPatients() { 
-            const filter = document.getElementById('searchInput').value.toLowerCase(); 
-            const rows = document.querySelectorAll('#patientsTableBody tr'); 
+        function filterPatients() {
+            const filter = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#patientsTableBody tr');
             rows.forEach(row => {
-                const name = row.cells[0]?.innerText.toLowerCase() || ''; 
+                const name = row.cells[0]?.innerText.toLowerCase() || '';
                 row.style.display = name.includes(filter) ? '' : 'none';
             }); 
         }
@@ -256,33 +584,33 @@
         // ============================================
         // DELETE PATIENT
         // ============================================
-        function confirmDelete(id) { 
-            currentDeleteId = id; 
-            document.getElementById('deleteModal').style.display = 'flex'; 
+        function confirmDelete(id) {
+            currentDeleteId = id;
+            document.getElementById('deleteModal').style.display = 'flex';
         }
         
-        function closeDeleteModal() { 
-            document.getElementById('deleteModal').style.display = 'none'; 
-            currentDeleteId = null; 
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            currentDeleteId = null;
         }
 
         document.getElementById('confirmDeleteBtn').onclick = async function() {
             if(!currentDeleteId) return;
             try {
-                const res = await fetch('/api/delete-patient/', { 
-                    method:'POST', 
-                    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')}, 
-                    body:JSON.stringify({patient_id:currentDeleteId}) 
+                const res = await fetch('/api/delete-patient/', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+                    body:JSON.stringify({patient_id:currentDeleteId})
                 });
                 const data = await res.json();
-                if(data.success) { 
+                if(data.success) {
                     showNotification('✅ Patient deleted successfully!', 'success');
-                    closeDeleteModal(); 
-                    loadPatients(); 
-                } else { 
+                    closeDeleteModal();
+                    loadPatients();
+                } else {
                     showNotification(data.error || 'Failed to delete patient', 'error');
                 }
-            } catch(e) { 
+            } catch(e) {
                 showNotification('Connection error. Please try again.', 'error');
             }
         };
@@ -290,35 +618,35 @@
         // ============================================
         // ADD PATIENT
         // ============================================
-        function openAddModal() { 
-            document.getElementById('addModal').style.display = 'flex'; 
-            document.getElementById('addForm').reset(); 
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+            document.getElementById('addForm').reset();
         }
         
-        function closeAddModal() { 
-            document.getElementById('addModal').style.display = 'none'; 
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
         }
 
         document.getElementById('addForm').onsubmit = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('name').value.trim(), 
-                  email = document.getElementById('email').value.trim(), 
-                  password = document.getElementById('password').value;
-            const phone = document.getElementById('phone').value.trim(), 
-                  dob = document.getElementById('dob').value, 
-                  gender = document.getElementById('gender').value;
-            const condition = document.getElementById('condition').value.trim(), 
-                  therapy = document.getElementById('therapy').value, 
-                  hand = document.getElementById('hand').value, 
-                  level = document.getElementById('level').value;
+            const name = document.getElementById('name').value.trim(),
+                email = document.getElementById('email').value.trim(),
+                password = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value.trim(),
+                dob = document.getElementById('dob').value,
+                gender = document.getElementById('gender').value;
+            const condition = document.getElementById('condition').value.trim(),
+                therapy = document.getElementById('therapy').value,
+                hand = document.getElementById('hand').value,
+                level = document.getElementById('level').value;
             
-            if(!name||!email||!password||!dob||!gender||!condition||!therapy){ 
-                showNotification('Please fill all required fields', 'error'); 
+            if(!name||!email||!password||!dob||!gender||!condition||!therapy){
+                showNotification('Please fill all required fields', 'error');
                 return; 
             }
             
-            const btn = document.querySelector('#addForm .btn-submit'); 
-            btn.disabled = true; 
+            const btn = document.querySelector('#addForm .btn-submit');
+            btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
             
             try {
@@ -330,8 +658,8 @@
                 const regData = await reg.json();
                 
                 if(regData.success){
-                    const userId = regData.user.id, 
-                          doctorId = localStorage.getItem('doctorId') || '3';
+                    const userId = regData.user.id,
+                        doctorId = localStorage.getItem('doctorId') || '3';
                     const detailsRes = await fetch('/api/add-patient-details/',{
                         method:'POST',
                         headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
@@ -349,33 +677,33 @@
                     });
                     if(detailsRes.ok) {
                         showNotification('✅ Patient created successfully!', 'success');
-                        closeAddModal(); 
+                        closeAddModal();
                         loadPatients();
-                    } else { 
-                        showNotification('Patient created but details failed', 'warning'); 
+                    } else {
+                        showNotification('Patient created but details failed', 'warning');
                     }
-                } else { 
-                    showNotification(regData.error || 'Registration failed', 'error'); 
+                } else {
+                    showNotification(regData.error || 'Registration failed', 'error');
                 }
-            } catch(e){ 
-                showNotification('Connection error. Please try again.', 'error'); 
-            } finally{ 
-                btn.disabled = false; 
-                btn.innerHTML = 'Create Patient'; 
+            } catch(e){
+                showNotification('Connection error. Please try again.', 'error');
+            } finally{
+                btn.disabled = false;
+                btn.innerHTML = 'Create Patient';
             }
         };
 
         // ============================================
         // COOKIE HELPER
         // ============================================
-        function getCookie(n){ 
-            let v = null; 
-            if(document.cookie) 
+        function getCookie(n){
+            let v = null;
+            if(document.cookie)
                 document.cookie.split(';').forEach(c=>{
                     let t=c.trim().split('=');
                     if(t[0]===n) v = decodeURIComponent(t[1]);
-                }); 
-            return v; 
+                });
+            return v;
         }
         
         // ============================================

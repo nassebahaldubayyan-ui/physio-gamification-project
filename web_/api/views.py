@@ -594,12 +594,12 @@ def api_add_patient_details(request):
             with connection.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO patients (
-                        user_id, patient_id, date_of_birth, gender, 
-                        medical_condition, therapy_type, current_level, 
+                        user_id, patient_id, date_of_birth, gender,
+                        medical_condition, therapy_type, current_level,
                         affected_hand, assigned_doctor_id
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, [user_id, patient_id, date_of_birth, gender, 
-                medical_condition, therapy_type, current_level, 
+                """, [user_id, patient_id, date_of_birth, gender,
+                medical_condition, therapy_type, current_level,
                 affected_hand, assigned_doctor_id])
                 patient_id_db = cursor.lastrowid
         
@@ -677,7 +677,7 @@ def api_delete_patient(request):
         traceback.print_exc()
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 # ============================================
-# NEW API: GET PATIENTS FOR DOCTOR
+# GET PATIENTS FOR DOCTOR
 # ============================================
 @require_http_methods(["GET"])
 def api_get_patients_for_doctor(request):
@@ -861,7 +861,7 @@ def api_add_patient_details(request):
             if existing:
                 # Update existing patient
                 cursor.execute("""
-                    UPDATE patients SET 
+                    UPDATE patients SET
                         patient_id = %s,
                         date_of_birth = %s,
                         gender = %s,
@@ -871,20 +871,20 @@ def api_add_patient_details(request):
                         affected_hand = %s,
                         assigned_doctor_id = %s
                     WHERE user_id = %s
-                """, [patient_id, date_of_birth, gender, medical_condition, 
-                      therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
+                """, [patient_id, date_of_birth, gender, medical_condition,
+                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
                 print("✅ Updated existing patient")
             else:
                 # Insert new patient
                 cursor.execute("""
                     INSERT INTO patients (
-                        user_id, patient_id, date_of_birth, gender, 
-                        medical_condition, therapy_type, current_level, 
+                        user_id, patient_id, date_of_birth, gender,
+                        medical_condition, therapy_type, current_level,
                         affected_hand, assigned_doctor_id
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, [user_id, patient_id, date_of_birth, gender, 
-                      medical_condition, therapy_type, current_level, 
-                      affected_hand, assigned_doctor_id])
+                """, [user_id, patient_id, date_of_birth, gender,
+                    medical_condition, therapy_type, current_level,
+                    affected_hand, assigned_doctor_id])
                 print("✅ Inserted new patient")
         
         return JsonResponse({

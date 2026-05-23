@@ -379,9 +379,8 @@
                     <video id="video" autoplay muted playsinline style="width:100%; max-height:500px; object-fit:cover; border-radius:10px; background:#000;"></video>
                 </div>
             </div>
-             <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
+            <div class="hand-info"><div class="hand-badge" id="handBadge">Right Hand</div><div><strong>Targeted Side</strong><p style="color: #64748b; font-size: 14px;">Focus on your affected arm</p></div></div>
         </div>
-             
         <div class="angles-grid" id="anglesGrid" style="display: none;">
             <div class="angle-card"><h4><span></span> Left Shoulder</h4><div><span class="angle-value-large" id="leftShoulderAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
             <div class="angle-card"><h4><span></span> Left Elbow</h4><div><span class="angle-value-large" id="leftElbowAngleDisplay">0</span><span class="angle-unit-large">°</span></div></div>
@@ -682,99 +681,98 @@
         }
         
         function startRecording() {
-            recordedChunks = []; 
-            seconds = 0; 
+            recordedChunks = [];
+            seconds = 0;
             updateTimerDisplay();
             startVoiceGuide();
             mediaRecorder = new MediaRecorder(videoStream, {
                 mimeType: 'video/webm;codecs=vp8'
             });
             mediaRecorder.ondataavailable = e => { if(e.data.size) recordedChunks.push(e.data); };
-            mediaRecorder.onstop = () => { 
-                document.getElementById('saveBtn').disabled = false; 
-                document.getElementById('retakeBtn').disabled = false; 
+            mediaRecorder.onstop = () => {
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('retakeBtn').disabled = false;
             };
-            mediaRecorder.start(); 
+            mediaRecorder.start();
             isRecording = true;
-            timerInterval = setInterval(() => { 
-                seconds++; 
-                updateTimerDisplay(); 
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
             }, 1000);
-            document.getElementById('recordBtn').disabled = true; 
+            document.getElementById('recordBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
         }
         
-        function stopRecording() { 
-            if(mediaRecorder && isRecording) { 
-                mediaRecorder.stop(); 
-                isRecording = false; 
-                clearInterval(timerInterval); 
-                document.getElementById('recordBtn').disabled = false; 
-                document.getElementById('stopBtn').disabled = true; 
+        function stopRecording() {
+            if(mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(timerInterval);
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
             }
             stopVoiceGuide();
         }
         
         function updateTimerDisplay() {
-             const mins = Math.floor(seconds/60);
-             const secs = seconds%60; document.getElementById('timer').textContent =
-              `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; }
+            const mins = Math.floor(seconds/60);
+            const secs = seconds%60; document.getElementById('timer').textContent =
+            `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; }
         
         function retakeVideo() {
             stopVoiceGuide();
             resetProgressBar();
-            recordedChunks = []; 
-            if(videoStream) videoStream.getTracks().forEach(t => t.stop()); 
+            recordedChunks = [];
+            if(videoStream) videoStream.getTracks().forEach(t => t.stop());
             camera.stop();
-            navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false }).then(stream => { 
-                videoStream = stream; 
+            navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false }).then(stream => {
+                videoStream = stream;
                 video.srcObject = stream;
-                camera.start();  
-                document.getElementById('saveBtn').disabled = true; 
-                document.getElementById('retakeBtn').disabled = true; 
-                document.getElementById('recordBtn').disabled = false; 
-                document.getElementById('stopBtn').disabled = true; 
-                seconds = 0; 
-                updateTimerDisplay(); 
-                document.getElementById('progressFill').style.width = '0%'; 
+                camera.start();
+                document.getElementById('saveBtn').disabled = true;
+                document.getElementById('retakeBtn').disabled = true;
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                seconds = 0;
+                updateTimerDisplay();
+                document.getElementById('progressFill').style.width = '0%';
                 document.getElementById('currentStatus').innerHTML = '✅ Ready to start recording<br>Press "Start Recording" to begin';
-                showNotification('Camera reset - Click Start Recording to begin', 'info'); 
+                showNotification('Camera reset - Click Start Recording to begin', 'info');
             });
         }
         
-        async function saveVideo() { 
-            if(!recordedChunks.length) { 
-                showNotification('No recording', 'error'); 
-                return; 
-            } 
+        async function saveVideo() {
+            if(!recordedChunks.length) {
+                showNotification('No recording', 'error');
+                return;
+            }
             try {
-                await assessment.finishAssessment();  
+                await assessment.finishAssessment();
             } catch (e) {
-               
+            
             }
             
-            localStorage.setItem('hasAssessmentVideo', 'true'); 
+            localStorage.setItem('hasAssessmentVideo', 'true');
             localStorage.setItem('assessmentCompleted', 'true');
             
             
-            showNotification('✅ Assessment saved! Redirecting...', 'success'); 
+            showNotification('✅ Assessment saved! Redirecting...', 'success');
             
-           
-            setTimeout(() => { 
-                window.location.href = "{% url 'patient_dashboard' %}?reload=true"; 
-            }, 1500); 
+            setTimeout(() => {
+                window.location.href = "{% url 'patient_dashboard' %}?reload=true";
+            }, 1500);
         }
         
-        function goBack() { 
-            if(confirm('Are you sure?')) window.location.href = "{% url 'patient_dashboard' %}"; 
+        function goBack() {
+            if(confirm('Are you sure?')) window.location.href = "{% url 'patient_dashboard' %}";
         }
         
-        function showNotification(msg,type) { 
-            const div = document.createElement('div'); 
-            div.textContent = msg; 
-            div.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;background:${type==='success'?'#10b981':type==='error'?'#ef4444':'#3b82f6'};color:white;z-index:9999;animation:slideInRight 0.3s;`; 
-            document.body.appendChild(div); 
-            setTimeout(()=>div.remove(),3000); 
+        function showNotification(msg,type) {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;background:${type==='success'?'#10b981':type==='error'?'#ef4444':'#3b82f6'};color:white;z-index:9999;animation:slideInRight 0.3s;`;
+            document.body.appendChild(div);
+            setTimeout(()=>div.remove(),3000);
         }
         
         class InitialAssessmentJS {
@@ -818,7 +816,7 @@
                 if (!p || !h) return;
 
                 const isRight = affectedHand === "right";
-                const active = getActiveMetrics(); 
+                const active = getActiveMetrics();
 
                 if (active.shoulder) {
                     this.maxAngles.shoulder = Math.max(

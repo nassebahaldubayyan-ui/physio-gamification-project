@@ -16,7 +16,7 @@ urlpatterns = [
     path('api/patient-details/', views.api_patient_details, name='patient_details'),
     path('api/my-patient-data/', views.api_get_my_patient_data, name='my_patient_data'),
     
-    # NEW API: Get patients for doctor
+    # Get patients for doctor
     path('api/doctors/patients/', views.api_get_patients_for_doctor, name='doctor_patients_api'),
     
     # ========== HTML PAGES ==========

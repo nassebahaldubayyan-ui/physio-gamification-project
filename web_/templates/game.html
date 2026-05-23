@@ -172,9 +172,7 @@
         }
     }
 
-    // ============================================================
-    // متغيرات اللعبة
-    // ============================================================
+
     let unityInstance = null;
     let gameActive = false;
     let gameTime = 60;
@@ -294,9 +292,6 @@
         if (camera) camera.stop();
     }
     
-    // ============================================================
-    // بدء اللعبة (مصححة)
-    // ============================================================
     function startGame() {
         if (!unityInstance) {
             showNotification("⏳ Loading game, please wait...");
@@ -329,10 +324,7 @@
                 showNotification("❌ Please allow camera access");
             });
     }
-    
-    // ============================================================
-    // تحميل Unity
-    // ============================================================
+
     var canvas = document.getElementById('unityCanvas');
     
     createUnityInstance(canvas, {
@@ -353,7 +345,6 @@
         showNotification("❌ Failed to load game");
     });
     
-    // الأزرار
     document.getElementById('startBtn').onclick = startGame;
     document.getElementById('restartBtn').onclick = () => { startGame(); };
     
