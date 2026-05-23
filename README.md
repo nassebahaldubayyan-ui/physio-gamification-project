@@ -19,9 +19,11 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
 - JavaScript
 
 ### Computer Vision & AI
-- MediaPipe Pose Landmarker
-- MediaPipe Hand Landmarker
-- Custom adaptive difficulty algorithms
+- MediaPipe
+- JavaScript
+
+### Games
+- Unity
 
 ### Database
 - SQLite
