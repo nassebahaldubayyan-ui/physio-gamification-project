@@ -529,17 +529,6 @@ def api_register(request):
                 avatar="default-avatar.png",
                 is_active=True
             )
-            if role == "patient":
-                Patients.objects.create(
-                    user=user,
-                    patient_id=f"PT{user.id}",
-                    date_of_birth="",
-                    gender="",
-                    medical_condition="",
-                    therapy_type="",
-                    affected_hand="right",
-                    current_level=1
-                )
             return JsonResponse({
                 "success": True,
                 "message": "User registered successfully",
@@ -551,9 +540,10 @@ def api_register(request):
                 }
             }, status=201)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     return JsonResponse({"error": "Method not allowed"}, status=405)
-
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -572,26 +562,43 @@ def api_add_patient_details(request):
         affected_hand = data.get("affected_hand", "right")
         assigned_doctor_id = data.get("assigned_doctor_id")
         
+        print("="*50)
+        print("📝 ADDING PATIENT DETAILS")
+        print(f"user_id: {user_id}")
+        print(f"patient_id: {patient_id}")
+        print(f"date_of_birth: {date_of_birth}")
+        print(f"gender: {gender}")
+        print(f"medical_condition: {medical_condition}")
+        print(f"therapy_type: {therapy_type}")
+        print(f"affected_hand: {affected_hand}")
+        print(f"current_level: {current_level}")
+        print("="*50)
+        
+        from django.db import connection
         
         # Check if patient already exists
-        existing_patient = Patients.objects.filter(user_id=user_id).first()
-        
-        if existing_patient:
-            # Update existing
-            existing_patient.patient_id = patient_id
-            existing_patient.date_of_birth = date_of_birth
-            existing_patient.gender = gender
-            existing_patient.medical_condition = medical_condition
-            existing_patient.therapy_type = therapy_type
-            existing_patient.current_level = current_level
-            existing_patient.affected_hand = affected_hand
-            existing_patient.assigned_doctor_id = assigned_doctor_id
-            existing_patient.save()
-            patient = existing_patient
-        else:
-            # Create new using direct SQL insert to avoid User object issue
-            from django.db import connection
-            with connection.cursor() as cursor:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id FROM patients WHERE user_id = %s", [user_id])
+            existing = cursor.fetchone()
+            
+            if existing:
+                # Update existing patient
+                cursor.execute("""
+                    UPDATE patients SET
+                        patient_id = %s,
+                        date_of_birth = %s,
+                        gender = %s,
+                        medical_condition = %s,
+                        therapy_type = %s,
+                        current_level = %s,
+                        affected_hand = %s,
+                        assigned_doctor_id = %s
+                    WHERE user_id = %s
+                """, [patient_id, date_of_birth, gender, medical_condition,
+                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
+                print("✅ Updated existing patient")
+            else:
+                # Insert new patient
                 cursor.execute("""
                     INSERT INTO patients (
                         user_id, patient_id, date_of_birth, gender,
@@ -599,14 +606,13 @@ def api_add_patient_details(request):
                         affected_hand, assigned_doctor_id
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, [user_id, patient_id, date_of_birth, gender,
-                medical_condition, therapy_type, current_level,
-                affected_hand, assigned_doctor_id])
-                patient_id_db = cursor.lastrowid
+                    medical_condition, therapy_type, current_level,
+                    affected_hand, assigned_doctor_id])
+                print("✅ Inserted new patient")
         
         return JsonResponse({
             "success": True,
-            "message": "Patient details added successfully",
-            "patient_id": patient.id if existing_patient else patient_id_db
+            "message": "Patient details added successfully"
         })
         
     except Exception as e:
@@ -688,12 +694,13 @@ def api_get_patients_for_doctor(request):
         patients_data = []
         for patient in patients:
             patient_record = Patients.objects.filter(user=patient).first()
-            
-            # Calculate age from date_of_birth
             age = None
             if patient_record and patient_record.date_of_birth:
                 try:
                     dob = patient_record.date_of_birth
+                    if not dob or dob.strip() == '':
+                        age = '?'
+                        raise ValueError("empty dob")
                     if isinstance(dob, str):
                         dob = datetime.strptime(dob, '%Y-%m-%d').date()
                     today = date.today()
@@ -849,6 +856,8 @@ def api_add_patient_details(request):
         print(f"gender: {gender}")
         print(f"medical_condition: {medical_condition}")
         print(f"therapy_type: {therapy_type}")
+        print(f"affected_hand: {affected_hand}")
+        print(f"current_level: {current_level}")
         print("="*50)
         
         from django.db import connection

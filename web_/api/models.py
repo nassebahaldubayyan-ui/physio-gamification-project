@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 class Users(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     email = models.CharField(unique=True, max_length=100)
     password = models.CharField(max_length=255)
