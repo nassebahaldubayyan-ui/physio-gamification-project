@@ -1,6 +1,6 @@
 # Gamified Physiotherapy: An Interactive Rehabilitation System Using AI and Motion Tracking for Brachial Plexus Injury
 
-# Overview
+## Overview
 Brachial Plexus Injuries (BPI) can significantly impact upper-limb mobility and often require long-term, repetitive rehabilitation programs. To enhance patient engagement and improve rehabilitation outcomes, this project introduces an intelligent and adaptive rehabilitation system that transforms therapeutic exercises into interactive game-based activities powered by Artificial Intelligence.
 The system utilizes real-time motion tracking and AI-driven performance analysis to adapt exercise difficulty according to the patient's capabilities. In addition, a comprehensive medical dashboard enables physiotherapists to monitor patient progress and access data-driven insights that support informed clinical decision-making.
 By combining gamification, artificial intelligence, motion tracking, and remote supervision, the platform delivers a smart, engaging, and effective rehabilitation experience for both patients and healthcare professionals.
@@ -9,27 +9,13 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
 
 ## Technology Stack
 
-### Backend
-- Django
-- Python
-
-### Frontend
-- HTML
-- CSS
-- JavaScript
-
-### Computer Vision & AI
-- MediaPipe
-- JavaScript
-
-### Games
-- Unity
-
-### Database
-- SQLite
-
-### Visualization
-- Chart.js
+| Category | Technologies |
+|----------|-------------|
+| Backend | Django, Python |
+| Frontend | HTML, CSS, JavaScript |
+| Computer Vision & AI | MediaPipe, JavaScript |
+| Games | Unity |
+| Database | SQLite |
 
 ---
 
@@ -46,12 +32,13 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
 
 ---
 ### notes to the team:
-# befor you start working on the project
+## befor you start working on the project
 1) first go to file that contain you git copy path 
 2) open cmd write cd paste path here
-3) git pull 
+3) git pull
+4) DO NOT forget to git push after you finish!
 -----
-# Database Setup (SQLite_web)
+## Database Setup (SQLite_web)
 
 This project uses **SQLite** as the database and **sqlite_web** to provide a simple web interface for viewing and managing the database.
 
