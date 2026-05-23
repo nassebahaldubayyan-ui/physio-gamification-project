@@ -23,14 +23,26 @@ By combining gamification, artificial intelligence, motion tracking, and remote 
 
 ## How It Works
 
-1. The patient starts a rehabilitation game.
-2. The system activates the camera and begins tracking upper-limb movements.
-3. MediaPipe extracts pose and hand landmarks in real time.
-4. The AI engine analyzes movement quality and calculates rehabilitation metrics.
-5. The system provides immediate feedback when incorrect movement patterns are detected.
-6. Based on performance, the adaptive system adjusts difficulty and determines whether the patient can progress to the next level or should repeat the current one.
-7. Session results and performance metrics are stored in the database.
-8. Physiotherapists can review progress through the medical dashboard.
+1. **Patient Registration**
+   - The physiotherapist creates the patient profile and records clinical information, including the affected limb.
+
+2. **Initial Assessment**
+   - The patient completes a guided assessment session while the system captures movement through the camera.
+
+3. **Motion Analysis**
+   - MediaPipe detects body and hand landmarks and calculates joint angles and range of motion (ROM) in real time.
+
+4. **Adaptive Rehabilitation**
+   - The patient performs rehabilitation exercises through interactive games where physical movements control in-game actions.
+
+5. **Performance Evaluation**
+   - The system evaluates movement quality, ROM achievement, accuracy, and consistency to generate performance scores.
+
+6. **Progress Tracking**
+   - Session results and rehabilitation metrics are stored and visualized through the clinician dashboard for historical analysis.
+
+7. **Clinical Monitoring**
+   - Physiotherapists review patient progress and adjust rehabilitation plans based on objective performance data.
 
 ---
 #### *notes to the team:
