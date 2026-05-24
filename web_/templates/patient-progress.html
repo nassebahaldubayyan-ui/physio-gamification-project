@@ -285,242 +285,153 @@
         </button>
     </div>
 
-        <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Get patient info from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const patientId = urlParams.get('patient') || 'PT004';
+        const patientId = urlParams.get('patient') || '';
         const userType = localStorage.getItem('userType') || 'patient';
-        
+
         let currentFilter = 'week';
         let charts = {};
-        let progressData = null;
+        // Cache fetched data per period so we don't re-fetch on filter switch
+        let cachedData = {};
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadProgressData();
-            loadPatientInfo();
+            loadProgressData('week');
         });
 
-        function loadPatientInfo() {
-            // Patient data based on ID
-            const patientInfo = {
-                'PT005': { name: 'Sara Khaled', affectedHand: 'right' },
-                'PT006': { name: 'Ali Ahmed', affectedHand: 'left' }
-            };
-            
-            const info = patientInfo[patientId] || { name: 'Patient', affectedHand: 'right' };
-            
-            document.getElementById('patientName').textContent = info.name;
-            const handText = info.affectedHand === 'right' ? 'Right Hand Affected' : 'Left Hand Affected';
-            document.getElementById('patientInfo').innerHTML = `ID: ${patientId} • ${handText}`;
-        }
+        async function loadProgressData(period) {
+            if (cachedData[period]) {
+                renderCharts(cachedData[period]);
+                return;
+            }
 
-        async function loadProgressData() {
             try {
-                // Mock data for demo
-                progressData = {
-                    week: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        shoulder: [82, 83, 84, 84, 85, 86, 85],
-                        elbow: [75, 76, 77, 77, 78, 78, 78],
-                        wrist: [78, 79, 80, 81, 82, 82, 82],
-                        grip: [76, 77, 78, 78, 79, 79, 79],
-                        rotation: [88, 89, 90, 91, 92, 92, 92]
-                    },
-                    month: {
-                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                        shoulder: [80, 82, 84, 85],
-                        elbow: [72, 74, 76, 78],
-                        wrist: [75, 78, 80, 82],
-                        grip: [73, 75, 77, 79],
-                        rotation: [85, 88, 90, 92]
-                    },
-                    year: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        shoulder: [70, 73, 77, 80, 83, 85],
-                        elbow: [65, 68, 71, 74, 76, 78],
-                        wrist: [68, 71, 74, 77, 80, 82],
-                        grip: [66, 69, 72, 75, 77, 79],
-                        rotation: [75, 79, 83, 87, 90, 92]
-                    }
-                };
-                initCharts();
+                const response = await fetch(`/api/progress-data/?patient_id=${patientId}&period=${period}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    showError('Could not load progress data.');
+                    return;
+                }
+
+                cachedData[period] = data;
+
+                // Update patient header info from API
+                document.getElementById('patientName').textContent = data.patient.name;
+                const handText = data.patient.affected_hand === 'right'
+                    ? 'Right Hand Affected'
+                    : data.patient.affected_hand === 'left'
+                    ? 'Left Hand Affected'
+                    : 'Both Hands Affected';
+                document.getElementById('patientInfo').innerHTML =
+                    `ID: ${data.patient.patient_id} • ${handText}`;
+
+                renderCharts(data);
+
             } catch (error) {
                 console.error('Error loading progress data:', error);
-                showError('Failed to load progress data');
+                showError('Failed to load progress data.');
             }
         }
-        
-        function initCharts() {
-            const data = progressData[currentFilter];
-            
-            charts.gripWrist = new Chart(document.getElementById('gripWristChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Grip Strength',
-                        data: data.grip,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4
-                    }, {
-                        label: 'Wrist Strength',
-                        data: data.wrist,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-            
-            charts.elbow = new Chart(document.getElementById('elbowChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Elbow Strength',
-                        data: data.elbow,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            
-            charts.shoulder = new Chart(document.getElementById('shoulderChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'Shoulder Strength',
-                        data: data.shoulder,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            
-            charts.rotation = new Chart(document.getElementById('rotationChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'External Rotation',
-                        data: data.rotation,
-                        borderColor: '#ec4899',
-                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            
-            charts.overall = new Chart(document.getElementById('overallChart'), {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        { label: 'Shoulder', data: data.shoulder, borderColor: '#8b5cf6' },
-                        { label: 'Elbow', data: data.elbow, borderColor: '#f59e0b' },
-                        { label: 'Wrist', data: data.wrist, borderColor: '#3b82f6' },
-                        { label: 'Grip', data: data.grip, borderColor: '#10b981' },
-                        { label: 'Rotation', data: data.rotation, borderColor: '#ec4899' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-            
-            updateStats(currentFilter);
+
+        function renderCharts(data) {
+            updateStats(data);
+
+            if (Object.keys(charts).length === 0) {
+                // First load — create charts
+                charts.gripWrist = new Chart(document.getElementById('gripWristChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            { label: 'Grip Strength', data: data.grip, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4 },
+                            { label: 'Wrist Strength', data: data.wrist, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+
+                charts.elbow = new Chart(document.getElementById('elbowChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{ label: 'Elbow Strength', data: data.elbow, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                charts.shoulder = new Chart(document.getElementById('shoulderChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{ label: 'Shoulder Strength', data: data.shoulder, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                charts.rotation = new Chart(document.getElementById('rotationChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{ label: 'External Rotation', data: data.rotation, borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.1)', tension: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                charts.overall = new Chart(document.getElementById('overallChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            { label: 'Shoulder', data: data.shoulder, borderColor: '#8b5cf6', tension: 0.4 },
+                            { label: 'Elbow',    data: data.elbow,    borderColor: '#f59e0b', tension: 0.4 },
+                            { label: 'Wrist',    data: data.wrist,    borderColor: '#3b82f6', tension: 0.4 },
+                            { label: 'Grip',     data: data.grip,     borderColor: '#10b981', tension: 0.4 },
+                            { label: 'Rotation', data: data.rotation, borderColor: '#ec4899', tension: 0.4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+
+            } else {
+                // Subsequent filter change — update existing charts
+                const updateChart = (chart, datasets) => {
+                    chart.data.labels = data.labels;
+                    datasets.forEach((d, i) => chart.data.datasets[i].data = d);
+                    chart.update();
+                };
+
+                updateChart(charts.gripWrist, [data.grip, data.wrist]);
+                updateChart(charts.elbow,     [data.elbow]);
+                updateChart(charts.shoulder,  [data.shoulder]);
+                updateChart(charts.rotation,  [data.rotation]);
+                updateChart(charts.overall,   [data.shoulder, data.elbow, data.wrist, data.grip, data.rotation]);
+            }
         }
-        
-        function filterProgress(filter) {
-            currentFilter = filter;
-            
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+
+        function updateStats(data) {
+            const last = data.labels.length - 1;
+            const metrics = ['shoulder', 'elbow', 'wrist', 'grip', 'rotation'];
+            const ids     = ['shoulderStat', 'elbowStat', 'wristStat', 'gripStat', 'rotationStat'];
+            const imprIds = ['shoulderImpr', 'elbowImpr', 'wristImpr', 'gripImpr', 'rotationImpr'];
+
+            metrics.forEach((m, i) => {
+                const current = data[m][last];
+                const first   = data[m][0];
+                document.getElementById(ids[i]).textContent = current + '%';
+                const diff = current - first;
+                document.getElementById(imprIds[i]).textContent = (diff >= 0 ? '+' : '') + diff + '%';
             });
+        }
+
+        async function filterProgress(period) {
+            currentFilter = period;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            
-            const data = progressData[filter];
-            
-            // Update all charts
-            Object.values(charts).forEach(chart => {
-                chart.data.labels = data.labels;
-            });
-            
-            charts.gripWrist.data.datasets[0].data = data.grip;
-            charts.gripWrist.data.datasets[1].data = data.wrist;
-            charts.gripWrist.update();
-            
-            charts.elbow.data.datasets[0].data = data.elbow;
-            charts.elbow.update();
-            
-            charts.shoulder.data.datasets[0].data = data.shoulder;
-            charts.shoulder.update();
-            
-            charts.rotation.data.datasets[0].data = data.rotation;
-            charts.rotation.update();
-            
-            charts.overall.data.datasets[0].data = data.shoulder;
-            charts.overall.data.datasets[1].data = data.elbow;
-            charts.overall.data.datasets[2].data = data.wrist;
-            charts.overall.data.datasets[3].data = data.grip;
-            charts.overall.data.datasets[4].data = data.rotation;
-            charts.overall.update();
-            
-            updateStats(filter);
+            await loadProgressData(period);
         }
-        
-        function updateStats(filter) {
-            const data = progressData[filter];
-            const lastIndex = data.labels.length - 1;
-            
-            document.getElementById('shoulderStat').textContent = data.shoulder[lastIndex] + '%';
-            document.getElementById('elbowStat').textContent = data.elbow[lastIndex] + '%';
-            document.getElementById('wristStat').textContent = data.wrist[lastIndex] + '%';
-            document.getElementById('gripStat').textContent = data.grip[lastIndex] + '%';
-            document.getElementById('rotationStat').textContent = data.rotation[lastIndex] + '%';
-            
-            if (lastIndex > 0) {
-                document.getElementById('shoulderImpr').textContent = 
-                    '+' + (data.shoulder[lastIndex] - data.shoulder[0]) + '%';
-                document.getElementById('elbowImpr').textContent = 
-                    '+' + (data.elbow[lastIndex] - data.elbow[0]) + '%';
-                document.getElementById('wristImpr').textContent = 
-                    '+' + (data.wrist[lastIndex] - data.wrist[0]) + '%';
-                document.getElementById('gripImpr').textContent = 
-                    '+' + (data.grip[lastIndex] - data.grip[0]) + '%';
-                document.getElementById('rotationImpr').textContent = 
-                    '+' + (data.rotation[lastIndex] - data.rotation[0]) + '%';
-            }
-        }
-        
+
         function goBack() {
             if (userType === 'doctor') {
                 window.location.href = `/doctor/patient-details/?patient=${patientId}`;
@@ -531,10 +442,12 @@
 
         function showError(message) {
             const container = document.querySelector('.progress-container');
+            const existing = container.querySelector('.error-message');
+            if (existing) existing.remove();
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            container.insertBefore(errorDiv, container.firstChild);
+            container.insertBefore(errorDiv, container.children[1]);
         }
     </script>
 </body>

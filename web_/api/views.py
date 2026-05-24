@@ -1200,7 +1200,117 @@ def api_get_game_stats(request):
         traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
     
-        
+@require_http_methods(["GET"])
+def api_get_progress_data(request):
+    """Get game session data grouped by time period for progress charts"""
+    try:
+        from .models import GameSessions, Patients
+        from django.db.models import Avg
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+
+        patient_id = request.GET.get('patient_id')
+        period = request.GET.get('period', 'week')  # week, month, year
+
+        if not patient_id:
+            return JsonResponse({"error": "patient_id required"}, status=400)
+
+        # Find patient
+        patient = Patients.objects.filter(patient_id=patient_id).first()
+        if not patient:
+            try:
+                patient = Patients.objects.filter(user_id=int(patient_id)).first()
+            except ValueError:
+                pass
+        if not patient:
+            return JsonResponse({"error": "Patient not found"}, status=404)
+
+        now = timezone.now()
+
+        # Define time buckets
+        if period == 'week':
+            days = 7
+            buckets = [(now - timedelta(days=i)).strftime('%a') for i in range(days-1, -1, -1)]
+            dates = [(now - timedelta(days=i)).date() for i in range(days-1, -1, -1)]
+
+            def get_bucket_sessions(date):
+                return GameSessions.objects.filter(
+                    patient=patient,
+                    session_date__date=date
+                )
+
+        elif period == 'month':
+            buckets = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+            week_starts = [now - timedelta(weeks=3), now - timedelta(weeks=2),
+                           now - timedelta(weeks=1), now]
+
+            def get_bucket_sessions(week_end):
+                week_start = week_end - timedelta(days=7)
+                return GameSessions.objects.filter(
+                    patient=patient,
+                    session_date__gte=week_start,
+                    session_date__lte=week_end
+                )
+            dates = week_starts
+
+        else:  # year
+            buckets = []
+            dates = []
+            for i in range(5, -1, -1):
+                month_date = now - timedelta(days=30 * i)
+                buckets.append(month_date.strftime('%b'))
+                dates.append(month_date)
+
+            def get_bucket_sessions(month_end):
+                month_start = month_end - timedelta(days=30)
+                return GameSessions.objects.filter(
+                    patient=patient,
+                    session_date__gte=month_start,
+                    session_date__lte=month_end
+                )
+
+        # Build data arrays
+        shoulder_data, elbow_data, wrist_data, grip_data, rotation_data = [], [], [], [], []
+
+        for date in dates:
+            qs = get_bucket_sessions(date)
+            agg = qs.aggregate(
+                avg_shoulder=Avg('shoulder_activation'),
+                avg_elbow=Avg('elbow_activation'),
+                avg_wrist=Avg('wrist_activation'),
+                avg_grip=Avg('grip_activation'),
+                avg_rotation=Avg('external_rotation'),
+            )
+            shoulder_data.append(round(agg['avg_shoulder'] or 0))
+            elbow_data.append(round(agg['avg_elbow'] or 0))
+            wrist_data.append(round(agg['avg_wrist'] or 0))
+            grip_data.append(round(agg['avg_grip'] or 0))
+            rotation_data.append(round(agg['avg_rotation'] or 0))
+
+        # Patient info for the page header
+        user = patient.user
+        patient_info = {
+            'name': user.name,
+            'patient_id': patient.patient_id,
+            'affected_hand': patient.affected_hand or 'right',
+        }
+
+        return JsonResponse({
+            'success': True,
+            'patient': patient_info,
+            'labels': buckets,
+            'shoulder': shoulder_data,
+            'elbow': elbow_data,
+            'wrist': wrist_data,
+            'grip': grip_data,
+            'rotation': rotation_data,
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"error": str(e)}, status=500)
+           
 @csrf_exempt
 @require_http_methods(["GET"])
 def api_get_messages(request):
