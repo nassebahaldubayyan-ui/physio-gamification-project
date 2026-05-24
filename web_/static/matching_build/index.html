@@ -926,29 +926,11 @@
                 : "linear-gradient(90deg, #44ff44, #88ff88)";
         }
 
-        function calculateGripAccuracy() {
-            if (gripHistory.length === 0) return 100;
-            const recent = gripHistory.slice(-300);
-            const success = recent.filter(v => v === 1).length;
-            return Math.round((success / recent.length) * 100);
-        }
+       
 
-        function calculateAvgElbow() {
-            if (elbowHistory.length === 0) return 0;
-            const sum = elbowHistory.reduce((a, b) => a + b, 0);
-            return Math.round(sum / elbowHistory.length);
-        }
+        
 
-        function calculateGripFromLandmarks(landmarks) {
-            const tips = [4, 8, 12, 16, 20];
-            const mcps = [1, 5, 9, 13, 17];
-            let total = 0;
-            for (let i = 0; i < tips.length; i++)
-                total += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
-            const avg = total / tips.length;
-            updateSensitivityMeter(avg);
-            return avg < currentGripSensitivity;
-        }
+        
 
 
         // ============================================================

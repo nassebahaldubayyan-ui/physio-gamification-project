@@ -4,34 +4,23 @@ public class DraggableCar : MonoBehaviour
 {
     public ColorType color;
 
-    [Header("Drag thresholds (world units)")]
-    public float grabDistance = 3.3f;
-    public float dropDistance = 2.0f;
+    [Header("Grab / Drop Distance (world units)")]
+    public float grabDistance = 5f;
+    public float dropDistance = 2.5f;
 
     [Header("Spawn Protection")]
     public float spawnGracePer = 0.2f;
 
-    [Header("Dragging")]
-    [Range(10f, 50f)]
-    public float followSpeed = 35f;
-
     private bool isHolding = false;
     private bool handClosed = false;
+    private bool prevHandClosed = false;  
     private float spawnTime;
     private Transform handPoint;
-    private BoxCollider2D carCollider;
-
     private Basket[] cachedBaskets;
 
     void Start()
     {
         spawnTime = Time.time;
-
-        carCollider = GetComponent<BoxCollider2D>();
-        if (carCollider == null)
-            carCollider = gameObject.AddComponent<BoxCollider2D>();
-
-        carCollider.size = new Vector2(2.5f, 1.5f);
 
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
@@ -47,37 +36,36 @@ public class DraggableCar : MonoBehaviour
         if (handPoint == null)
         {
             GameObject hand = GameObject.FindGameObjectWithTag("Hand");
-            if (hand == null) return;
+            if (hand == null) { prevHandClosed = handClosed; return; }
             handPoint = hand.transform;
         }
 
         float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
         bool graceOver = (Time.time - spawnTime) > spawnGracePer;
 
-        if (handClosed && graceOver && distanceToHand < grabDistance && !isHolding)
+        bool justClosed = handClosed && !prevHandClosed;
+        if (justClosed && graceOver && distanceToHand < grabDistance && !isHolding)
         {
             isHolding = true;
-            if (carCollider != null) carCollider.enabled = false;
-            Debug.Log($"[DraggableCar] Grabbed {color} car at distance {distanceToHand:F2}");
+            Debug.Log($"[DraggableCar] Grabbed {color} at dist {distanceToHand:F2}");
         }
 
         if (!handClosed && isHolding)
         {
             isHolding = false;
-            if (carCollider != null) carCollider.enabled = true;
 
             if (IsOverMatchingBasket())
             {
                 if (GameManager.Instance != null)
-                    GameManager.Instance.AddScore(1);  // أو 10 حسب تصميمك
+                    GameManager.Instance.AddScore(1);
                 Destroy(gameObject);
             }
         }
 
         if (isHolding)
-        {
-            transform.position = Vector3.Lerp(transform.position, handPoint.position, Time.deltaTime * followSpeed);
-        }
+            transform.position = new Vector3(handPoint.position.x, handPoint.position.y, 0f);
+
+        prevHandClosed = handClosed;
     }
 
     public void SetHandClosed(bool closed) => handClosed = closed;

@@ -140,9 +140,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17b6de6e68f89d349ba156581ab6f1fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grabDistance: 2.5
-  dropDistance: 2.5
   color: 2
+  grabDistance: 5
+  dropDistance: 2.5
+  spawnGracePer: 0.2
+  followSpeed: 35
 --- !u!61 &8628479455727983929
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -186,5 +188,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 7.92, y: 5.06}
+  m_Size: {x: 8, y: 5.06}
   m_EdgeRadius: 0

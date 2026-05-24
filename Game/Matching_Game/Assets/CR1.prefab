@@ -114,8 +114,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: 0
-  grabDistance: 2.5
+  grabDistance: 5
   dropDistance: 2.5
+  spawnGracePer: 0.2
+  followSpeed: 16.3
 --- !u!50 &5984020196746530734
 Rigidbody2D:
   serializedVersion: 4
@@ -186,5 +188,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 5.12, y: 5.12}
+  m_Size: {x: 8, y: 5.12}
   m_EdgeRadius: 0

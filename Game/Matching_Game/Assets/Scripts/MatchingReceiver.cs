@@ -11,15 +11,6 @@ public class MatchingReceiver : MonoBehaviour
     public int port = 5053;
     public Transform handPoint;
 
-    [Header("Hand Smoothing")]
-    [Range(5f, 30f)]
-    public float handFollowSpeed = 30f;   
-
-    private Vector3 targetHandPos;
-    private DraggableCar[] cachedCars = new DraggableCar[0];
-    private float lastCacheTime = -1f;
-    private float cacheRefreshInterval = 0.5f;
-
 #if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient udpClient;
     private Thread receiveThread;
@@ -42,8 +33,6 @@ public class MatchingReceiver : MonoBehaviour
             handPoint = hand.transform;
         }
 
-        targetHandPos = handPoint.position;
-
 #if !UNITY_WEBGL || UNITY_EDITOR
         try
         {
@@ -51,14 +40,14 @@ public class MatchingReceiver : MonoBehaviour
             receiveThread = new Thread(new ThreadStart(ReceiveData));
             receiveThread.IsBackground = true;
             receiveThread.Start();
-            Debug.Log($"MatchingReceiver started on port {port} (UDP)");
+            Debug.Log($"MatchingReceiver started on port {port}");
         }
         catch (System.Exception e)
         {
             Debug.LogWarning("MatchingReceiver: UDP disabled - " + e.Message);
         }
 #else
-        Debug.Log("MatchingReceiver: WebGL build - UDP disabled, listening for JS packets.");
+        Debug.Log("MatchingReceiver: WebGL - waiting for JS packets.");
 #endif
     }
 
@@ -81,15 +70,6 @@ public class MatchingReceiver : MonoBehaviour
 
     void Update()
     {
-        if (Time.time - lastCacheTime > cacheRefreshInterval)
-        {
-            cachedCars = FindObjectsOfType<DraggableCar>();
-            lastCacheTime = Time.time;
-        }
-
-        if (handPoint != null)
-            handPoint.position = Vector3.Lerp(handPoint.position, targetHandPos, Time.deltaTime * handFollowSpeed);
-
         lock (packetLock)
         {
             if (latestPacket != null)
@@ -100,17 +80,7 @@ public class MatchingReceiver : MonoBehaviour
         }
     }
 #else
-    void Update()
-    {
-        if (Time.time - lastCacheTime > cacheRefreshInterval)
-        {
-            cachedCars = FindObjectsOfType<DraggableCar>();
-            lastCacheTime = Time.time;
-        }
-
-        if (handPoint != null)
-            handPoint.position = Vector3.Lerp(handPoint.position, targetHandPos, Time.deltaTime * handFollowSpeed);
-    }
+    void Update() { }
 
     public void ReceivePacketFromJS(string json)
     {
@@ -118,10 +88,7 @@ public class MatchingReceiver : MonoBehaviour
         {
             TrackerPacket packet = JsonUtility.FromJson<TrackerPacket>(json);
             if (packet != null)
-            {
                 UpdateGame(packet);
-                Debug.Log($"Received JS packet: hand_closed={packet.hand_closed}, pos=({packet.palm_x},{packet.palm_y})");
-            }
         }
         catch (System.Exception e)
         {
@@ -132,14 +99,15 @@ public class MatchingReceiver : MonoBehaviour
 
     void UpdateGame(TrackerPacket p)
     {
-        if (Camera.main != null)
+        if (Camera.main != null && handPoint != null)
         {
             Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
             worldPos.z = 0f;
-            targetHandPos = worldPos;
+            handPoint.position = worldPos;
         }
 
-        foreach (DraggableCar car in cachedCars)
+        DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
+        foreach (DraggableCar car in allCars)
         {
             if (car != null)
                 car.SetHandClosed(p.hand_closed);
