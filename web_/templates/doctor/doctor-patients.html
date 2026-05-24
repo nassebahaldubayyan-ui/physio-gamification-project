@@ -249,6 +249,22 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59,130,246,0.3);
         }
+        .btn-edit {
+            padding: 8px 16px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
         .btn-delete
         {
             padding: 8px 16px;
@@ -478,7 +494,73 @@
             </form>
         </div>
     </div>
-
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h3><i class="fas fa-user-edit"></i> Update Patient Info</h3>
+            <form id="editForm">
+                <input type="hidden" id="editUserId">
+                <input type="hidden" id="editPatientId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="editDob">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="editGender">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Affected Hand</label>
+                        <select id="editHand">
+                            <option value="right">Right Hand</option>
+                            <option value="left">Left Hand</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Medical Condition</label>
+                        <input type="text" id="editCondition">
+                    </div>
+                    <div class="form-group">
+                        <label>Therapy Type</label>
+                        <select id="editTherapy">
+                            <option value="Physical Therapy">Physical Therapy</option>
+                            <option value="Occupational Therapy">Occupational Therapy</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="editPhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Reset Level</label>
+                        <select id="editLevel">
+                            <option value="1">Level 1</option>
+                            <option value="2">Level 2</option>
+                            <option value="3">Level 3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-submit" style="background:#f59e0b;">Update Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="deleteModal" class="modal">
         <div class="modal-content delete-modal">
             <h3><i class="fas fa-trash-alt"></i> Delete Patient</h3>
@@ -548,12 +630,19 @@
                 const hand = p.affected_hand === 'right' ? 'Right' : 'Left';
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td><div style="display:flex;align-items:center;gap:10px;"><div class="patient-avatar-small" style="background:${color};">${p.name.charAt(0)}</div><div><div style="font-weight:600;">${escapeHtml(p.name)}</div><div style="font-size:13px;color:#64748b;">ID: ${p.patient_id}</div></div></div></td>
+                    <td><div style="display:flex;align-items:center;gap:10px;"><div class="patient-avatar-small" style="background:${color};">${p.name.charAt(0)}</div>
+                    <div><div style="font-weight:600;">${escapeHtml(p.name)}</div>
+                    <div style="font-size:13px;color:#64748b;">ID: ${p.patient_id}</div></div></div>
+                    </td>
                     <td>${age}</td>
                     <td>${escapeHtml(p.medical_condition)}</td>
                     <td><span style="font-weight:600;color:#3b82f6;">${hand}</span></td>
                     <td><span class="status-badge">${status}</span></td>
-                    <td><button class="btn-details" onclick="viewPatient(${p.id}, '${p.patient_id}')"><i class="fas fa-eye"></i> View</button><button class="btn-delete" onclick="confirmDelete(${p.id})"><i class="fas fa-trash"></i> Delete</button></td>
+                    <td>
+                        <button class="btn-details" onclick="viewPatient(${p.id}, '${p.patient_id}')"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn-edit" onclick="openEditModal(${p.id}, '${p.patient_id}', '${p.name}', '${p.medical_condition}', '${p.affected_hand}', '${p.therapy_type}', '${p.date_of_birth}', '${p.gender}', '${p.phone || ''}', '${p.current_level || 1}')"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn-delete" onclick="confirmDelete(${p.id})"><i class="fas fa-trash"></i> Delete</button>
+                    </td>
                 `;
             });
         }
@@ -731,6 +820,7 @@
         window.onclick = function(e) { 
             if(e.target===document.getElementById('addModal')) closeAddModal(); 
             if(e.target===document.getElementById('deleteModal')) closeDeleteModal(); 
+            if(e.target===document.getElementById('editModal')) closeEditModal(); 
         };
         async function loadDoctorInfo() {
             try {
@@ -762,6 +852,80 @@
             loadSidebarAvatar();
             loadPatients();
         });
+        // With this:
+        function openEditModal(userId, patientId, name, condition, hand, therapy, dob, gender, phone, level) {
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editPatientId').value = patientId;
+            document.getElementById('editName').value = name;
+            document.getElementById('editCondition').value = condition;
+            document.getElementById('editHand').value = hand;
+            document.getElementById('editTherapy').value = therapy;
+            document.getElementById('editDob').value = dob || '';
+            document.getElementById('editGender').value = gender || 'male';
+            document.getElementById('editPhone').value = phone || '';
+            document.getElementById('editLevel').value = level || '1';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').onsubmit = async function(e) {
+            e.preventDefault();
+
+            const userId = document.getElementById('editUserId').value;
+            const patientId = document.getElementById('editPatientId').value;
+            const name = document.getElementById('editName').value.trim();
+            const dob = document.getElementById('editDob').value;
+            const gender = document.getElementById('editGender').value;
+            const hand = document.getElementById('editHand').value;
+            const condition = document.getElementById('editCondition').value.trim();
+            const therapy = document.getElementById('editTherapy').value;
+
+            const btn = document.querySelector('#editForm .btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+            try {
+                const res = await fetch('/api/add-patient-details/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        patient_id: patientId,
+                        name: name,                                              // ← add
+                        phone: document.getElementById('editPhone').value.trim(),
+                        date_of_birth: dob,
+                        gender: gender,
+                        medical_condition: condition,
+                        therapy_type: therapy,
+                        affected_hand: hand,
+                        current_level: document.getElementById('editLevel').value,
+                        assigned_doctor_id: parseInt(localStorage.getItem('doctorId') || '3')
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification('Patient updated successfully!', 'success');
+                    closeEditModal();
+                    loadPatients();
+                } else {
+                    showNotification(data.error || 'Update failed', 'error');
+                }
+            } catch (e) {
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Update Patient';
+            }
+        };
     </script>
+    
 </body>
 </html>

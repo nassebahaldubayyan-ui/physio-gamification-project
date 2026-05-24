@@ -604,7 +604,7 @@ def api_register(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_add_patient_details(request):
-    """Add complete patient details (for doctors adding new patients)"""
+    """Add or update complete patient details (for doctors adding/editing patients)"""
     try:
         data = json.loads(request.body)
         
@@ -617,9 +617,11 @@ def api_add_patient_details(request):
         current_level = data.get("current_level", 1)
         affected_hand = data.get("affected_hand", "right")
         assigned_doctor_id = data.get("assigned_doctor_id")
-        
+        phone = data.get("phone")
+        name = data.get("name")
+
         print("="*50)
-        print("📝 ADDING PATIENT DETAILS")
+        print("📝 ADD/UPDATE PATIENT DETAILS")
         print(f"user_id: {user_id}")
         print(f"patient_id: {patient_id}")
         print(f"date_of_birth: {date_of_birth}")
@@ -628,17 +630,30 @@ def api_add_patient_details(request):
         print(f"therapy_type: {therapy_type}")
         print(f"affected_hand: {affected_hand}")
         print(f"current_level: {current_level}")
+        print(f"phone: {phone}")
         print("="*50)
-        
+
+        # Update users table for phone and name if provided
+        if phone is not None or name:
+            try:
+                user = Users.objects.get(id=user_id)
+                if phone is not None:
+                    user.phone = phone
+                if name:
+                    user.name = name
+                user.save()
+                print("✅ Updated user phone/name")
+            except Users.DoesNotExist:
+                print("⚠️ User not found for phone/name update")
+
         from django.db import connection
-        
+
         # Check if patient already exists
         with connection.cursor() as cursor:
             cursor.execute("SELECT id FROM patients WHERE user_id = %s", [user_id])
             existing = cursor.fetchone()
-            
+
             if existing:
-                # Update existing patient
                 cursor.execute("""
                     UPDATE patients SET
                         patient_id = %s,
@@ -651,10 +666,9 @@ def api_add_patient_details(request):
                         assigned_doctor_id = %s
                     WHERE user_id = %s
                 """, [patient_id, date_of_birth, gender, medical_condition,
-                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
+                      therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
                 print("✅ Updated existing patient")
             else:
-                # Insert new patient
                 cursor.execute("""
                     INSERT INTO patients (
                         user_id, patient_id, date_of_birth, gender,
@@ -662,15 +676,15 @@ def api_add_patient_details(request):
                         affected_hand, assigned_doctor_id
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, [user_id, patient_id, date_of_birth, gender,
-                    medical_condition, therapy_type, current_level,
-                    affected_hand, assigned_doctor_id])
+                      medical_condition, therapy_type, current_level,
+                      affected_hand, assigned_doctor_id])
                 print("✅ Inserted new patient")
-        
+
         return JsonResponse({
             "success": True,
-            "message": "Patient details added successfully"
+            "message": "Patient details saved successfully"
         })
-        
+
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -888,81 +902,7 @@ def api_patient_details(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
-    
-@csrf_exempt
-@require_http_methods(["POST"])
-def api_add_patient_details(request):
-    """Add complete patient details (for doctors adding new patients)"""
-    try:
-        data = json.loads(request.body)
-        
-        user_id = data.get("user_id")
-        patient_id = data.get("patient_id")
-        date_of_birth = data.get("date_of_birth")
-        gender = data.get("gender")
-        medical_condition = data.get("medical_condition")
-        therapy_type = data.get("therapy_type")
-        current_level = data.get("current_level", 1)
-        affected_hand = data.get("affected_hand", "right")
-        assigned_doctor_id = data.get("assigned_doctor_id")
-        
-        print("="*50)
-        print("📝 ADDING PATIENT DETAILS")
-        print(f"user_id: {user_id}")
-        print(f"patient_id: {patient_id}")
-        print(f"date_of_birth: {date_of_birth}")
-        print(f"gender: {gender}")
-        print(f"medical_condition: {medical_condition}")
-        print(f"therapy_type: {therapy_type}")
-        print(f"affected_hand: {affected_hand}")
-        print(f"current_level: {current_level}")
-        print("="*50)
-        
-        from django.db import connection
-        
-        # Check if patient already exists
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT id FROM patients WHERE user_id = %s", [user_id])
-            existing = cursor.fetchone()
-            
-            if existing:
-                # Update existing patient
-                cursor.execute("""
-                    UPDATE patients SET
-                        patient_id = %s,
-                        date_of_birth = %s,
-                        gender = %s,
-                        medical_condition = %s,
-                        therapy_type = %s,
-                        current_level = %s,
-                        affected_hand = %s,
-                        assigned_doctor_id = %s
-                    WHERE user_id = %s
-                """, [patient_id, date_of_birth, gender, medical_condition,
-                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
-                print("✅ Updated existing patient")
-            else:
-                # Insert new patient
-                cursor.execute("""
-                    INSERT INTO patients (
-                        user_id, patient_id, date_of_birth, gender,
-                        medical_condition, therapy_type, current_level,
-                        affected_hand, assigned_doctor_id
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, [user_id, patient_id, date_of_birth, gender,
-                    medical_condition, therapy_type, current_level,
-                    affected_hand, assigned_doctor_id])
-                print("✅ Inserted new patient")
-        
-        return JsonResponse({
-            "success": True,
-            "message": "Patient details added successfully"
-        })
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
     
 @require_http_methods(["GET"])
 def api_get_my_patient_data(request):
