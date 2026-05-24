@@ -465,25 +465,25 @@
                 case 3:
                     return {
                         shoulder: false,
-                        elbow: false,
-                        hand: true,
+                        elbow: true,
+                        hand: false,
                         rotation: false
                     };
 
                 case 4:
                     return {
                         shoulder: false,
-                        elbow: true,
+                        elbow: false,
                         hand: false,
-                        rotation: false
+                        rotation: true
                     };
 
                 case 5:
                     return {
                         shoulder: false,
                         elbow: false,
-                        hand: false,
-                        rotation: true
+                        hand: true,
+                        rotation: false
                     };
 
                 default:
@@ -507,9 +507,9 @@
         const instructionSteps = [
             { text: "Take 3 steps back", duration: 5 },
             { text: "Move your arm up and down", duration: 5 },
-            { text: "Open and close your fist", duration: 5 },
             { text: "Open and close your elbow", duration: 5 },
-            { text: "Pretend you carry a cup in your hand and move it from left to right", duration: 5 }
+            { text: "Pretend you carry a cup in your hand and move it from left to right", duration: 5 },
+            { text: "Step closer to the camera with your palm facing forward then open and close your fist", duration: 5}
         ];
         
         function updateStatusDisplay(stepIndex, currentNumber) {
@@ -834,7 +834,7 @@
                     );
                 }
 
-                if (active.hand) {
+                if (active.hand ) {
                     this.maxAngles.hand_open = Math.max(
                         this.maxAngles.hand_open,
                         h.openPercentage || 0
@@ -954,7 +954,37 @@
             assessment.attachTrackers(poseTracker, handTracker);
             assessment.update();
         }
+        function isPalmFacingCamera(handLandmarks) {
+            const wrist = handLandmarks[0];
+            const indexMCP = handLandmarks[5];
+            const pinkyMCP = handLandmarks[17];
 
+            const v1 = {
+                x: indexMCP.x - wrist.x,
+                y: indexMCP.y - wrist.y,
+                z: indexMCP.z - wrist.z
+            };
+
+            const v2 = {
+                x: pinkyMCP.x - wrist.x,
+                y: pinkyMCP.y - wrist.y,
+                z: pinkyMCP.z - wrist.z
+            };
+
+            const normal = {
+                x: v1.y * v2.z - v1.z * v2.y,
+                y: v1.z * v2.x - v1.x * v2.z,
+                z: v1.x * v2.y - v1.y * v2.x
+            };
+
+            const isRight = affectedHand === "right";
+
+            if (isRight) {
+                return normal.z < -0.02;
+            } else {
+                return normal.z > 0.02;
+            }
+        }
         pose.onResults((results) => {
             if (!results.poseLandmarks) return;
 
@@ -1022,7 +1052,7 @@
                 if (label !== affectedHand) continue;
 
                 const active = getActiveMetrics();
-                if (active.hand) {
+                if (active.hand && isPalmFacingCamera(hand)) {
                     handTracker.thumbAngle  = calculateAngle(hand[1], hand[2], hand[4]);
                     handTracker.indexAngle  = calculateAngle(hand[5], hand[6], hand[8]);
                     handTracker.middleAngle = calculateAngle(hand[9], hand[10], hand[12]);
