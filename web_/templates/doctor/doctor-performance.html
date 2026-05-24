@@ -533,7 +533,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar">
+                <div class="avatar" id="sidebarAvatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
@@ -885,44 +885,63 @@
                 }
             },
             'PT007': {
-        name: 'Amal',
-        age: 14,
-        games: {
-            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-        }
-    },
-    'PT008': {
-        name: 'Saad',
-        age: 11,
-        games: {
-            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-        }
-    },
-    'PT010': {
-        name: 'Mansour',
-        age: 11,
-        games: {
-            stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-            match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-            rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-        }
-    }
-};
+                name: 'Amal',
+                age: 14,
+                games: {
+                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+                }
+            },
+            'PT008': {
+                name: 'Saad',
+                age: 11,
+                games: {
+                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+                }
+            },
+            'PT010': {
+                name: 'Mansour',
+                age: 11,
+                games: {
+                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
+                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
+                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
+                }
+            }
         };
 
+        async function loadDoctorInfo() {
+            try {
+                const response = await fetch('/api/my-doctor-data/');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('doctorName').textContent = data.doctor.name || 'Doctor';
+                    document.getElementById('doctorInfo').textContent = `${data.doctor.specialty || 'Physiotherapy'} • #${data.doctor.doctor_id || ''}`;
+                }
+            } catch (e) {
+                console.error('Error loading doctor info');
+            }
+        }
+
+        async function loadSidebarAvatar() {
+            try {
+                const response = await fetch('/api/get-avatar/');
+                const data = await response.json();
+                const avatarDiv = document.getElementById('sidebarAvatar');
+                if (data.success && data.avatar && avatarDiv) {
+                    avatarDiv.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                }
+            } catch (e) {
+                console.error('Error loading avatar');
+            }
+        }
         document.addEventListener('DOMContentLoaded', function() {
-            const doctorName = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            const doctorId = localStorage.getItem('doctorId') || '3';
-            const doctorSpecialty = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-
-            document.getElementById('doctorName').textContent = doctorName;
-            document.getElementById('doctorInfo').textContent = `${doctorSpecialty} • #${doctorId}`;
             localStorage.setItem('userType', 'doctor');
-
+            loadDoctorInfo();
+            loadSidebarAvatar();
             loadPatientPerformance();
         });
 

@@ -454,7 +454,6 @@
         // ============================================
         // GLOBAL VARIABLES
         // ============================================
-        let patientId = localStorage.getItem('patientId') || '7';
         let patientData = {};
 
         // ============================================
@@ -468,51 +467,33 @@
         // ============================================
         // LOAD PATIENT DATA
         // ============================================
-        function loadPatientData() {
-            patientId = localStorage.getItem('patientId') || '7';
-            const patientName = localStorage.getItem('patientName') || 'Amal';
-            if (patientId === '5') {
-                patientData = {
-                    fullName: 'Sara Khaled',
-                    patientId: 'PT005',
-                    email: 'sara@rehab.com',
-                    phone: '+966 50 222 2222',
-                    dob: '2019-03-20',
-                    gender: 'female',
-                    condition: 'Arm Weakness',
-                    affectedHand: 'right',
-                    currentLevel: '1',
-                    address: 'Riyadh, Saudi Arabia'
-                };
-            } else if (patientId === '6') {
-                patientData = {
-                    fullName: 'Ali Ahmed',
-                    patientId: 'PT006',
-                    email: 'ali@rehab.com',
-                    phone: '+966 50 111 1111',
-                    dob: '2018-01-15',
-                    gender: 'male',
-                    condition: 'Motor Disability',
-                    affectedHand: 'left',
-                    currentLevel: '1',
-                    address: 'Riyadh, Saudi Arabia'
-                };
-            } else {
-                patientData = {
-                    fullName: patientName,
-                    patientId: 'PT00' + patientId,
-                    email: 'patient@rehab.com',
-                    phone: '+966 50 000 0000',
-                    dob: '2000-01-01',
-                    gender: 'male',
-                    condition: 'Patient',
-                    affectedHand: localStorage.getItem('affectedHand') || 'right',
-                    currentLevel: '1',
-                    address: 'Saudi Arabia'
-                };
+        async function loadPatientData() {
+            try {
+                const response = await fetch('/api/my-patient-data/');
+                const data = await response.json();
+                if (data.success) {
+                    const p = data.patient;
+                    patientData = p;
+
+                    document.getElementById('fullNameInput').value = p.name || '';
+                    document.getElementById('patientIdInput').value = p.patient_id || '';
+                    document.getElementById('emailInput').value = p.email || '';
+                    document.getElementById('phoneInput').value = p.phone || '';
+                    document.getElementById('dobInput').value = p.date_of_birth || '';
+                    document.getElementById('genderInput').value = p.gender?.toLowerCase() === 'female' ? 'female' : 'male';
+                    document.getElementById('conditionInput').value = p.medical_condition || '';
+                    document.getElementById('affectedHandInput').value = p.affected_hand || 'right';
+                    document.getElementById('currentLevelInput').value = p.current_level || '1';
+                    document.getElementById('addressInput').value = p.address || '';
+
+                    const avatarText = document.getElementById('avatarText');
+                    if (avatarText) avatarText.textContent = (p.name || 'A').charAt(0).toUpperCase();
+                } else {
+                    showNotification('Error loading profile data', 'error');
+                }
+            } catch (error) {
+                showNotification('Connection error loading profile', 'error');
             }
-            
-            updateFormValues();
         }
 
         function updateFormValues() {
@@ -534,29 +515,51 @@
         // ============================================
         // SAVE PROFILE
         // ============================================
-        function saveProfile() {
+        async function saveProfile() {
+            const nameParts = document.getElementById('fullNameInput').value.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+
             const updatedData = {
-                ...patientData,
+                first_name: firstName,
+                last_name: lastName,
                 email: document.getElementById('emailInput').value.trim(),
                 phone: document.getElementById('phoneInput').value.trim(),
-                dob: document.getElementById('dobInput').value,
-                address: document.getElementById('addressInput').value.trim()
+                date_of_birth: document.getElementById('dobInput').value,
+                gender: document.getElementById('genderInput').value,
+                affected_hand: document.getElementById('affectedHandInput').value,
+                address: document.getElementById('addressInput').value.trim(),
+                avatar: localStorage.getItem('userAvatar') || ''
             };
-            
+
             if (!updatedData.email || !updatedData.phone) {
                 showNotification('Please fill in email and phone fields', 'error');
                 return;
             }
-            
-            patientData = updatedData;
-            
-            localStorage.setItem('patientName', updatedData.fullName);
-            localStorage.setItem('affectedHand', updatedData.affectedHand);
-            localStorage.setItem('patientLevel', updatedData.currentLevel);
-            localStorage.setItem('patientCondition', updatedData.condition);
-            
-            updateFormValues();
-            showNotification('Profile updated successfully!', 'success');
+
+            try {
+                const response = await fetch('/api/update-patient-profile/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Profile updated successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{% url 'profile' %}";
+                    }, 1500);
+                } else {
+                    showNotification(data.error || 'Error updating profile', 'error');
+                }
+            } catch (error) {
+                showNotification('Connection error. Please try again.', 'error');
+            }
         }
 
         function cancelEdit() {
@@ -575,7 +578,7 @@
             if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
                 avatarLarge.innerHTML = `<img src="${savedAvatar}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
             } else {
-                avatarLarge.innerHTML = `<span id="avatarText">${patientData.fullName.charAt(0).toUpperCase()}</span>`;
+                avatarLarge.innerHTML = `<span id="avatarText">${(patientData?.name || patientData?.fullName || 'A').charAt(0).toUpperCase()}</span>`;
             }
         }
 
@@ -589,7 +592,7 @@
             sessionStorage.removeItem('userAvatar');
             
             const avatarLarge = document.getElementById('avatarLarge');
-            const firstLetter = patientData.fullName.charAt(0).toUpperCase();
+            const firstLetter = (patientData?.name || patientData?.fullName || 'A').charAt(0).toUpperCase();
             avatarLarge.innerHTML = `<span id="avatarText">${firstLetter}</span>`;
             
             showNotification('Avatar deleted successfully!', 'success');
@@ -603,7 +606,7 @@
                     <h3 style="color: #1e293b; margin-bottom: 10px;">Upload Avatar</h3>
                     <p style="color: #64748b; margin-bottom: 20px;">Choose a profile picture</p>
                     <div class="avatar-preview" id="avatarPreview">
-                        <span id="previewText">${patientData.fullName.charAt(0).toUpperCase()}</span>
+                        <span id="previewText">${(patientData?.name || patientData?.fullName || 'A').charAt(0).toUpperCase()}</span>
                     </div>
                     <input type="file" id="avatarUpload" accept="image/*" style="margin: 20px 0; width: 100%;">
                     <div style="display: flex; gap: 15px; margin-top: 20px;">

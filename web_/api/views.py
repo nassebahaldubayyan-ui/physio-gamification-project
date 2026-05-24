@@ -26,7 +26,63 @@ def doctor_login(request):
     return render(request, 'doctor-login.html')
 
 def profile(request):
-    return render(request, 'profile.html')
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return redirect('/gamer-login/')
+
+    try:
+        user = Users.objects.get(id=user_id)
+    except Users.DoesNotExist:
+        return redirect('/gamer-login/')
+
+    context = {'user': user, 'role': user.role}
+
+    if user.role == 'doctor':
+        try:
+            doctor = Doctors.objects.get(user=user)
+        except Doctors.DoesNotExist:
+            doctor = None
+
+        patient_count = Patients.objects.filter(
+            assigned_doctor_id=user.id
+        ).count()
+
+        total_sessions = GameSessions.objects.filter(
+            patient__assigned_doctor_id=user.id
+        ).count()
+
+        context.update({
+            'doctor': doctor,
+            'patient_count': patient_count,
+            'total_sessions': total_sessions,
+        })
+
+    else:
+        try:
+            patient = Patients.objects.get(user=user)
+        except Patients.DoesNotExist:
+            patient = None
+
+        from django.db.models import Avg, Count
+        stats = GameSessions.objects.filter(
+            patient__user=user
+        ).aggregate(
+            avg_accuracy=Avg('accuracy'),
+            total_sessions=Count('id'),
+        )
+
+        avg_accuracy = stats['avg_accuracy']
+        accuracy_display = (
+            f"{round(avg_accuracy)}%" if avg_accuracy is not None else "0%"
+        )
+
+        context.update({
+            'patient': patient,
+            'accuracy_display': accuracy_display,
+            'total_sessions': stats['total_sessions'] or 0,
+        })
+
+    return render(request, 'profile.html', context)
 
 def settings(request):
     return render(request, 'settings.html')
@@ -966,6 +1022,121 @@ def api_get_my_patient_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_update_patient_profile(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        data = json.loads(request.body)
+
+        user = Users.objects.get(id=user_id)
+
+        if data.get('first_name') or data.get('last_name'):
+            user.name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+        elif data.get('name'):
+            user.name = data.get('name')
+
+        user.email = data.get('email', user.email)
+        user.phone = data.get('phone', user.phone)
+        if data.get('avatar'):
+            user.avatar = data.get('avatar')
+        user.save()
+
+        patient = Patients.objects.filter(user=user).first()
+        if patient:
+            if data.get('date_of_birth'):
+                patient.date_of_birth = data.get('date_of_birth')
+            if data.get('gender'):
+                patient.gender = data.get('gender')
+            if data.get('affected_hand'):
+                patient.affected_hand = data.get('affected_hand')
+            if data.get('address') is not None:
+                patient.address = data.get('address')
+            if data.get('city') is not None:
+                patient.city = data.get('city')
+            if data.get('country') is not None:
+                patient.country = data.get('country')
+            patient.save()
+
+        return JsonResponse({"success": True, "message": "Profile updated successfully"})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_update_doctor_profile(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        data = json.loads(request.body)
+
+        user = Users.objects.get(id=user_id)
+        user.name = data.get('name', user.name)
+        user.email = data.get('email', user.email)
+        user.phone = data.get('phone', user.phone)
+        if data.get('avatar'):
+            user.avatar = data.get('avatar')
+        user.save()
+
+        doctor = Doctors.objects.filter(user=user).first()
+        if doctor:
+            doctor.specialty = data.get('specialty', doctor.specialty)
+            doctor.hospital = data.get('hospital', doctor.hospital)
+            if data.get('experience'):
+                doctor.experience = int(data.get('experience'))
+            doctor.save()
+
+        return JsonResponse({"success": True, "message": "Profile updated successfully"})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+@require_http_methods(["GET"])
+def api_get_avatar(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+        user = Users.objects.get(id=user_id)
+        return JsonResponse({"success": True, "avatar": user.avatar or ''})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500) 
+      
+@require_http_methods(["GET"])
+def api_get_my_doctor_data(request):
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({"error": "Not logged in"}, status=401)
+
+        user = Users.objects.get(id=user_id)
+        doctor = Doctors.objects.filter(user=user).first()
+
+        return JsonResponse({
+            "success": True,
+            "doctor": {
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone or "",
+                "doctor_id": doctor.doctor_id if doctor else "",
+                "specialty": doctor.specialty if doctor else "",
+                "license_number": doctor.license_number if doctor else "",
+                "hospital": doctor.hospital if doctor else "",
+                "experience": doctor.experience if doctor else "",
+            }
+        })
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+     
 @csrf_exempt
 @require_http_methods(["GET"])
 def api_get_messages(request):

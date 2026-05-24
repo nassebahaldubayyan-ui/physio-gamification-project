@@ -373,7 +373,7 @@
     <div class="dashboard-layout">
         <div class="sidebar">
             <div class="doctor-info">
-                <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="avatar" id="sidebarAvatar"><i class="fas fa-user-circle"></i></div>
                 <h4 id="doctorName">Dr. Ahmad</h4>
                 <p id="doctorInfo">Physiotherapy • #3</p>
             </div>
@@ -424,11 +424,34 @@
             { id: 'PT010', name: 'Mansour', age: 11, condition: 'General', status: 'in-progress', level: 1, accuracy: 0, sessions: 0, avatar: 'M', avatarColor: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }
         ];
         let currentFilter = 'all';
-
+        async function loadDoctorInfo() {
+            try {
+                const response = await fetch('/api/my-doctor-data/');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('doctorName').textContent = data.doctor.name || 'Doctor';
+                    document.getElementById('doctorInfo').textContent = `${data.doctor.specialty || 'Physiotherapy'} • #${data.doctor.doctor_id || ''}`;
+                }
+            } catch (e) {
+                console.error('Error loading doctor info');
+            }
+        }
+        async function loadSidebarAvatar() {
+            try {
+                const response = await fetch('/api/get-avatar/');
+                const data = await response.json();
+                const avatarDiv = document.getElementById('sidebarAvatar');
+                if (data.success && data.avatar) {
+                    avatarDiv.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                }
+            } catch (e) {
+                console.error('Error loading avatar');
+            }
+        }
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('doctorName').textContent = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            document.getElementById('doctorInfo').textContent = `Physiotherapy • #${localStorage.getItem('doctorId') || '3'}`;
             localStorage.setItem('userType', 'doctor');
+            loadDoctorInfo();
+            loadSidebarAvatar();
             renderPatients();
             updateCounts();
         });

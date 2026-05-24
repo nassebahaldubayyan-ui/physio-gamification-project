@@ -498,29 +498,37 @@
         // ============================================
         // LOAD DOCTOR DATA
         // ============================================
-        function loadDoctorData() {
-            document.getElementById('fullName').value = localStorage.getItem('doctorName') || 'Dr. Ahmad';
-            document.getElementById('doctorId').value = localStorage.getItem('doctorId') || '3';
-            document.getElementById('email').value = localStorage.getItem('doctorEmail') || 'dr.ahmad@clinic.com';
-            document.getElementById('phone').value = localStorage.getItem('doctorPhone') || '0500000000';
-            document.getElementById('specialty').value = localStorage.getItem('doctorSpecialty') || 'Physiotherapy';
-            document.getElementById('license').value = localStorage.getItem('doctorLicense') || 'LIC12345';
-            document.getElementById('hospital').value = localStorage.getItem('doctorHospital') || 'Central Hospital';
-            document.getElementById('experience').value = localStorage.getItem('doctorExperience') || '10';
+        async function loadDoctorData() {
+            try {
+                const response = await fetch('/api/my-doctor-data/');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('fullName').value = data.doctor.name || '';
+                    document.getElementById('doctorId').value = data.doctor.doctor_id || '';
+                    document.getElementById('email').value = data.doctor.email || '';
+                    document.getElementById('phone').value = data.doctor.phone || '';
+                    document.getElementById('specialty').value = data.doctor.specialty || '';
+                    document.getElementById('license').value = data.doctor.license_number || '';
+                    document.getElementById('hospital').value = data.doctor.hospital || '';
+                    document.getElementById('experience').value = data.doctor.experience || '';
+                }
+            } catch (error) {
+                showNotification('Error loading profile data', 'error');
+            }
         }
 
         // ============================================
         // SAVE DOCTOR PROFILE
         // ============================================
-        function saveDoctorProfile() {
+        async function saveDoctorProfile() {
             const updatedData = {
-                name: document.getElementById('fullName').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                specialty: document.getElementById('specialty').value,
-                license: document.getElementById('license').value,
-                hospital: document.getElementById('hospital').value,
-                experience: document.getElementById('experience').value
+                name: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                specialty: document.getElementById('specialty').value.trim(),
+                hospital: document.getElementById('hospital').value.trim(),
+                experience: document.getElementById('experience').value,
+                avatar: localStorage.getItem('doctorAvatar') || ''
             };
 
             if (!updatedData.name || !updatedData.email || !updatedData.phone) {
@@ -528,18 +536,29 @@
                 return;
             }
 
-            localStorage.setItem('doctorName', updatedData.name);
-            localStorage.setItem('doctorEmail', updatedData.email);
-            localStorage.setItem('doctorPhone', updatedData.phone);
-            localStorage.setItem('doctorSpecialty', updatedData.specialty);
-            localStorage.setItem('doctorHospital', updatedData.hospital);
-            localStorage.setItem('doctorExperience', updatedData.experience);
+            try {
+                const response = await fetch('/api/update-doctor-profile/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
 
-            showNotification('Profile updated successfully!', 'success');
+                const data = await response.json();
 
-            setTimeout(() => {
-                window.location.href = "{% url 'profile' %}";
-            }, 1500);
+                if (data.success) {
+                    showNotification('Profile updated successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{% url 'profile' %}";
+                    }, 1500);
+                } else {
+                    showNotification(data.error || 'Error updating profile', 'error');
+                }
+            } catch (error) {
+                showNotification('Connection error. Please try again.', 'error');
+            }
         }
 
         // ============================================
