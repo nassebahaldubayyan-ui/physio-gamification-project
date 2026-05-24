@@ -1141,16 +1141,16 @@ def api_get_my_doctor_data(request):
 
 @require_http_methods(["GET"])
 def api_get_game_stats(request):
-    """Get aggregated game session stats for a patient, grouped by game type"""
     try:
-        from .models import GameSessions, Patients, Users
+        from .models import GameSessions, Patients
         from django.db.models import Avg, Sum, Count
 
         patient_id = request.GET.get('patient_id')
+        date = request.GET.get('date')
+
         if not patient_id:
             return JsonResponse({"error": "patient_id required"}, status=400)
 
-        # Find patient - try patient_id string first, then user id
         patient = Patients.objects.filter(patient_id=patient_id).first()
         if not patient:
             try:
@@ -1162,6 +1162,8 @@ def api_get_game_stats(request):
 
         def aggregate_game(game_type):
             qs = GameSessions.objects.filter(patient=patient, game_type=game_type)
+            if date:
+                qs = qs.filter(session_date__date=date)
             agg = qs.aggregate(
                 sessions=Count('id'),
                 avg_shoulder=Avg('shoulder_activation'),
@@ -1190,11 +1192,21 @@ def api_get_game_stats(request):
                 'objects_caught': agg['total_objects'] or 0,
             }
 
+        stars = aggregate_game('catching-stars')
+        match = aggregate_game('matching-game')
+        rotation = aggregate_game('catching-objects')
+
+        # Check if any sessions exist for this date
+        total_sessions = stars['sessions'] + match['sessions'] + rotation['sessions']
+        no_data = date and total_sessions == 0
+
         return JsonResponse({
             'success': True,
-            'stars': aggregate_game('catching-stars'),
-            'match': aggregate_game('matching-game'),
-            'rotation': aggregate_game('catching-objects'),
+            'no_data': no_data,
+            'date': date or None,
+            'stars': stars,
+            'match': match,
+            'rotation': rotation,
         })
 
     except Exception as e:

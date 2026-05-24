@@ -522,9 +522,12 @@
             <div class="page-header">
                 <h2>Patients Performance</h2>
                 <div class="date-filter">
-                    <input type="date" id="dateFilter" value="2026-03-25">
+                    <input type="date" id="dateFilter">
                     <button class="filter-btn" onclick="filterByDate()">
                         <i class="fas fa-filter"></i> Apply Filter
+                    </button>
+                    <button class="filter-btn" onclick="clearDateFilter()" style="background: linear-gradient(135deg, #64748b, #475569);">
+                        <i class="fas fa-times"></i> Clear
                     </button>
                 </div>
             </div>
@@ -795,10 +798,19 @@
             currentPatient = select.value;
             if (!currentPatient) return;
 
+            const date = document.getElementById('dateFilter').value;
+            const dateParam = date ? `&date=${date}` : '';
+
             try {
-                const response = await fetch(`/api/game-stats/?patient_id=${currentPatient}`);
+                const response = await fetch(`/api/game-stats/?patient_id=${currentPatient}${dateParam}`);
                 const data = await response.json();
                 if (!data.success) return;
+
+                // Show message if no sessions found for selected date
+                if (data.no_data) {
+                    showNotification(`No sessions found on ${new Date(date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}`, 'warning');
+                    return;
+                }
 
                 const stars = data.stars;
                 const match = data.match;
@@ -849,6 +861,13 @@
             }
         }
 
+        function filterByDate() {
+            loadPatientPerformance();
+        }
+        function clearDateFilter() {
+            document.getElementById('dateFilter').value = '';
+            loadPatientPerformance();
+        }
         document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('userType', 'doctor');
             loadDoctorInfo();
@@ -880,16 +899,6 @@
             } catch (e) {
                 console.error('Error loading avatar');
             }
-        }
-
-        function filterByDate() {
-            const date = document.getElementById('dateFilter').value;
-            const formattedDate = new Date(date).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            alert(`Showing data for: ${formattedDate}`);
         }
 
         // ============================================
