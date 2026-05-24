@@ -1136,7 +1136,71 @@ def api_get_my_doctor_data(request):
         })
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-     
+
+@require_http_methods(["GET"])
+def api_get_game_stats(request):
+    """Get aggregated game session stats for a patient, grouped by game type"""
+    try:
+        from .models import GameSessions, Patients, Users
+        from django.db.models import Avg, Sum, Count
+
+        patient_id = request.GET.get('patient_id')
+        if not patient_id:
+            return JsonResponse({"error": "patient_id required"}, status=400)
+
+        # Find patient - try patient_id string first, then user id
+        patient = Patients.objects.filter(patient_id=patient_id).first()
+        if not patient:
+            try:
+                patient = Patients.objects.filter(user_id=int(patient_id)).first()
+            except ValueError:
+                pass
+        if not patient:
+            return JsonResponse({"error": "Patient not found"}, status=404)
+
+        def aggregate_game(game_type):
+            qs = GameSessions.objects.filter(patient=patient, game_type=game_type)
+            agg = qs.aggregate(
+                sessions=Count('id'),
+                avg_shoulder=Avg('shoulder_activation'),
+                avg_elbow=Avg('elbow_activation'),
+                avg_wrist=Avg('wrist_activation'),
+                avg_grip=Avg('grip_activation'),
+                avg_external=Avg('external_rotation'),
+                avg_shrug=Avg('shoulder_shrug'),
+                avg_accuracy=Avg('accuracy'),
+                total_stars=Sum('stars_caught'),
+                total_matches=Sum('matches_made'),
+                total_objects=Sum('objects_caught'),
+            )
+            def r(v): return round(v or 0)
+            return {
+                'sessions': agg['sessions'] or 0,
+                'shoulder_activation': r(agg['avg_shoulder']),
+                'elbow_activation': r(agg['avg_elbow']),
+                'wrist_activation': r(agg['avg_wrist']),
+                'grip_activation': r(agg['avg_grip']),
+                'external_rotation': r(agg['avg_external']),
+                'shoulder_shrug': r(agg['avg_shrug']),
+                'accuracy': r(agg['avg_accuracy']),
+                'stars_caught': agg['total_stars'] or 0,
+                'matches_made': agg['total_matches'] or 0,
+                'objects_caught': agg['total_objects'] or 0,
+            }
+
+        return JsonResponse({
+            'success': True,
+            'stars': aggregate_game('catching-stars'),
+            'match': aggregate_game('matching-game'),
+            'rotation': aggregate_game('catching-objects'),
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"error": str(e)}, status=500)
+    
+        
 @csrf_exempt
 @require_http_methods(["GET"])
 def api_get_messages(request):
@@ -1185,6 +1249,7 @@ def api_get_messages(request):
         
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 
 @csrf_exempt
