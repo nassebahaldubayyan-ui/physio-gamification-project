@@ -413,17 +413,28 @@
             </div>
         </div>
     </div>
-
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        const patients = [
-            { id: 'PT005', name: 'Sara Khaled', age: 7, condition: 'Arm Weakness', status: 'completed', level: 1, accuracy: 79, sessions: 10, avatar: 'S', avatarColor: 'linear-gradient(135deg, #ed8936, #f6ad55)' },
-            { id: 'PT006', name: 'Ali Ahmed', age: 8, condition: 'Motor Disability', status: 'completed', level: 1, accuracy: 81, sessions: 15, avatar: 'A', avatarColor: 'linear-gradient(135deg, #9b59b6, #8e44ad)' },
-            { id: 'PT007', name: 'Amal', age: 14, condition: 'General', status: 'in-progress', level: 1, accuracy: 0, sessions: 0, avatar: 'A', avatarColor: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-            { id: 'PT008', name: 'Saad', age: 11, condition: 'Not specified', status: 'in-progress', level: 1, accuracy: 0, sessions: 0, avatar: 'S', avatarColor: 'linear-gradient(135deg, #10b981, #059669)' },
-            { id: 'PT010', name: 'Mansour', age: 11, condition: 'General', status: 'in-progress', level: 1, accuracy: 0, sessions: 0, avatar: 'M', avatarColor: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }
-        ];
+        let patients = [];
         let currentFilter = 'all';
+
+        const avatarColors = [
+            'linear-gradient(135deg, #ed8936, #f6ad55)',
+            'linear-gradient(135deg, #9b59b6, #8e44ad)',
+            'linear-gradient(135deg, #f59e0b, #d97706)',
+            'linear-gradient(135deg, #10b981, #059669)',
+            'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            'linear-gradient(135deg, #ec4899, #db2777)',
+            'linear-gradient(135deg, #14b8a6, #0f766e)',
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            localStorage.setItem('userType', 'doctor');
+            loadDoctorInfo();
+            loadSidebarAvatar();
+            loadPatients();
+        });
+
         async function loadDoctorInfo() {
             try {
                 const response = await fetch('/api/my-doctor-data/');
@@ -436,6 +447,7 @@
                 console.error('Error loading doctor info');
             }
         }
+
         async function loadSidebarAvatar() {
             try {
                 const response = await fetch('/api/get-avatar/');
@@ -448,52 +460,126 @@
                 console.error('Error loading avatar');
             }
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            localStorage.setItem('userType', 'doctor');
-            loadDoctorInfo();
-            loadSidebarAvatar();
-            renderPatients();
-            updateCounts();
-        });
+
+        async function loadPatients() {
+            try {
+                const response = await fetch('/api/doctors/patients/');
+                const data = await response.json();
+
+                if (!data.success) {
+                    document.getElementById('patientsList').innerHTML =
+                        '<p style="padding:20px;color:#64748b;">Failed to load patients.</p>';
+                    return;
+                }
+
+                // Fetch session stats for each patient to get accuracy and session count
+                const statsResponses = await Promise.all(
+                    data.patients.map(p =>
+                        fetch(`/api/game-stats/?patient_id=${p.patient_id || p.id}`)
+                            .then(r => r.json())
+                            .catch(() => null)
+                    )
+                );
+
+                patients = data.patients.map((p, i) => {
+                    const stats = statsResponses[i];
+                    let sessions = 0;
+                    let accuracy = 0;
+
+                    if (stats && stats.success) {
+                        const s = stats.stars, m = stats.match, r = stats.rotation;
+                        sessions = s.sessions + m.sessions + r.sessions;
+                        accuracy = sessions > 0
+                            ? Math.round((s.accuracy + m.accuracy + r.accuracy) / 3)
+                            : 0;
+                    }
+
+                    // Determine status: has sessions = completed at least one, else in-progress
+                    const status = sessions > 0 ? 'completed' : 'in-progress';
+
+                    return {
+                        id: p.patient_id || 'PT' + p.id,
+                        userId: p.id,
+                        name: p.name,
+                        age: p.age || '?',
+                        condition: p.medical_condition || 'General',
+                        status,
+                        level: p.current_level || 1,
+                        accuracy,
+                        sessions,
+                        avatar: p.name.charAt(0).toUpperCase(),
+                        avatarColor: avatarColors[i % avatarColors.length],
+                    };
+                });
+
+                // Update header count
+                document.querySelector('.page-header p').innerHTML =
+                    `<i class="fas fa-users"></i> ${patients.length} Active Patients`;
+
+                updateCounts();
+                renderPatients();
+
+            } catch (e) {
+                console.error('Error loading patients', e);
+                document.getElementById('patientsList').innerHTML =
+                    '<p style="padding:20px;color:#ef4444;">Error loading patients.</p>';
+            }
+        }
 
         function renderPatients() {
-            const filteredPatients = currentFilter === 'all' ? patients : patients.filter(p => p.status === currentFilter);
+            const filtered = currentFilter === 'all'
+                ? patients
+                : currentFilter === 'progress'
+                ? patients.filter(p => p.status === 'in-progress')
+                : patients.filter(p => p.status === 'completed');
+
             const list = document.getElementById('patientsList');
-            if (!list) return;
             list.innerHTML = '';
-            filteredPatients.forEach(patient => {
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="padding:20px;color:#64748b;text-align:center;">No patients found.</p>';
+                return;
+            }
+
+            filtered.forEach(patient => {
                 const statusText = patient.status === 'in-progress' ? 'In Progress' : 'Completed';
                 const statusClass = patient.status === 'in-progress' ? 'in-progress' : 'completed';
                 const row = document.createElement('div');
                 row.className = 'patient-row';
                 row.innerHTML = `
                     <div class="patient-info-col">
-                        <div class="patient-avatar-small" style="background: ${patient.avatarColor}">${patient.avatar}</div>
+                        <div class="patient-avatar-small" style="background:${patient.avatarColor}">${patient.avatar}</div>
                         <div class="patient-details-small">
-                            <h4>${patient.name}</h4>
-                            <p>${patient.condition} • ${patient.age} years</p>
+                            <h4>${escapeHtml(patient.name)}</h4>
+                            <p>${escapeHtml(patient.condition)} • ${patient.age} years</p>
                         </div>
                     </div>
                     <div class="patient-stats-col">
-                        <div class="stat-item-small"><div class="stat-value-small">Level ${patient.level}</div><div class="stat-label-small">Current</div></div>
-                        <div class="stat-item-small"><div class="stat-value-small">${patient.accuracy}%</div><div class="stat-label-small">Accuracy</div></div>
-                        <div class="stat-item-small"><div class="stat-value-small">${patient.sessions}</div><div class="stat-label-small">Sessions</div></div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">Level ${patient.level}</div>
+                            <div class="stat-label-small">Current</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">${patient.accuracy}%</div>
+                            <div class="stat-label-small">Accuracy</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">${patient.sessions}</div>
+                            <div class="stat-label-small">Sessions</div>
+                        </div>
                     </div>
-                    <div style="flex:1; display:flex; align-items:center; gap:15px;">
+                    <div style="flex:1;display:flex;align-items:center;gap:15px;">
                         <span class="status-badge ${statusClass}">${statusText}</span>
-                        <button class="action-btn" onclick="viewPatientDetails('${patient.id}')"><i class="fas fa-eye"></i> View</button>
-                        <button class="action-btn" onclick="goToChat('${patient.id}')"><i class="fas fa-comment"></i> Message</button>
+                        <button class="action-btn" onclick="viewPatientDetails('${patient.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="action-btn" onclick="goToChat('${patient.userId}')">
+                            <i class="fas fa-comment"></i> Message
+                        </button>
                     </div>
                 `;
                 list.appendChild(row);
             });
-        }
-
-        function filterPatientsData() {
-            if (currentFilter === 'all') return patients;
-            if (currentFilter === 'progress') return patients.filter(p => p.status === 'in-progress');
-            if (currentFilter === 'completed') return patients.filter(p => p.status === 'completed');
-            return patients;
         }
 
         function filterPatients(filter, element) {
@@ -504,20 +590,24 @@
         }
 
         function updateCounts() {
-            document.getElementById('totalPatients').textContent = patients.length;
-            document.getElementById('inProgressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-            document.getElementById('completedCount').textContent = patients.filter(p => p.status === 'completed').length;
-            document.getElementById('allCount').textContent = patients.length;
-            document.getElementById('progressCount').textContent = patients.filter(p => p.status === 'in-progress').length;
-            document.getElementById('completedFilterCount').textContent = patients.filter(p => p.status === 'completed').length;
+            const total = patients.length;
+            const inProgress = patients.filter(p => p.status === 'in-progress').length;
+            const completed = patients.filter(p => p.status === 'completed').length;
+
+            document.getElementById('totalPatients').textContent = total;
+            document.getElementById('inProgressCount').textContent = inProgress;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('allCount').textContent = total;
+            document.getElementById('progressCount').textContent = inProgress;
+            document.getElementById('completedFilterCount').textContent = completed;
         }
 
         function viewPatientDetails(patientId) {
             window.location.href = `/doctor/patient-details/?patient=${patientId}`;
         }
 
-        function goToChat(patientId) {
-            window.location.href = `/doctor/messages/?patient=${patientId}`;
+        function goToChat(userId) {
+            window.location.href = `/doctor/messages/?patient=${userId}`;
         }
 
         function escapeHtml(text) {
@@ -539,9 +629,26 @@
         function logoutDoctor() {
             const modal = document.createElement('div');
             modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);display:flex;justify-content:center;align-items:center;z-index:10000;animation:fadeIn 0.3s ease;`;
-            modal.innerHTML = `<div style="background:white;border-radius:30px;padding:40px;max-width:400px;width:90%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;"><div style="width:80px;height:80px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><i class="fas fa-sign-out-alt" style="font-size:40px;color:white;"></i></div><h3 style="color:#1e293b;font-size:28px;">Log Out</h3><p style="color:#64748b;font-size:16px;margin:20px 0;">Are you sure you want to log out?</p><div style="display:flex;gap:15px;"><button id="confirmLogout" style="flex:1;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Yes, Log Out</button><button id="cancelLogout" style="flex:1;padding:14px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Cancel</button></div></div>`;
+            modal.innerHTML = `
+                <div style="background:white;border-radius:30px;padding:40px;max-width:400px;width:90%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <i class="fas fa-sign-out-alt" style="font-size:40px;color:white;"></i>
+                    </div>
+                    <h3 style="color:#1e293b;font-size:28px;">Log Out</h3>
+                    <p style="color:#64748b;font-size:16px;margin:20px 0;">Are you sure you want to log out?</p>
+                    <div style="display:flex;gap:15px;">
+                        <button id="confirmLogout" style="flex:1;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Yes, Log Out</button>
+                        <button id="cancelLogout" style="flex:1;padding:14px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>`;
             document.body.appendChild(modal);
-            document.getElementById('confirmLogout').onclick = () => { modal.remove(); localStorage.clear(); sessionStorage.clear(); showNotification('Logged out successfully', 'info'); setTimeout(() => window.location.href = '/', 800); };
+            document.getElementById('confirmLogout').onclick = () => {
+                modal.remove();
+                localStorage.clear();
+                sessionStorage.clear();
+                showNotification('Logged out successfully', 'info');
+                setTimeout(() => window.location.href = '/', 800);
+            };
             document.getElementById('cancelLogout').onclick = () => modal.remove();
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         }

@@ -427,57 +427,6 @@
             font-size: 12px;
         }
 
-        .performance-table {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
-            margin-top: 30px;
-        }
-
-        .performance-table h3 {
-            color: #2d3748;
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 15px 10px;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 14px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #1e293b;
-        }
-
-        tr:hover td {
-            background: #f8fafc;
-        }
-
-        .muscle-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-
-        .indicator-high { background: #48bb78; }
-        .indicator-medium { background: #ecc94b; }
-        .indicator-low { background: #f56565; }
-
         .btn-back {
             margin-top: 30px;
             padding: 12px 30px;
@@ -804,53 +753,6 @@
                 </div>
             </div>
 
-            <!-- Therapeutic Benefits Summary -->
-            <div class="performance-table">
-                <h3><i class="fas fa-clipboard-list"></i> Therapeutic Benefits Summary</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Game</th>
-                            <th>Primary Muscles</th>
-                            <th>Therapeutic Goal</th>
-                            <th>Progress</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Catching Stars</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Deltoid<br>
-                                <span class="muscle-indicator indicator-high"></span> Rotator Cuff
-                            </td>
-                            <td>Shoulder elevation & stability</td>
-                            <td>79%</td>
-                            <td><span style="color: #48bb78;">Improving</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Matching Game</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Full Upper Extremity
-                            </td>
-                            <td>Active range & strength</td>
-                            <td>78%</td>
-                            <td><span style="color: #48bb78;">Improving</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Catching Objects</strong></td>
-                            <td>
-                                <span class="muscle-indicator indicator-high"></span> Infraspinatus<br>
-                                <span class="muscle-indicator indicator-high"></span> Teres Minor
-                            </td>
-                            <td>Prevent contracture, improve alignment</td>
-                            <td>85%</td>
-                            <td><span style="color: #48bb78;">Excellent</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <!-- Back Button -->
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_dashboard' %}'">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -978,25 +880,6 @@
             } catch (e) {
                 console.error('Error loading avatar');
             }
-        }
-        
-        
-
-        function updateOverallStats(data) {
-            const stars = data.games.stars;
-            const match = data.games.match;
-            const rotation = data.games.rotation;
-
-            const totalSessions = stars.sessions + match.sessions + rotation.sessions;
-            const avgActivation = Math.round((stars.shoulder + stars.elbow +
-                                            match.range + match.grip +
-                                            rotation.external + rotation.alignment) / 6);
-
-            document.getElementById('activeSessions').textContent = totalSessions;
-            document.getElementById('avgActivation').textContent = avgActivation + '%';
-
-            const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.prevention) / 3);
-            document.getElementById('completionRate').textContent = completionRate + '%';
         }
 
         function filterByDate() {

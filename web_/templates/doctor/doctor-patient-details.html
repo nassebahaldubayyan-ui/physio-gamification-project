@@ -302,32 +302,6 @@
             display: inline-block;
         }
 
-        .ai-recommendation {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            border: 2px solid #7dd3fc;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 25px;
-        }
-
-        .ai-recommendation h3 {
-            color: #0369a1;
-            margin: 0 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .ai-recommendation p {
-            color: #1e293b;
-            font-size: 18px;
-            margin: 0;
-            padding: 15px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 10px;
-            border-left: 4px solid #3b82f6;
-        }
-
         .btn-back {
             padding: 12px 30px;
             background: #f1f5f9;
@@ -494,13 +468,6 @@
                     </div>
                 </div>
 
-                <!-- AI Recommendation -->
-                <div class="ai-recommendation">
-                    <h3><i class="fas fa-robot"></i> AI Recommendation</h3>
-                    <p id="aiRecommendation">Loading recommendation...</p>
-                </div>
-            </div>
-
             <button class="btn-back" onclick="window.location.href='{% url 'doctor_patients' %}'">
                 <i class="fas fa-arrow-left"></i> Back to Patients List
             </button>
@@ -583,19 +550,6 @@
             document.getElementById('affectedHand').textContent = p.affected_hand === 'right' ? 'Right Hand' : 'Left Hand';
             document.getElementById('therapyType').textContent = p.therapy_type || 'Physical Therapy';
             document.getElementById('assessmentStatus').textContent = p.assessment_completed ? 'Completed' : 'Not Completed';
-            
-            // AI Recommendation
-            let recommendation = '';
-            if (!p.assessment_completed) {
-                recommendation = 'Patient needs to complete initial assessment video to begin therapy.';
-            } else if (p.current_level === 1) {
-                recommendation = 'Patient is at beginner level. Focus on basic range of motion exercises.';
-            } else if (p.current_level === 2) {
-                recommendation = 'Patient is progressing well. Increase exercise difficulty gradually.';
-            } else {
-                recommendation = 'Patient is at advanced level. Focus on complex movements and form.';
-            }
-            document.getElementById('aiRecommendation').textContent = recommendation;
         }
 
         function viewPatientProgress() {

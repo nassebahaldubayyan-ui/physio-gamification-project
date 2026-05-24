@@ -683,51 +683,53 @@ def api_delete_patient(request):
         data = json.loads(request.body)
         sent_id = data.get("patient_id")
         
-        print(f"🔍 Delete request for ID: {sent_id}")
-        
         if not sent_id:
             return JsonResponse({"error": "No ID provided"}, status=400)
         
-        from .models import Patients, Users
+        from .models import Patients, Users, GameSessions, Messages
         
-        # Convert to int if it's a number
         try:
             sent_id = int(sent_id)
         except:
             pass
         
-        # Search for the user first (since all patients have a user)
         user = None
         
-        # Try by id
+        # Try by user id
         try:
             user = Users.objects.filter(id=sent_id, role='patient').first()
-            if user:
-                print(f"✅ Found user by id: {user.id} - {user.name}")
         except:
             pass
         
-        # If not found, try by patient_id in patients table
+        # Try by patient_id string
         if not user:
-            patient_record = Patients.objects.filter(patient_id=str(sent_id)).first()
-            if patient_record:
-                user = patient_record.user
-                print(f"✅ Found user via patient_id: {user.id} - {user.name}")
+            pr = Patients.objects.filter(patient_id=str(sent_id)).first()
+            if pr:
+                user = pr.user
         
-        # If still not found, try to find via patients table user_id
+        # Try by patients.user_id
         if not user:
-            patient_record = Patients.objects.filter(user_id=sent_id).first()
-            if patient_record:
-                user = patient_record.user
-                print(f"✅ Found user via patients.user_id: {user.id} - {user.name}")
+            pr = Patients.objects.filter(user_id=sent_id).first()
+            if pr:
+                user = pr.user
         
         if not user:
             return JsonResponse({"error": f"No patient found with ID: {sent_id}"}, status=404)
         
-        # Delete patient record if exists
-        Patients.objects.filter(user=user).delete()
+        # Now fetch patient_record from the found user
+        patient_record = Patients.objects.filter(user=user).first()
         
-        # Delete the user
+        # Delete related records first
+        if patient_record:
+            GameSessions.objects.filter(patient=patient_record).delete()
+        
+        Messages.objects.filter(sender_id=user.id).delete()
+        Messages.objects.filter(receiver_id=user.id).delete()
+        
+        # Delete patient record then user
+        if patient_record:
+            patient_record.delete()
+        
         user.delete()
         
         print(f"✅ Deleted patient: {user.name}")
