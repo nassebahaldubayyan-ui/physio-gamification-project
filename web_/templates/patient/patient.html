@@ -885,20 +885,18 @@
             }
         }
 
-        function loadAvatarOnDashboard() {
-            const savedAvatar = localStorage.getItem('userAvatar');
+        async function loadAvatarOnDashboard() {
             const patientAvatar = document.getElementById('patientAvatar');
-            const avatarText = document.getElementById('avatarText');
-            const patientNameForAvatar = patientName;
-            
-            if (patientAvatar) {
-                if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
-                    patientAvatar.innerHTML = `<img src="${savedAvatar}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            try {
+                const response = await fetch('/api/get-avatar/');
+                const data = await response.json();
+                if (data.success && data.avatar) {
+                    patientAvatar.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
                 } else {
-                    patientAvatar.innerHTML = `<span id="avatarText">${patientNameForAvatar.charAt(0).toUpperCase()}</span>`;
-                    const newAvatarText = document.getElementById('avatarText');
-                    if (newAvatarText) newAvatarText.style.display = 'block';
+                    patientAvatar.innerHTML = `<span>${patientName.charAt(0).toUpperCase()}</span>`;
                 }
+            } catch (e) {
+                patientAvatar.innerHTML = `<span>${patientName.charAt(0).toUpperCase()}</span>`;
             }
         }
         function loadPatientData() {
