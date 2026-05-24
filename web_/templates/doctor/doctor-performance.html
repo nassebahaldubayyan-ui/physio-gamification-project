@@ -616,12 +616,8 @@
             <div class="patient-selector">
                 <label><i class="fas fa-user"></i> Select Patient:</label>
                 <select id="patientSelect" onchange="loadPatientPerformance()">
-    <option value="PT005" selected>Sara Khaled (PT005) - Arm Weakness - 10 years</option>
-    <option value="PT006">Ali Ahmed (PT006) - Motor Disability - 10 years</option>
-    <option value="PT007">Amal (PT007) - General - 14 years</option>
-    <option value="PT008">Saad (PT008) - Not specified - 11 years</option>
-    <option value="PT010">Mansour (PT010) - General - 11 years</option>
-</select>
+                    <option value="">-- Select a patient --</option>
+                </select>
             </div>
 
             <!-- Games Performance Section -->
@@ -865,53 +861,98 @@
     <script src="{% static 'js/script.js' %}"></script>
     <script>
         // Patient data - PT002 removed, only PT004, PT005, PT006
-        let currentPatient = 'PT005';
+        let currentPatient = null;
 
-        const patientsData = {
-            'PT005': {
-                name: 'Sara Khaled',
-                games: {
-                    stars: { shoulder: 79, elbow: 75, grasp: 77, sessions: 10, caught: 82, accuracy: 77 },
-                    match: { range: 82, grip: 74, trap: 12, sessions: 9, matches: 68, accuracy: 76 },
-                    rotation: { external: 85, alignment: 80, sessions: 11, caught: 92, prevention: 84 }
+        // Load patients into dropdown from API (same as messages page)
+        async function loadPatientsDropdown() {
+            try {
+                const response = await fetch('/api/doctors/patients/');
+                const data = await response.json();
+                const select = document.getElementById('patientSelect');
+                if (data.success && data.patients) {
+                    data.patients.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.patient_id || p.id;
+                        option.textContent = `${p.name} (${p.patient_id || 'PT'+p.id}) - ${p.medical_condition || 'General'} - ${p.age || '?'} years`;
+                        select.appendChild(option);
+                    });
+                    // Auto-select first patient
+                    if (data.patients.length > 0) {
+                        select.value = data.patients[0].patient_id || data.patients[0].id;
+                        loadPatientPerformance();
+                    }
                 }
-            },
-            'PT006': {
-                name: 'Ali Ahmed',
-                games: {
-                    stars: { shoulder: 81, elbow: 76, grasp: 78, sessions: 15, caught: 118, accuracy: 78 },
-                    match: { range: 84, grip: 75, trap: 9, sessions: 13, matches: 102, accuracy: 80 },
-                    rotation: { external: 86, alignment: 83, sessions: 16, caught: 132, prevention: 86 }
-                }
-            },
-            'PT007': {
-                name: 'Amal',
-                age: 14,
-                games: {
-                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-                }
-            },
-            'PT008': {
-                name: 'Saad',
-                age: 11,
-                games: {
-                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-                }
-            },
-            'PT010': {
-                name: 'Mansour',
-                age: 11,
-                games: {
-                    stars: { shoulder: 0, elbow: 0, grasp: 0, sessions: 0, caught: 0, accuracy: 0 },
-                    match: { range: 0, grip: 0, trap: 0, sessions: 0, matches: 0, accuracy: 0 },
-                    rotation: { external: 0, alignment: 0, sessions: 0, caught: 0, prevention: 0 }
-                }
+                document.getElementById('totalPatients').textContent = data.total || 0;
+            } catch (e) {
+                console.error('Error loading patients dropdown', e);
             }
-        };
+        }
+
+        async function loadPatientPerformance() {
+            const select = document.getElementById('patientSelect');
+            currentPatient = select.value;
+            if (!currentPatient) return;
+
+            try {
+                const response = await fetch(`/api/game-stats/?patient_id=${currentPatient}`);
+                const data = await response.json();
+                if (!data.success) return;
+
+                const stars = data.stars;
+                const match = data.match;
+                const rotation = data.rotation;
+
+                // Catching Stars
+                document.getElementById('starShoulderScore').textContent = stars.shoulder_activation + '%';
+                document.getElementById('starShoulderBar').style.width = stars.shoulder_activation + '%';
+                document.getElementById('starElbowScore').textContent = stars.elbow_activation + '%';
+                document.getElementById('starElbowBar').style.width = stars.elbow_activation + '%';
+                document.getElementById('starSessions').textContent = stars.sessions;
+                document.getElementById('starStars').textContent = stars.stars_caught;
+                document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
+
+                // Matching Game
+                document.getElementById('matchRangeScore').textContent = match.wrist_activation + '%';
+                document.getElementById('matchRangeBar').style.width = match.wrist_activation + '%';
+                document.getElementById('matchGripScore').textContent = match.grip_activation + '%';
+                document.getElementById('matchGripBar').style.width = match.grip_activation + '%';
+                document.getElementById('matchSessions').textContent = match.sessions;
+                document.getElementById('matchMatches').textContent = match.matches_made;
+                document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
+
+                // Catching Objects
+                document.getElementById('rotationScore').textContent = rotation.external_rotation + '%';
+                document.getElementById('rotationBar').style.width = rotation.external_rotation + '%';
+                document.getElementById('alignmentScore').textContent = rotation.shoulder_shrug + '%';
+                document.getElementById('alignmentBar').style.width = rotation.shoulder_shrug + '%';
+                document.getElementById('rotationSessions').textContent = rotation.sessions;
+                document.getElementById('rotationCaught').textContent = rotation.objects_caught;
+                document.getElementById('rotationPrevention').textContent = rotation.accuracy + '%';
+
+                // Overview stats
+                const totalSessions = stars.sessions + match.sessions + rotation.sessions;
+                const avgActivation = Math.round((
+                    stars.shoulder_activation + stars.elbow_activation +
+                    match.wrist_activation + match.grip_activation +
+                    rotation.external_rotation + rotation.shoulder_shrug
+                ) / 6);
+                const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.accuracy) / 3);
+
+                document.getElementById('activeSessions').textContent = totalSessions;
+                document.getElementById('avgActivation').textContent = avgActivation + '%';
+                document.getElementById('completionRate').textContent = completionRate + '%';
+
+            } catch (e) {
+                console.error('Error loading game stats', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            localStorage.setItem('userType', 'doctor');
+            loadDoctorInfo();
+            loadSidebarAvatar();
+            loadPatientsDropdown();
+        });
 
         async function loadDoctorInfo() {
             try {
@@ -938,53 +979,8 @@
                 console.error('Error loading avatar');
             }
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            localStorage.setItem('userType', 'doctor');
-            loadDoctorInfo();
-            loadSidebarAvatar();
-            loadPatientPerformance();
-        });
-
-        function loadPatientPerformance() {
-            const select = document.getElementById('patientSelect');
-            currentPatient = select.value;
-
-            const data = patientsData[currentPatient];
-            if (!data) return;
-
-            const stars = data.games.stars;
-            const match = data.games.match;
-            const rotation = data.games.rotation;
-
-            // Update Catching Stars game data
-            document.getElementById('starShoulderScore').textContent = stars.shoulder + '%';
-            document.getElementById('starShoulderBar').style.width = stars.shoulder + '%';
-            document.getElementById('starElbowScore').textContent = stars.elbow + '%';
-            document.getElementById('starElbowBar').style.width = stars.elbow + '%';
-            document.getElementById('starSessions').textContent = stars.sessions;
-            document.getElementById('starStars').textContent = stars.caught;
-            document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
-
-            // Update Matching Game data
-            document.getElementById('matchRangeScore').textContent = match.range + '%';
-            document.getElementById('matchRangeBar').style.width = match.range + '%';
-            document.getElementById('matchGripScore').textContent = match.grip + '%';
-            document.getElementById('matchGripBar').style.width = match.grip + '%';
-            document.getElementById('matchSessions').textContent = match.sessions;
-            document.getElementById('matchMatches').textContent = match.matches;
-            document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
-
-            // Update Catching Objects game data
-            document.getElementById('rotationScore').textContent = rotation.external + '%';
-            document.getElementById('rotationBar').style.width = rotation.external + '%';
-            document.getElementById('alignmentScore').textContent = rotation.alignment + '%';
-            document.getElementById('alignmentBar').style.width = rotation.alignment + '%';
-            document.getElementById('rotationSessions').textContent = rotation.sessions;
-            document.getElementById('rotationCaught').textContent = rotation.caught;
-            document.getElementById('rotationPrevention').textContent = rotation.prevention + '%';
-
-            updateOverallStats(data);
-        }
+        
+        
 
         function updateOverallStats(data) {
             const stars = data.games.stars;

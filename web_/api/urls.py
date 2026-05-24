@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/update-doctor-profile/', views.api_update_doctor_profile, name='update_doctor_profile'),
     path('api/my-doctor-data/', views.api_get_my_doctor_data, name='my_doctor_data'),
     path('api/get-avatar/', views.api_get_avatar, name='get_avatar'),
+    path('api/game-stats/', views.api_get_game_stats, name='api_game_stats'),
     path('api/send-contact/', views.send_contact_message),
     path('api/add-patient-details/', views.api_add_patient_details, name='add_patient_details'),
     path('api/delete-patient/', views.api_delete_patient, name='delete_patient'),
