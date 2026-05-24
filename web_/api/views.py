@@ -666,7 +666,7 @@ def api_add_patient_details(request):
                         assigned_doctor_id = %s
                     WHERE user_id = %s
                 """, [patient_id, date_of_birth, gender, medical_condition,
-                      therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
+                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
                 print("✅ Updated existing patient")
             else:
                 cursor.execute("""
@@ -676,8 +676,8 @@ def api_add_patient_details(request):
                         affected_hand, assigned_doctor_id
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, [user_id, patient_id, date_of_birth, gender,
-                      medical_condition, therapy_type, current_level,
-                      affected_hand, assigned_doctor_id])
+                    medical_condition, therapy_type, current_level,
+                    affected_hand, assigned_doctor_id])
                 print("✅ Inserted new patient")
 
         return JsonResponse({
@@ -1224,7 +1224,7 @@ def api_get_progress_data(request):
         elif period == 'month':
             buckets = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
             week_starts = [now - timedelta(weeks=3), now - timedelta(weeks=2),
-                           now - timedelta(weeks=1), now]
+                        now - timedelta(weeks=1), now]
 
             def get_bucket_sessions(week_end):
                 week_start = week_end - timedelta(days=7)
@@ -1292,7 +1292,7 @@ def api_get_progress_data(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
-           
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def api_get_messages(request):
