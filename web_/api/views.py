@@ -1080,9 +1080,8 @@ def api_get_my_doctor_data(request):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 @require_http_methods(["GET"])
-def api_get_game_stats(request):
+def api_game_stats(request):
     try:
-        from .models import GameSessions, Patients
         from django.db.models import Avg, Sum, Count
 
         patient_id = request.GET.get('patient_id')
@@ -1091,68 +1090,97 @@ def api_get_game_stats(request):
         if not patient_id:
             return JsonResponse({"error": "patient_id required"}, status=400)
 
-        patient = Patients.objects.filter(patient_id=patient_id).first()
-        if not patient:
-            try:
-                patient = Patients.objects.filter(user_id=int(patient_id)).first()
-            except ValueError:
-                pass
-        if not patient:
-            return JsonResponse({"error": "Patient not found"}, status=404)
+        # Find patient
+        patient = None
+        try:
+            patient = Patients.objects.filter(patient_id=patient_id).first()
+            if not patient:
+                patient = Patients.objects.filter(user_id=patient_id).first()
+        except:
+            pass
 
-        def aggregate_game(game_type):
-            qs = GameSessions.objects.filter(patient=patient, game_type=game_type)
-            if date:
-                qs = qs.filter(session_date__date=date)
+        if not patient:
+            return JsonResponse({"success": False, "error": "Patient not found"}, status=404)
+
+        sessions_qs = GameSessions.objects.filter(patient=patient)
+
+        # Date filter
+        if date:
+            from datetime import datetime
+            try:
+                filter_date = datetime.strptime(date, '%Y-%m-%d').date()
+                sessions_qs = sessions_qs.filter(session_date__date=filter_date)
+                if not sessions_qs.exists():
+                    return JsonResponse({"success": True, "no_data": True})
+            except:
+                pass
+
+        def get_game_stats(game_type):
+            qs = sessions_qs.filter(game_type=game_type)
             agg = qs.aggregate(
                 sessions=Count('id'),
-                avg_shoulder=Avg('shoulder_activation'),
-                avg_elbow=Avg('elbow_activation'),
-                avg_wrist=Avg('wrist_activation'),
-                avg_grip=Avg('grip_activation'),
-                avg_external=Avg('external_rotation'),
-                avg_shrug=Avg('shoulder_shrug'),
-                avg_accuracy=Avg('accuracy'),
-                total_stars=Sum('stars_caught'),
-                total_matches=Sum('matches_made'),
-                total_objects=Sum('objects_caught'),
+                shoulder=Avg('shoulder_activation'),
+                elbow=Avg('elbow_activation'),
+                wrist=Avg('wrist_activation'),
+                grip=Avg('grip_activation'),
+                external=Avg('external_rotation'),
+                shrug=Avg('shoulder_shrug'),
+                accuracy=Avg('accuracy'),
+                stars=Sum('stars_caught'),
+                matches=Sum('matches_made'),
+                objects=Sum('objects_caught'),
             )
             def r(v): return round(v or 0)
             return {
                 'sessions': agg['sessions'] or 0,
-                'shoulder_activation': r(agg['avg_shoulder']),
-                'elbow_activation': r(agg['avg_elbow']),
-                'wrist_activation': r(agg['avg_wrist']),
-                'grip_activation': r(agg['avg_grip']),
-                'external_rotation': r(agg['avg_external']),
-                'shoulder_shrug': r(agg['avg_shrug']),
-                'accuracy': r(agg['avg_accuracy']),
-                'stars_caught': agg['total_stars'] or 0,
-                'matches_made': agg['total_matches'] or 0,
-                'objects_caught': agg['total_objects'] or 0,
+                'shoulder_activation': r(agg['shoulder']),
+                'elbow_activation': r(agg['elbow']),
+                'wrist_activation': r(agg['wrist']),
+                'grip_activation': r(agg['grip']),
+                'external_rotation': r(agg['external']),
+                'shoulder_shrug': r(agg['shrug']),
+                'accuracy': r(agg['accuracy']),
+                'stars_caught': agg['stars'] or 0,
+                'matches_made': agg['matches'] or 0,
+                'objects_caught': agg['objects'] or 0,
             }
 
-        stars = aggregate_game('catching-stars')
-        match = aggregate_game('matching-game')
-        rotation = aggregate_game('catching-objects')
-
-        # Check if any sessions exist for this date
-        total_sessions = stars['sessions'] + match['sessions'] + rotation['sessions']
-        no_data = date and total_sessions == 0
+        # Session list for date filter
+        session_list = []
+        if date:
+            for s in sessions_qs.order_by('session_date'):
+                session_list.append({
+                    'id': s.id,
+                    'game_type': s.game_type,
+                    'level': s.level,
+                    'score': s.score,
+                    'accuracy': s.accuracy or 0,
+                    'shoulder_activation': s.shoulder_activation or 0,
+                    'elbow_activation': s.elbow_activation or 0,
+                    'grip_activation': s.grip_activation or 0,
+                    'external_rotation': s.external_rotation or 0,
+                    'stars_caught': s.stars_caught or 0,
+                    'matches_made': s.matches_made or 0,
+                    'objects_caught': s.objects_caught or 0,
+                    'pain_score': s.pain_score,
+                    'enjoyment_score': s.enjoyment_score,
+                    'session_date': str(s.session_date),
+                })
 
         return JsonResponse({
-            'success': True,
-            'no_data': no_data,
-            'date': date or None,
-            'stars': stars,
-            'match': match,
-            'rotation': rotation,
+            "success": True,
+            "no_data": False,
+            "stars": get_game_stats('catching-stars'),
+            "match": get_game_stats('matching-game'),
+            "rotation": get_game_stats('catching-objects'),
+            "sessions": session_list,
         })
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
     
 @require_http_methods(["GET"])
 def api_get_progress_data(request):

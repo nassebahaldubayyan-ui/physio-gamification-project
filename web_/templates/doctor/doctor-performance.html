@@ -615,7 +615,7 @@
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
-                                    <span>Elbow Movement</span>
+                                    <span>Grip Strength</span>
                                     <span id="starElbowScore">75%</span>
                                 </div>
                                 <div class="progress-bar-bg">
@@ -663,7 +663,7 @@
                         <div class="progress-section">
                             <div class="progress-item">
                                 <div class="progress-label">
-                                    <span>Active Range</span>
+                                    <span>Elbow Movement</span>
                                     <span id="matchRangeScore">82%</span>
                                 </div>
                                 <div class="progress-bar-bg">
@@ -729,7 +729,7 @@
                             </div>
                             <div class="progress-item">
                                 <div class="progress-label">
-                                    <span>Joint Alignment</span>
+                                    <span>Elbow Movement</span>
                                     <span id="alignmentScore">80%</span>
                                 </div>
                                 <div class="progress-bar-bg">
@@ -762,13 +762,38 @@
             </button>
         </div>
     </div>
-
     <script src="{% static 'js/script.js' %}"></script>
     <script>
-        // Patient data - PT002 removed, only PT004, PT005, PT006
         let currentPatient = null;
 
-        // Load patients into dropdown from API (same as messages page)
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDoctorInfo();
+            loadSidebarAvatar();
+            loadPatientsDropdown();
+        });
+
+        async function loadDoctorInfo() {
+            try {
+                const response = await fetch('/api/my-doctor-data/');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('doctorName').textContent = data.doctor.name || 'Doctor';
+                    document.getElementById('doctorInfo').textContent = `${data.doctor.specialty || 'Physiotherapy'} • #${data.doctor.doctor_id || ''}`;
+                }
+            } catch (e) { console.error('Error loading doctor info'); }
+        }
+
+        async function loadSidebarAvatar() {
+            try {
+                const response = await fetch('/api/get-avatar/');
+                const data = await response.json();
+                const avatarDiv = document.getElementById('sidebarAvatar');
+                if (data.success && data.avatar && avatarDiv) {
+                    avatarDiv.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                }
+            } catch (e) { console.error('Error loading avatar'); }
+        }
+
         async function loadPatientsDropdown() {
             try {
                 const response = await fetch('/api/doctors/patients/');
@@ -778,19 +803,16 @@
                     data.patients.forEach(p => {
                         const option = document.createElement('option');
                         option.value = p.patient_id || p.id;
-                        option.textContent = `${p.name} (${p.patient_id || 'PT'+p.id}) - ${p.medical_condition || 'General'} - ${p.age || '?'} years`;
+                        option.textContent = `${p.name} (${p.patient_id || 'PT'+p.id}) - ${p.medical_condition || 'General'}`;
                         select.appendChild(option);
                     });
-                    // Auto-select first patient
                     if (data.patients.length > 0) {
                         select.value = data.patients[0].patient_id || data.patients[0].id;
                         loadPatientPerformance();
                     }
                 }
                 document.getElementById('totalPatients').textContent = data.total || 0;
-            } catch (e) {
-                console.error('Error loading patients dropdown', e);
-            }
+            } catch (e) { console.error('Error loading patients dropdown', e); }
         }
 
         async function loadPatientPerformance() {
@@ -806,9 +828,9 @@
                 const data = await response.json();
                 if (!data.success) return;
 
-                // Show message if no sessions found for selected date
                 if (data.no_data) {
-                    showNotification(`No sessions found on ${new Date(date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}`, 'warning');
+                    showNotification('No sessions found for that date', 'warning');
+                    renderSessionList([]);
                     return;
                 }
 
@@ -816,29 +838,29 @@
                 const match = data.match;
                 const rotation = data.rotation;
 
-                // Catching Stars
+                // Catching Stars → shoulder activation + grip strength
                 document.getElementById('starShoulderScore').textContent = stars.shoulder_activation + '%';
                 document.getElementById('starShoulderBar').style.width = stars.shoulder_activation + '%';
-                document.getElementById('starElbowScore').textContent = stars.elbow_activation + '%';
-                document.getElementById('starElbowBar').style.width = stars.elbow_activation + '%';
+                document.getElementById('starElbowScore').textContent = stars.grip_activation + '%';
+                document.getElementById('starElbowBar').style.width = stars.grip_activation + '%';
                 document.getElementById('starSessions').textContent = stars.sessions;
                 document.getElementById('starStars').textContent = stars.stars_caught;
                 document.getElementById('starAccuracy').textContent = stars.accuracy + '%';
 
-                // Matching Game
-                document.getElementById('matchRangeScore').textContent = match.wrist_activation + '%';
-                document.getElementById('matchRangeBar').style.width = match.wrist_activation + '%';
+                // Matching Game → elbow movement + grip strength
+                document.getElementById('matchRangeScore').textContent = match.elbow_activation + '%';
+                document.getElementById('matchRangeBar').style.width = match.elbow_activation + '%';
                 document.getElementById('matchGripScore').textContent = match.grip_activation + '%';
                 document.getElementById('matchGripBar').style.width = match.grip_activation + '%';
                 document.getElementById('matchSessions').textContent = match.sessions;
                 document.getElementById('matchMatches').textContent = match.matches_made;
                 document.getElementById('matchAccuracy').textContent = match.accuracy + '%';
 
-                // Catching Objects
+                // Catching Falling Objects → external rotation + elbow movement
                 document.getElementById('rotationScore').textContent = rotation.external_rotation + '%';
                 document.getElementById('rotationBar').style.width = rotation.external_rotation + '%';
-                document.getElementById('alignmentScore').textContent = rotation.shoulder_shrug + '%';
-                document.getElementById('alignmentBar').style.width = rotation.shoulder_shrug + '%';
+                document.getElementById('alignmentScore').textContent = rotation.elbow_activation + '%';
+                document.getElementById('alignmentBar').style.width = rotation.elbow_activation + '%';
                 document.getElementById('rotationSessions').textContent = rotation.sessions;
                 document.getElementById('rotationCaught').textContent = rotation.objects_caught;
                 document.getElementById('rotationPrevention').textContent = rotation.accuracy + '%';
@@ -846,9 +868,9 @@
                 // Overview stats
                 const totalSessions = stars.sessions + match.sessions + rotation.sessions;
                 const avgActivation = Math.round((
-                    stars.shoulder_activation + stars.elbow_activation +
-                    match.wrist_activation + match.grip_activation +
-                    rotation.external_rotation + rotation.shoulder_shrug
+                    stars.shoulder_activation + stars.grip_activation +
+                    match.elbow_activation + match.grip_activation +
+                    rotation.external_rotation + rotation.elbow_activation
                 ) / 6);
                 const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.accuracy) / 3);
 
@@ -856,231 +878,143 @@
                 document.getElementById('avgActivation').textContent = avgActivation + '%';
                 document.getElementById('completionRate').textContent = completionRate + '%';
 
-            } catch (e) {
-                console.error('Error loading game stats', e);
-            }
+                renderSessionList(data.sessions || []);
+
+            } catch (e) { console.error('Error loading game stats', e); }
         }
 
-        function filterByDate() {
-            loadPatientPerformance();
+        function renderSessionList(sessions) {
+            let container = document.getElementById('sessionListSection');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'sessionListSection';
+                container.style.cssText = 'margin-top: 40px;';
+                document.querySelector('.games-section').insertAdjacentElement('afterend', container);
+            }
+
+            if (!sessions || sessions.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const gameLabels = {
+                'catching-stars':   { label: 'Catching Stars',           icon: 'fa-star',            color: '#4299e1' },
+                'matching-game':    { label: 'Matching Game',             icon: 'fa-paint-brush',     color: '#9b59b6' },
+                'catching-objects': { label: 'Catching Falling Objects',  icon: 'fa-basketball-ball', color: '#ed8936' },
+            };
+
+            const date = document.getElementById('dateFilter').value;
+            const formattedDate = date ? new Date(date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '';
+
+            container.innerHTML = `
+                <h3 class="section-title"><i class="fas fa-list"></i> Sessions on ${formattedDate}</h3>
+                <div style="display:flex;flex-direction:column;gap:20px;">
+                    ${sessions.map((s, i) => {
+                        const g = gameLabels[s.game_type] || { label: s.game_type, icon: 'fa-gamepad', color: '#64748b' };
+                        const metric1Label = s.game_type === 'catching-stars'   ? 'Shoulder Activation' :
+                                            s.game_type === 'matching-game'    ? 'Elbow Movement' :
+                                                                                'Ext. Rotation';
+                        const metric1Value = s.game_type === 'catching-stars'   ? s.shoulder_activation :
+                                            s.game_type === 'matching-game'    ? s.elbow_activation :
+                                                                                s.external_rotation;
+                        const metric2Label = s.game_type === 'catching-objects' ? 'Elbow Movement' : 'Grip Strength';
+                        const metric2Value = s.game_type === 'catching-objects' ? s.elbow_activation : s.grip_activation;
+                        const caughtLabel  = s.game_type === 'catching-stars'   ? 'Stars Caught' :
+                                            s.game_type === 'matching-game'    ? 'Matches Made' : 'Objects Caught';
+                        const caughtValue  = s.game_type === 'catching-stars'   ? s.stars_caught :
+                                            s.game_type === 'matching-game'    ? s.matches_made : s.objects_caught;
+                        const time = s.session_date ? s.session_date.split('T')[1]?.substring(0, 5) || s.session_date.split(' ')[1]?.substring(0, 5) || '' : '';
+                        const painColor = s.pain_score <= 2 ? '#48bb78' : s.pain_score <= 3 ? '#ed8936' : '#ef4444';
+                        const funColor  = s.enjoyment_score >= 4 ? '#48bb78' : s.enjoyment_score >= 3 ? '#ed8936' : '#ef4444';
+                        return `
+                        <div style="background:white;border-radius:20px;padding:25px;box-shadow:0 4px 15px rgba(0,0,0,0.08);border:2px solid ${g.color};">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <div style="width:45px;height:45px;background:${g.color};border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas ${g.icon}" style="color:white;font-size:20px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700;font-size:18px;color:#1e293b;">${g.label}</div>
+                                        <div style="font-size:13px;color:#64748b;">Session ${i+1} • ${time} • Level ${s.level}</div>
+                                    </div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:24px;font-weight:700;color:${g.color};">${s.score} pts</div>
+                                    <div style="font-size:13px;color:#64748b;">Accuracy: ${s.accuracy}%</div>
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:15px;background:#f8fafc;border-radius:12px;">
+                                <div style="text-align:center;">
+                                    <div style="font-size:18px;font-weight:700;color:#2d3748;">${metric1Value}%</div>
+                                    <div style="font-size:12px;color:#718096;">${metric1Label}</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:18px;font-weight:700;color:#2d3748;">${metric2Value}%</div>
+                                    <div style="font-size:12px;color:#718096;">${metric2Label}</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:18px;font-weight:700;color:#2d3748;">${caughtValue}</div>
+                                    <div style="font-size:12px;color:#718096;">${caughtLabel}</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:18px;font-weight:700;color:${painColor};">
+                                        Pain: ${s.pain_score !== null ? s.pain_score : '—'}/5
+                                    </div>
+                                    <div style="font-size:18px;font-weight:700;color:${funColor};">Fun: ${s.enjoyment_score !== null ? s.enjoyment_score : '—'}/5</div>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `;
         }
+
+        function filterByDate() { loadPatientPerformance(); }
+
         function clearDateFilter() {
             document.getElementById('dateFilter').value = '';
+            renderSessionList([]);
             loadPatientPerformance();
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            localStorage.setItem('userType', 'doctor');
-            loadDoctorInfo();
-            loadSidebarAvatar();
-            loadPatientsDropdown();
-        });
 
-        async function loadDoctorInfo() {
-            try {
-                const response = await fetch('/api/my-doctor-data/');
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('doctorName').textContent = data.doctor.name || 'Doctor';
-                    document.getElementById('doctorInfo').textContent = `${data.doctor.specialty || 'Physiotherapy'} • #${data.doctor.doctor_id || ''}`;
-                }
-            } catch (e) {
-                console.error('Error loading doctor info');
-            }
+        function logoutDoctor() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);display:flex;justify-content:center;align-items:center;z-index:10000;`;
+            modal.innerHTML = `
+                <div style="background:white;border-radius:30px;padding:40px;max-width:400px;width:90%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.3);">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                        <i class="fas fa-sign-out-alt" style="font-size:40px;color:white;"></i>
+                    </div>
+                    <h3 style="color:#1e293b;font-size:28px;margin-bottom:15px;">Log Out</h3>
+                    <p style="color:#64748b;font-size:16px;margin-bottom:30px;">Are you sure you want to log out?</p>
+                    <div style="display:flex;gap:15px;">
+                        <button id="confirmLogout" style="flex:1;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Yes, Log Out</button>
+                        <button id="cancelLogout" style="flex:1;padding:14px;background:#f1f5f9;color:#475569;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            document.getElementById('confirmLogout').onclick = () => {
+                modal.remove();
+                localStorage.clear();
+                setTimeout(() => window.location.href = "{% url 'index' %}", 800);
+            };
+            document.getElementById('cancelLogout').onclick = () => modal.remove();
+            modal.onclick = e => { if (e.target === modal) modal.remove(); };
         }
 
-        async function loadSidebarAvatar() {
-            try {
-                const response = await fetch('/api/get-avatar/');
-                const data = await response.json();
-                const avatarDiv = document.getElementById('sidebarAvatar');
-                if (data.success && data.avatar && avatarDiv) {
-                    avatarDiv.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-                }
-            } catch (e) {
-                console.error('Error loading avatar');
-            }
+        function showNotification(message, type = 'info') {
+            const old = document.querySelector('.custom-notification');
+            if (old) old.remove();
+            const n = document.createElement('div');
+            n.className = 'custom-notification';
+            const colors = { info:'linear-gradient(135deg,#3b82f6,#1d4ed8)', success:'linear-gradient(135deg,#10b981,#059669)', warning:'linear-gradient(135deg,#f59e0b,#d97706)', error:'linear-gradient(135deg,#ef4444,#dc2626)' };
+            const icons = { info:'fa-info-circle', success:'fa-check-circle', warning:'fa-exclamation-triangle', error:'fa-exclamation-circle' };
+            n.style.cssText = `position:fixed;top:20px;right:20px;padding:15px 25px;border-radius:12px;background:${colors[type]};color:white;font-weight:500;z-index:9999;box-shadow:0 10px 25px rgba(0,0,0,0.2);display:flex;align-items:center;gap:12px;font-size:15px;cursor:pointer;max-width:350px;`;
+            n.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
+            n.onclick = () => n.remove();
+            document.body.appendChild(n);
+            setTimeout(() => { if (n.parentNode) n.remove(); }, 4000);
         }
-
-        // ============================================
-// CUSTOM LOGOUT FUNCTION
-// ============================================
-function logoutDoctor() {
-    const modal = document.createElement('div');
-    modal.className = 'logout-modal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        backdrop-filter: blur(5px);
-        animation: fadeIn 0.3s ease;
-    `;
-    
-    modal.innerHTML = `
-        <div style="
-            background: white;
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.3s ease;
-        ">
-            <div style="
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(135deg, #ef4444, #dc2626);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 20px;
-            ">
-                <i class="fas fa-sign-out-alt" style="font-size: 40px; color: white;"></i>
-            </div>
-            <h3 style="color: #1e293b; font-size: 28px; margin-bottom: 15px;">Log Out</h3>
-            <p style="color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.5;">
-                Are you sure you want to log out? 
-            </p>
-            <div style="display: flex; gap: 15px;">
-                <button id="confirmLogout" style="
-                    flex: 1;
-                    padding: 14px;
-                    background: linear-gradient(135deg, #ef4444, #dc2626);
-                    color: white;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                ">
-                    <i class="fas fa-check-circle"></i> Yes, Log Out
-                </button>
-                <button id="cancelLogout" style="
-                    flex: 1;
-                    padding: 14px;
-                    background: #f1f5f9;
-                    color: #475569;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                ">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    document.getElementById('confirmLogout').addEventListener('click', function() {
-        modal.remove();
-        localStorage.removeItem('userType');
-        localStorage.removeItem('doctorId');
-        localStorage.removeItem('doctorName');
-        localStorage.removeItem('doctorEmail');
-        localStorage.removeItem('doctorSpecialty');
-        localStorage.removeItem('doctorPhone');
-        localStorage.removeItem('doctorAvatar');
-        
-        showNotification('Logged out successfully', 'info');
-        
-        setTimeout(() => {
-            window.location.href = "{% url 'index' %}";
-        }, 800);
-    });
-    
-    document.getElementById('cancelLogout').addEventListener('click', function() {
-        modal.remove();
-    });
-    
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-}
-
-function showNotification(message, type = 'info') {
-    const oldNotification = document.querySelector('.custom-notification');
-    if (oldNotification) {
-        oldNotification.remove();
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = 'custom-notification';
-    
-    const icon = type === 'success' ? 'fa-check-circle' : 
-                 type === 'error' ? 'fa-exclamation-circle' : 
-                 type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-    
-    notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
-    
-    const colors = {
-        info: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-        success: 'linear-gradient(135deg, #10b981, #059669)',
-        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
-        error: 'linear-gradient(135deg, #ef4444, #dc2626)'
-    };
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 12px;
-        background: ${colors[type] || colors.info};
-        color: white;
-        font-weight: 500;
-        z-index: 9999;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        animation: slideIn 0.3s ease;
-        max-width: 350px;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 15px;
-        cursor: pointer;
-    `;
-    
-    notification.onclick = function() {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    };
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 300);
-        }
-    }, 4000);
-}
     </script>
 </body>
 </html>
