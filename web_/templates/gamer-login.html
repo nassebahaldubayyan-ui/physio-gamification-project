@@ -268,7 +268,6 @@ async function loginGamer() {
             localStorage.setItem('patientName', data.user.name);
             localStorage.setItem('patientEmail', data.user.email);
             localStorage.setItem('patientPhone', data.user.phone || '');
-            console.log("Stored patientId:", localStorage.getItem('patientId'))
             window.location.href = '/patient/';
         } else {
             errorEl.textContent = data.error || 'Invalid email or password';

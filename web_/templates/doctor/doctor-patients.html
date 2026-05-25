@@ -764,11 +764,8 @@
                 });
                 const regData = await reg.json();
 
-                console.log('Register response:', regData);
-
                 if(regData.success){
                     const userId = regData.user.id;
-                    console.log('userId to send:', userId);
                     const doctorId = localStorage.getItem('doctorId') || '3';
                     const detailsRes = await fetch('/api/add-patient-details/',{
                         method:'POST',

@@ -284,7 +284,6 @@
         });
         await camera.start();
         mediaPipeActive = true;
-        console.log("MediaPipe started");
     }
     
     function stopMediaPipe() {
@@ -338,7 +337,6 @@
     }).then((instance) => {
         unityInstance = instance;
         window.unityInstance = instance;
-        console.log("✅ Unity loaded");
         showNotification("✅ Game ready! Click START.");
     }).catch((err) => {
         console.error("Unity failed:", err);
@@ -347,8 +345,6 @@
     
     document.getElementById('startBtn').onclick = startGame;
     document.getElementById('restartBtn').onclick = () => { startGame(); };
-    
-    console.log("Ready");
 </script>
 </body>
 </html>

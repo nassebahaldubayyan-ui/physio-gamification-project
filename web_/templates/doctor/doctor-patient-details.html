@@ -490,8 +490,6 @@
             const urlParams = new URLSearchParams(window.location.search);
             currentUserId = urlParams.get('user_id') || urlParams.get('patient');
             
-            console.log('Loading patient with ID:', currentUserId);
-            
             if (currentUserId) {
                 loadPatientData(currentUserId);
             } else {
@@ -506,8 +504,6 @@
             try {
                 const response = await fetch(`/api/patient-details/?user_id=${userId}`);
                 const data = await response.json();
-                
-                console.log('API Response:', data);
                 
                 if (data.success) {
                     displayPatientData(data);
