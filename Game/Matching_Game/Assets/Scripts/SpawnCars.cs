@@ -28,7 +28,6 @@ public class SpawnCars : MonoBehaviour
         StartCoroutine(SpawnLoop());
     }
 
-    // ← Coroutine تقرأ spawnInterval الحالية كل مرة (تدعم التعديل الديناميكي)
     IEnumerator SpawnLoop()
     {
         yield return new WaitForSeconds(0.5f);
@@ -55,10 +54,14 @@ public class SpawnCars : MonoBehaviour
 
         if (carPrefab == null) return;
 
-        // إزاحة عشوائية بسيطة على Y لتجنب تكدس السيارات
-        float y = (matchingBasket != null)
-            ? matchingBasket.position.y + Random.Range(-0.3f, 0.3f)
-            : Random.Range(-0.3f, 0.3f);
+        float baseY = (matchingBasket != null) ? matchingBasket.position.y : 0f;
+        float y;
+        int attempts = 0;
+
+        do {
+            y = baseY + Random.Range(-1.5f, 1.5f);
+            attempts++;
+        } while (IsCarNearby(new Vector3(spawnX, y, 0), 2f) && attempts < 5);
 
         Vector3 spawnPos = new Vector3(spawnX, y, 0);
         GameObject car = Instantiate(carPrefab, spawnPos, Quaternion.identity);
@@ -75,5 +78,15 @@ public class SpawnCars : MonoBehaviour
         mover.speed = carSpeed;
 
         Destroy(car, carLifeTime);
+    }
+
+    bool IsCarNearby(Vector3 pos, float minDist)
+    {
+        foreach (GameObject car in GameObject.FindGameObjectsWithTag("Car"))
+        {
+            if (Vector2.Distance(car.transform.position, pos) < minDist)
+                return true;
+        }
+        return false;
     }
 }

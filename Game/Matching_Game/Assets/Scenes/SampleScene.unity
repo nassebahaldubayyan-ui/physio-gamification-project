@@ -443,7 +443,6 @@ MonoBehaviour:
   timerText: {fileID: 1000375664}
   endPanel: {fileID: 2003708408}
   timeLeft: 60
-  spawnManager: {fileID: 1280755547}
 --- !u!4 &330780285
 Transform:
   m_ObjectHideFlags: 0
