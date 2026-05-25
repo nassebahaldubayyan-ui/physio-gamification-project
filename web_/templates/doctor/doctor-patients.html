@@ -489,7 +489,6 @@
                 <div class="form-row"><div class="form-group"><label>Password *</label><input type="password" id="password" required></div><div class="form-group"><label>Phone</label><input type="tel" id="phone"></div></div>
                 <div class="form-row"><div class="form-group"><label>Date of Birth *</label><input type="date" id="dob" required></div><div class="form-group"><label>Gender *</label><select id="gender"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div></div>
                 <div class="form-row"><div class="form-group"><label>Medical Condition *</label><input type="text" id="condition" required></div><div class="form-group"><label>Therapy Type *</label><select id="therapy"><option value="">Select</option><option value="Physical Therapy">Physical Therapy</option><option value="Occupational Therapy">Occupational Therapy</option></select></div></div>
-                <div class="form-row"><div class="form-group"><label>Affected Hand *</label><select id="hand"><option value="right">Right Hand</option><option value="left">Left Hand</option></select></div><div class="form-group"><label>Initial Level</label><select id="level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></div></div>
                 <div class="modal-buttons"><button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button><button type="submit" class="btn-submit">Create Patient</button></div>
             </form>
         </div>
@@ -545,9 +544,29 @@
                         <label>Phone Number</label>
                         <input type="tel" id="editPhone">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Reset Level</label>
-                        <select id="editLevel">
+                        <label>Stars Game Level</label>
+                        <select id="editStarsLevel">
+                            <option value="1">Level 1</option>
+                            <option value="2">Level 2</option>
+                            <option value="3">Level 3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Falling Objects Level</label>
+                        <select id="editFallingLevel">
+                            <option value="1">Level 1</option>
+                            <option value="2">Level 2</option>
+                            <option value="3">Level 3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Matching Game Level</label>
+                        <select id="editMatchingLevel">
                             <option value="1">Level 1</option>
                             <option value="2">Level 2</option>
                             <option value="3">Level 3</option>
@@ -640,7 +659,7 @@
                     <td><span class="status-badge">${status}</span></td>
                     <td>
                         <button class="btn-details" onclick="viewPatient(${p.id}, '${p.patient_id}')"><i class="fas fa-eye"></i> View</button>
-                        <button class="btn-edit" onclick="openEditModal(${p.id}, '${p.patient_id}', '${p.name}', '${p.medical_condition}', '${p.affected_hand}', '${p.therapy_type}', '${p.date_of_birth}', '${p.gender}', '${p.phone || ''}', '${p.current_level || 1}')"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn-edit" onclick="openEditModal(${p.id}, '${p.patient_id}', '${p.name}', '${p.medical_condition}', '${p.affected_hand}', '${p.therapy_type}', '${p.date_of_birth}', '${p.gender}', '${p.phone || ''}', '${p.stars_level || 1}', '${p.falling_level || 1}', '${p.matching_level || 1}')"><i class="fas fa-edit"></i> Edit</button>
                         <button class="btn-delete" onclick="confirmDelete(${p.id})"><i class="fas fa-trash"></i> Delete</button>
                     </td>
                 `;
@@ -726,8 +745,7 @@
                 gender = document.getElementById('gender').value;
             const condition = document.getElementById('condition').value.trim(),
                 therapy = document.getElementById('therapy').value,
-                hand = document.getElementById('hand').value,
-                level = document.getElementById('level').value;
+                hand = document.getElementById('hand').value;
             
             if(!name||!email||!password||!dob||!gender||!condition||!therapy){
                 showNotification('Please fill all required fields', 'error');
@@ -762,7 +780,6 @@
                             gender,
                             medical_condition:condition,
                             therapy_type:therapy,
-                            current_level:level,
                             affected_hand:hand,
                             assigned_doctor_id:parseInt(doctorId)
                         })
@@ -853,7 +870,7 @@
             loadPatients();
         });
         // With this:
-        function openEditModal(userId, patientId, name, condition, hand, therapy, dob, gender, phone, level) {
+        function openEditModal(userId, patientId, name, condition, hand, therapy, dob, gender, phone,starsLevel, fallingLevel, matchingLevel) {
             document.getElementById('editUserId').value = userId;
             document.getElementById('editPatientId').value = patientId;
             document.getElementById('editName').value = name;
@@ -863,7 +880,9 @@
             document.getElementById('editDob').value = dob || '';
             document.getElementById('editGender').value = gender || 'male';
             document.getElementById('editPhone').value = phone || '';
-            document.getElementById('editLevel').value = level || '1';
+            document.getElementById('editStarsLevel').value = starsLevel || '1';
+            document.getElementById('editFallingLevel').value = fallingLevel || '1';
+            document.getElementById('editMatchingLevel').value = matchingLevel || '1';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -897,14 +916,16 @@
                     body: JSON.stringify({
                         user_id: userId,
                         patient_id: patientId,
-                        name: name,                                              // ← add
+                        name: name,                                            
                         phone: document.getElementById('editPhone').value.trim(),
                         date_of_birth: dob,
                         gender: gender,
                         medical_condition: condition,
                         therapy_type: therapy,
                         affected_hand: hand,
-                        current_level: document.getElementById('editLevel').value,
+                        stars_level: document.getElementById('editStarsLevel').value,
+                        falling_level: document.getElementById('editFallingLevel').value,
+                        matching_level: document.getElementById('editMatchingLevel').value,
                         assigned_doctor_id: parseInt(localStorage.getItem('doctorId') || '3')
                     })
                 });

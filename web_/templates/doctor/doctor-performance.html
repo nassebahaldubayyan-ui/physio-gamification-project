@@ -410,6 +410,7 @@
             padding: 15px;
             background: #f8fafc;
             border-radius: 12px;
+            gap: 8px;
         }
 
         .game-stat {
@@ -417,7 +418,7 @@
         }
 
         .game-stat-value {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 700;
             color: #2d3748;
         }
@@ -626,6 +627,10 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
+                                <div class="game-stat-value" id="starLevel">-</div>
+                                <div class="game-stat-label">Level</div>
+                            </div>
+                            <div class="game-stat">
                                 <div class="game-stat-value" id="starSessions">10</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
@@ -683,6 +688,10 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
+                                <div class="game-stat-value" id="matchLevel">-</div>
+                                <div class="game-stat-label">Level</div>
+                            </div>
+                            <div class="game-stat">
                                 <div class="game-stat-value" id="matchSessions">9</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
@@ -739,6 +748,10 @@
                         </div>
 
                         <div class="game-stats">
+                            <div class="game-stat">
+                                <div class="game-stat-value" id="rotationLevel">-</div>
+                                <div class="game-stat-label">Level</div>
+                            </div>
                             <div class="game-stat">
                                 <div class="game-stat-value" id="rotationSessions">11</div>
                                 <div class="game-stat-label">Sessions</div>
@@ -838,6 +851,16 @@
                 const match = data.match;
                 const rotation = data.rotation;
 
+                // Fetch patient level data
+                const levelResponse = await fetch(`/api/patient-details/?user_id=${currentPatient}`);
+                const levelData = await levelResponse.json();
+                if (levelData.success) {
+                    const p = levelData.patient;
+                    document.getElementById('starLevel').textContent = 'Lv ' + (p.stars_level || 1);
+                    document.getElementById('matchLevel').textContent = 'Lv ' + (p.matching_level || 1);
+                    document.getElementById('rotationLevel').textContent = 'Lv ' + (p.falling_level || 1);
+                }
+
                 // Catching Stars → shoulder activation + grip strength
                 document.getElementById('starShoulderScore').textContent = stars.shoulder_activation + '%';
                 document.getElementById('starShoulderBar').style.width = stars.shoulder_activation + '%';
@@ -935,7 +958,12 @@
                                     </div>
                                     <div>
                                         <div style="font-weight:700;font-size:18px;color:#1e293b;">${g.label}</div>
-                                        <div style="font-size:13px;color:#64748b;">Session ${i+1} • ${time} • Level ${s.level}</div>
+                                        <div style="font-size:13px;color:#64748b;display:flex;align-items:center;gap:8px;">
+                                            Session ${i+1} • ${time}
+                                            <span style="background:${g.color};color:white;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;">
+                                                Level ${s.level}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div style="text-align:right;">

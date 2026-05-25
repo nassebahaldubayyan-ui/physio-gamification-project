@@ -504,7 +504,9 @@
                         age: p.age || '?',
                         condition: p.medical_condition || 'General',
                         status,
-                        level: p.current_level || 1,
+                        starsLevel: p.stars_level || 1,
+                        fallingLevel: p.falling_level || 1,
+                        matchingLevel: p.matching_level || 1,
                         accuracy,
                         sessions,
                         avatar: p.name.charAt(0).toUpperCase(),
@@ -556,8 +558,16 @@
                     </div>
                     <div class="patient-stats-col">
                         <div class="stat-item-small">
-                            <div class="stat-value-small">Level ${patient.level}</div>
-                            <div class="stat-label-small">Current</div>
+                            <div class="stat-value-small">Lv${patient.starsLevel}</div>
+                            <div class="stat-label-small">Stars</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">Lv${patient.fallingLevel}</div>
+                            <div class="stat-label-small">Falling</div>
+                        </div>
+                        <div class="stat-item-small">
+                            <div class="stat-value-small">Lv${patient.matchingLevel}</div>
+                            <div class="stat-label-small">Matching</div>
                         </div>
                         <div class="stat-item-small">
                             <div class="stat-value-small">${patient.accuracy}%</div>

@@ -100,11 +100,15 @@ def patient_dashboard(request):
     if not patient:
         return redirect('/gamer-login/')
 
-    level = patient.current_level or 1
+    stars_level = patient.stars_level or 1
+    falling_level = patient.falling_level or 1
+    matching_level = patient.matching_level or 1
     has_assessment = patient.has_assessment_video == 1
 
     return render(request, 'patient/patient.html', {
-        'level': level,
+        'stars_level': stars_level,
+        'falling_level': falling_level,
+        'matching_level': matching_level,
         'has_assessment': has_assessment,
         'patient_name': patient.user.name,
         'patient_id': patient.patient_id,
@@ -621,7 +625,9 @@ def api_add_patient_details(request):
         gender = data.get("gender")
         medical_condition = data.get("medical_condition")
         therapy_type = data.get("therapy_type")
-        current_level = data.get("current_level", 1)
+        stars_level = data.get("stars_level", 1)
+        falling_level = data.get("falling_level", 1)
+        matching_level = data.get("matching_level", 1)
         affected_hand = data.get("affected_hand", "right")
         assigned_doctor_id = data.get("assigned_doctor_id")
         phone = data.get("phone")
@@ -636,7 +642,6 @@ def api_add_patient_details(request):
         print(f"medical_condition: {medical_condition}")
         print(f"therapy_type: {therapy_type}")
         print(f"affected_hand: {affected_hand}")
-        print(f"current_level: {current_level}")
         print(f"phone: {phone}")
         print("="*50)
 
@@ -668,23 +673,28 @@ def api_add_patient_details(request):
                         gender = %s,
                         medical_condition = %s,
                         therapy_type = %s,
-                        current_level = %s,
+                        stars_level = %s,
+                        falling_level = %s,
+                        matching_level = %s,
                         affected_hand = %s,
                         assigned_doctor_id = %s
                     WHERE user_id = %s
                 """, [patient_id, date_of_birth, gender, medical_condition,
-                    therapy_type, current_level, affected_hand, assigned_doctor_id, user_id])
+                    therapy_type, stars_level, falling_level, matching_level,
+                    affected_hand, assigned_doctor_id, user_id])
                 print("✅ Updated existing patient")
             else:
                 cursor.execute("""
                     INSERT INTO patients (
                         user_id, patient_id, date_of_birth, gender,
-                        medical_condition, therapy_type, current_level,
-                        affected_hand, assigned_doctor_id
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        medical_condition, therapy_type, stars_level,
+                        falling_level, matching_level, affected_hand,
+                        assigned_doctor_id
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, [user_id, patient_id, date_of_birth, gender,
-                    medical_condition, therapy_type, current_level,
-                    affected_hand, assigned_doctor_id])
+                    medical_condition, therapy_type, stars_level,
+                    falling_level, matching_level, affected_hand,
+                    assigned_doctor_id])
                 print("✅ Inserted new patient")
 
         return JsonResponse({
@@ -800,7 +810,9 @@ def api_get_patients_for_doctor(request):
                 'medical_condition': patient_record.medical_condition if patient_record else 'Not specified',
                 'affected_hand': patient_record.affected_hand if patient_record else 'right',
                 'therapy_type': patient_record.therapy_type if patient_record else 'General',
-                'current_level': patient_record.current_level if patient_record else 1,
+                'stars_level': patient_record.stars_level if patient_record else 1,
+                'falling_level': patient_record.falling_level if patient_record else 1,
+                'matching_level': patient_record.matching_level if patient_record else 1,
                 'assessment_completed': patient_record.has_assessment_video == 1 if patient_record else False
             })
         
@@ -895,7 +907,9 @@ def api_patient_details(request):
                 'medical_condition': patient.medical_condition if patient else 'Not specified',
                 'therapy_type': patient.therapy_type if patient else 'Physical Therapy',
                 'affected_hand': patient.affected_hand if patient else 'right',
-                'current_level': patient.current_level if patient else 1,
+                'stars_level': patient.stars_level if patient else 1,
+                'falling_level': patient.falling_level if patient else 1,
+                'matching_level': patient.matching_level if patient else 1,
                 'assessment_completed': patient.has_assessment_video == 1 if patient else False,
                 'total_points': stats['total_score'] or 0
             },
@@ -956,7 +970,9 @@ def api_get_my_patient_data(request):
                 "email": user.email,
                 "phone": user.phone or "",
                 "patient_id": patient.patient_id,
-                "current_level": patient.current_level or 1,
+                'stars_level': patient.stars_level if patient else 1,
+                'falling_level': patient.falling_level if patient else 1,
+                'matching_level': patient.matching_level if patient else 1,
                 "affected_hand": patient.affected_hand or "right",
                 "assessment_completed": patient.has_assessment_video == 1,
                 "age": age_display,

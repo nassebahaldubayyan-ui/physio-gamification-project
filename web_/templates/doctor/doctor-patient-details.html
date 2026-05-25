@@ -540,7 +540,8 @@
             document.getElementById('email').textContent = p.email;
             
             // Therapy Progress
-            document.getElementById('currentLevel').textContent = `Level ${p.current_level || 1}`;
+            document.getElementById('currentLevel').textContent = 
+                `Lv${p.stars_level || 1}  Lv${p.falling_level || 1} Lv${p.matching_level || 1}`;
             document.getElementById('totalScore').textContent = stats.total_score || 0;
             document.getElementById('gamesPlayed').textContent = stats.total_sessions || 0;
             document.getElementById('starsCollected').textContent = stats.total_stars || 0;
