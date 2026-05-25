@@ -883,7 +883,7 @@ function initGame() {
         }
         finalizeAndSave();
         const id = userId || window.DJANGO_USER_ID;
-        if (id) window.location.href = `/games/catching-objects/?user_id=${id}`;
+        if (id) window.location.href = `/games/catching-objects/?user_id=${id}&affected_hand=${affectedHand}`;
         else    showNotification("❌ Error: Please login again");
     };
     
@@ -895,7 +895,7 @@ function initGame() {
         }
         finalizeAndSave();
         const id = userId || window.DJANGO_USER_ID;
-        if (id) window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}`;
+        if (id) window.location.href = `/games/catching-objects/?user_id=${id}&force_level=${currentLevel}&affected_hand=${affectedHand}`;
         else    window.location.reload();
     };
     

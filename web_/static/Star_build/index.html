@@ -1293,41 +1293,54 @@ function waitForUnity() {
 // Wait for Django Data
 // ============================================================
 function waitForDjango(callback) {
-    if (window.DJANGO_USER_ID) {
-        userId = window.DJANGO_USER_ID;
-        patientName = window.DJANGO_PATIENT_NAME || "Guest";
-        currentLevel = window.DJANGO_LEVEL || 1;
-        
-        affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
-        if (affectedHand !== 'left' && affectedHand !== 'right') affectedHand = 'right';
-        affectedHandDisplay = affectedHand === "right" ? "RIGHT HAND" : "LEFT HAND";
-        targetMPLabel = affectedHand === "right" ? "left" : "right";
-        
-        document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
-        document.getElementById('trackingHand').innerHTML = affectedHandDisplay;
-        document.getElementById('finalAffectedHand').innerHTML = affectedHandDisplay;
-        document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
-        document.getElementById('levelValue').innerText = currentLevel;
-        document.getElementById('finalLevel').innerText = currentLevel;
-        
-        callback();
-    } else {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlUserId = urlParams.get("user_id");
-        const forceLevel = urlParams.get("force_level");
-        if (urlUserId) {
-            userId = parseInt(urlUserId);
-            if (forceLevel) {
-                currentLevel = parseInt(forceLevel);
-                document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel}`;
-                document.getElementById('levelValue').innerText = currentLevel;
-                document.getElementById('finalLevel').innerText = currentLevel;
-            }
-            callback();
+    let attempts = 0;
+
+    function check() {
+        attempts++;
+        if (window.DJANGO_USER_ID !== undefined) {
+            // ✅ Backup script loaded
+            userId       = window.DJANGO_USER_ID;
+            patientName  = window.DJANGO_PATIENT_NAME || "Guest";
+            currentLevel = window.DJANGO_LEVEL        || 1;
+            affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceLevel = urlParams.get("force_level");
+            if (forceLevel) currentLevel = parseInt(forceLevel);
+            finalize();
+        } else if (attempts > 50) {
+            // ⏱ Timeout — fallback to URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get("user_id");
+            const urlHand   = urlParams.get("affected_hand");
+            const forceLevel = urlParams.get("force_level");
+
+            if (urlUserId) userId = parseInt(urlUserId);
+            if (urlHand && ['left','right'].includes(urlHand.toLowerCase()))
+                affectedHand = urlHand.toLowerCase();
+            if (forceLevel) currentLevel = parseInt(forceLevel);
+            finalize();
         } else {
-            setTimeout(() => waitForDjango(callback), 100);
+            setTimeout(check, 100);
         }
     }
+
+    function finalize() {
+        if (!['left','right'].includes(affectedHand)) affectedHand = 'right';
+        affectedHandDisplay = affectedHand === "right" ? "Right" : "Left";
+        targetMPLabel       = affectedHand === "right" ? "left"  : "right"; // ✅ lowercase
+
+        document.getElementById('handInstruction').innerHTML  = affectedHandDisplay + " Hand";
+        document.getElementById('trackingHand').innerHTML     = affectedHandDisplay;
+        document.getElementById('finalAffectedHand').innerHTML = affectedHandDisplay;
+        document.getElementById('startLevelInfo').innerHTML   = `⭐ Level ${currentLevel}`;
+        document.getElementById('levelValue').innerText       = currentLevel;
+        document.getElementById('finalLevel').innerText       = currentLevel;
+
+        console.log(`✅ Game init — User:${userId} Level:${currentLevel} Hand:${affectedHand} MP:${targetMPLabel}`);
+        callback();
+    }
+
+    check();
 }
 
 // ============================================================
@@ -1346,7 +1359,7 @@ document.getElementById('nextLevelBtn').onclick = () => {
         return;
     }
     finalizeAndSave();
-    if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}`;
+    if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}&affected_hand=${affectedHand}`;
     else window.location.reload();
 };
 document.getElementById('restartBtn').onclick = () => {
@@ -1356,7 +1369,7 @@ document.getElementById('restartBtn').onclick = () => {
         return;
     }
     finalizeAndSave();
-    if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}&force_level=${finalLevel}`;
+    if (userId) window.location.href = `/games/catching-stars/?user_id=${userId}&force_level=${finalLevel}&affected_hand=${affectedHand}`;
     else window.location.reload();
 };
 document.getElementById('exitBtn').onclick = () => {

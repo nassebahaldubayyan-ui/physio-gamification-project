@@ -200,7 +200,12 @@ def game_catching_stars(request):
     
     from .models import GameSessions
     force_level = request.GET.get('force_level', '').strip()
-
+    forced_hand = request.GET.get('affected_hand')
+    if forced_hand in ['left', 'right']:
+        affected_hand = forced_hand
+    else:
+        affected_hand = patient.affected_hand
+        
     if force_level and force_level.isdigit():
         current_level = int(force_level)
         current_level = max(1, min(3, current_level))
@@ -274,9 +279,9 @@ def get_level_from_assessment(patient):
     else:
         shoulder_level = 3
     
-    if elbow <= 150:
+    if elbow >= 150:
         elbow_level = 1
-    elif elbow <= 90:
+    elif elbow >= 90:
         elbow_level = 2
     else:
         elbow_level = 3
@@ -336,9 +341,6 @@ def game_catching_objects(request):
             return redirect('/gamer-login/')
         
         patient = Patients.objects.filter(user=user).first()
-        if not patient:
-            print("❌ No patient record")
-            return HttpResponse("Your account is not linked to a patient record.", status=403)
         
         patient_name = user.name
         
@@ -348,7 +350,12 @@ def game_catching_objects(request):
     
     from .models import GameSessions
     force_level = request.GET.get('force_level', '').strip()
-
+    forced_hand = request.GET.get('affected_hand')
+    if forced_hand in ['left', 'right']:
+        affected_hand = forced_hand
+    else:
+        affected_hand = patient.affected_hand
+        
     if force_level and force_level.isdigit():
         current_level = int(force_level)
         current_level = max(1, min(3, current_level))
