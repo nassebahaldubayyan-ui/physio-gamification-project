@@ -533,38 +533,6 @@
                 </div>
             </div>
 
-            <!-- Stats Overview -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-content">
-                        <h3>Total Patients</h3>
-                        <div class="stat-number" id="totalPatients">5</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
-                    <div class="stat-content">
-                        <h3>Active Sessions</h3>
-                        <div class="stat-number" id="activeSessions">37</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
-                    <div class="stat-content">
-                        <h3>Avg Muscle Activation</h3>
-                        <div class="stat-number" id="avgActivation">81%</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-star"></i></div>
-                    <div class="stat-content">
-                        <h3>Completion Rate</h3>
-                        <div class="stat-number" id="completionRate">81%</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Patient Selector -->
             <div class="patient-selector">
                 <label><i class="fas fa-user"></i> Select Patient:</label>
@@ -584,22 +552,23 @@
                             <span class="game-badge badge-active" id="starLevelBadge">Lv -</span>
                         </div>
                         <h3>Catching Stars</h3>
-                        <p class="game-description">Reach up to catch stars - targets shoulder elevation and elbow movement</p>
+                        <p class="game-description">Reach up to catch stars - targets shoulder elevation and fingers & wrist muscles</p>
 
                         <div class="muscle-groups">
                             <div class="muscle-group">
-                                <h4><i class="fas fa-shoulder"></i> Shoulder Muscles</h4>
+                                <h4><i class="fas fa-circle"></i> Shoulder Muscles</h4>
                                 <div class="muscle-tags">
                                     <span class="muscle-tag primary">Deltoid</span>
                                     <span class="muscle-tag primary">Rotator Cuff</span>
-                                    <span class="muscle-tag">Trapezius</span>
+                                    <span class="muscle-tag primary">Trapezius</span>
                                 </div>
                             </div>
                             <div class="muscle-group">
-                                <h4><i class="fas fa-hand"></i> Elbow Muscles</h4>
+                                <h4><i class="fas fa-hand"></i> Wrist & Fingers</h4>
                                 <div class="muscle-tags">
-                                    <span class="muscle-tag">Biceps</span>
-                                    <span class="muscle-tag">Triceps</span>
+                                    <span class="muscle-tag primary">Wrist Flexors</span>
+                                    <span class="muscle-tag primary">Wrist Extensors</span>
+                                    <span class="muscle-tag primary">Finger Flexors</span>
                                 </div>
                             </div>
                         </div>
@@ -711,9 +680,7 @@
                             <div class="muscle-group">
                                 <h4><i class="fas fa-redo-alt"></i> External Rotators</h4>
                                 <div class="muscle-tags">
-                                    <span class="muscle-tag primary">Infraspinatus</span>
-                                    <span class="muscle-tag primary">Teres Minor</span>
-                                    <span class="muscle-tag primary">Posterior Deltoid</span>
+                                    <span class="muscle-tag primary">Shoulder External Rotation</span>
                                 </div>
                             </div>
                         </div>
@@ -812,7 +779,6 @@
                         loadPatientPerformance();
                     }
                 }
-                document.getElementById('totalPatients').textContent = data.total || 0;
             } catch (e) { console.error('Error loading patients dropdown', e); }
         }
 
@@ -884,10 +850,6 @@
                     rotation.external_rotation + rotation.elbow_activation
                 ) / 6);
                 const completionRate = Math.round((stars.accuracy + match.accuracy + rotation.accuracy) / 3);
-
-                document.getElementById('activeSessions').textContent = totalSessions;
-                document.getElementById('avgActivation').textContent = avgActivation + '%';
-                document.getElementById('completionRate').textContent = completionRate + '%';
 
                 renderSessionList(data.sessions || []);
 
