@@ -1,18 +1,13 @@
-﻿// ============================================================
-// CarMover.cs
-// يحرك السيارة يساراً — يتوقف أثناء السحب
-// ============================================================
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CarMover : MonoBehaviour
 {
     [Header("Movement")]
-    public float speed    = 1.5f;
-    public float despawnX = -12f;
+    public float speed = 1.5f;        
+    public float despawnX = -12f;     
 
     private DraggableCar draggable;
 
-    // ─────────────────────────────────────────────────────────
     void Awake()
     {
         draggable = GetComponent<DraggableCar>();
@@ -20,12 +15,14 @@ public class CarMover : MonoBehaviour
 
     void Update()
     {
-        // لا تتحرك أثناء السحب
-        if (draggable != null && draggable.IsHolding()) return;
+        if (draggable != null && draggable.IsHolding())
+            return;
 
         transform.position += Vector3.left * speed * Time.deltaTime;
 
         if (transform.position.x < despawnX)
+        {
             Destroy(gameObject);
+        }
     }
 }

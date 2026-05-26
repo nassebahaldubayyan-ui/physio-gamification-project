@@ -15,14 +15,14 @@ public class SpawnCars : MonoBehaviour
 
     [Header("Spawn Settings")]
     public float spawnInterval = 4f;
-    public float carLifeTime   = 20f;
-    public float spawnX        = 10f;  // يمين الشاشة
+    public float carLifeTime = 20f;
 
-    [Header("Movement")]
-    public float carSpeed     = 1.0f;
-    public float dropDistance = 2.5f;
+    [Header("Spawn Position")]
+    public float spawnX = 0f;
 
-    // ─────────────────────────────────────────────────────────
+    [Header("Movement Speed")]
+    public float carSpeed = 1.0f;
+
     void Start()
     {
         StartCoroutine(SpawnLoop());
@@ -38,45 +38,41 @@ public class SpawnCars : MonoBehaviour
         }
     }
 
-    // ─────────────────────────────────────────────────────────
     public void SpawnRandomCar()
     {
-        int colorIndex     = Random.Range(0, 3);
-        GameObject prefab  = null;
-        ColorType  color   = ColorType.Red;
-        Transform  basket  = null;
+        int colorIndex = Random.Range(0, 3);
+        GameObject carPrefab = null;
+        ColorType chosenColor = ColorType.Red;
+        Transform matchingBasket = null;
 
         switch (colorIndex)
         {
-            case 0: prefab = redCarPrefab;   color = ColorType.Red;   basket = redBasket;   break;
-            case 1: prefab = greenCarPrefab; color = ColorType.Green; basket = greenBasket; break;
-            case 2: prefab = blueCarPrefab;  color = ColorType.Blue;  basket = blueBasket;  break;
+            case 0: carPrefab = redCarPrefab;   chosenColor = ColorType.Red;   matchingBasket = redBasket;   break;
+            case 1: carPrefab = greenCarPrefab; chosenColor = ColorType.Green; matchingBasket = greenBasket; break;
+            case 2: carPrefab = blueCarPrefab;  chosenColor = ColorType.Blue;  matchingBasket = blueBasket;  break;
         }
 
-        if (prefab == null || basket == null) return;
+        if (carPrefab == null) return;
 
-        // ✅ السيارة تطلع في نفس Y السلة تماماً
-        Vector3 spawnPos = new Vector3(spawnX, basket.position.y, 0f);
+        float baseY = (matchingBasket != null) ? matchingBasket.position.y : 0f;
+        float y;
+        int attempts = 0;
 
-        // تحقق إذا في سيارة بنفس اللون موجودة بالفعل في نفس الصف
-        if (IsColorAlreadyActive(color)) return;
+        do {
+            y = baseY + Random.Range(-1.5f, 1.5f);
+            attempts++;
+        } while (IsCarNearby(new Vector3(spawnX, y, 0), 2f) && attempts < 5);
 
-        GameObject car = Instantiate(prefab, spawnPos, Quaternion.identity);
+        Vector3 spawnPos = new Vector3(spawnX, y, 0);
+        GameObject car = Instantiate(carPrefab, spawnPos, Quaternion.identity);
         car.tag = "Car";
 
-        // ضع اللون
         DraggableCar dc = car.GetComponent<DraggableCar>();
-        if (dc != null)
-        {
-            dc.color        = color;
-            dc.dropDistance = dropDistance;
-        }
+        if (dc != null) dc.color = chosenColor;
 
-        // Car.cs لو موجود
         Car c = car.GetComponent<Car>();
-        if (c != null) c.color = color;
+        if (c != null) c.color = chosenColor;
 
-        // السرعة
         CarMover mover = car.GetComponent<CarMover>();
         if (mover == null) mover = car.AddComponent<CarMover>();
         mover.speed = carSpeed;
@@ -84,14 +80,12 @@ public class SpawnCars : MonoBehaviour
         Destroy(car, carLifeTime);
     }
 
-    // ─────────────────────────────────────────────────────────
-    // منع تكدس نفس اللون في نفس الصف
-    bool IsColorAlreadyActive(ColorType color)
+    bool IsCarNearby(Vector3 pos, float minDist)
     {
         foreach (GameObject car in GameObject.FindGameObjectsWithTag("Car"))
         {
-            DraggableCar dc = car.GetComponent<DraggableCar>();
-            if (dc != null && dc.color == color) return true;
+            if (Vector2.Distance(car.transform.position, pos) < minDist)
+                return true;
         }
         return false;
     }

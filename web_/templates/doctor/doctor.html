@@ -494,8 +494,7 @@
                             : 0;
                     }
 
-                    // Determine status: has sessions = completed at least one, else in-progress
-                    const status = sessions > 0 ? 'completed' : 'in-progress';
+                    const status = p.assessment_completed ? 'completed' : 'in-progress';
 
                     return {
                         id: p.patient_id || 'PT' + p.id,
@@ -568,10 +567,6 @@
                         <div class="stat-item-small">
                             <div class="stat-value-small">Lv${patient.matchingLevel}</div>
                             <div class="stat-label-small">Matching</div>
-                        </div>
-                        <div class="stat-item-small">
-                            <div class="stat-value-small">${patient.accuracy}%</div>
-                            <div class="stat-label-small">Accuracy</div>
                         </div>
                         <div class="stat-item-small">
                             <div class="stat-value-small">${patient.sessions}</div>
