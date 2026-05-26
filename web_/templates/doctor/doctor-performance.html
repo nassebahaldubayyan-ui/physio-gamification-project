@@ -581,7 +581,7 @@
                     <div class="game-card">
                         <div class="game-header">
                             <span class="game-icon"><i class="fas fa-star"></i></span>
-                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
+                            <span class="game-badge badge-active" id="starLevelBadge">Lv -</span>
                         </div>
                         <h3>Catching Stars</h3>
                         <p class="game-description">Reach up to catch stars - targets shoulder elevation and elbow movement</p>
@@ -627,10 +627,6 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="starLevel">-</div>
-                                <div class="game-stat-label">Level</div>
-                            </div>
-                            <div class="game-stat">
                                 <div class="game-stat-value" id="starSessions">10</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
@@ -649,7 +645,7 @@
                     <div class="game-card">
                         <div class="game-header">
                             <span class="game-icon"><i class="fas fa-paint-brush"></i></span>
-                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
+                            <span class="game-badge badge-active" id="matchLevelBadge">Lv -</span>
                         </div>
                         <h3>Matching Game</h3>
                         <p class="game-description">Match objects to colors - full upper extremity workout</p>
@@ -688,10 +684,6 @@
 
                         <div class="game-stats">
                             <div class="game-stat">
-                                <div class="game-stat-value" id="matchLevel">-</div>
-                                <div class="game-stat-label">Level</div>
-                            </div>
-                            <div class="game-stat">
                                 <div class="game-stat-value" id="matchSessions">9</div>
                                 <div class="game-stat-label">Sessions</div>
                             </div>
@@ -710,7 +702,7 @@
                     <div class="game-card">
                         <div class="game-header">
                             <span class="game-icon"><i class="fas fa-basketball-ball"></i></span>
-                            <span class="game-badge badge-active"><i class="fas fa-check-circle"></i> Active</span>
+                            <span class="game-badge badge-active" id="rotationLevelBadge">Lv -</span>
                         </div>
                         <h3>Catching Falling Objects</h3>
                         <p class="game-description">External rotation training with basket catching</p>
@@ -748,10 +740,6 @@
                         </div>
 
                         <div class="game-stats">
-                            <div class="game-stat">
-                                <div class="game-stat-value" id="rotationLevel">-</div>
-                                <div class="game-stat-label">Level</div>
-                            </div>
                             <div class="game-stat">
                                 <div class="game-stat-value" id="rotationSessions">11</div>
                                 <div class="game-stat-label">Sessions</div>
@@ -856,9 +844,9 @@
                 const levelData = await levelResponse.json();
                 if (levelData.success) {
                     const p = levelData.patient;
-                    document.getElementById('starLevel').textContent = 'Lv ' + (p.stars_level || 1);
-                    document.getElementById('matchLevel').textContent = 'Lv ' + (p.matching_level || 1);
-                    document.getElementById('rotationLevel').textContent = 'Lv ' + (p.falling_level || 1);
+                    document.getElementById('starLevelBadge').textContent = 'Level ' + (p.stars_level || 1);
+                    document.getElementById('matchLevelBadge').textContent = 'Level ' + (p.matching_level || 1);
+                    document.getElementById('rotationLevelBadge').textContent = 'Level ' + (p.falling_level || 1);
                 }
 
                 // Catching Stars → shoulder activation + grip strength
@@ -946,7 +934,12 @@
                                             s.game_type === 'matching-game'    ? 'Matches Made' : 'Objects Caught';
                         const caughtValue  = s.game_type === 'catching-stars'   ? s.stars_caught :
                                             s.game_type === 'matching-game'    ? s.matches_made : s.objects_caught;
-                        const time = s.session_date ? s.session_date.split('T')[1]?.substring(0, 5) || s.session_date.split(' ')[1]?.substring(0, 5) || '' : '';
+                        const time = s.session_date ? new Date(s.session_date).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true,
+                                timeZone: 'Asia/Riyadh'
+                            }) : '';
                         const painColor = s.pain_score <= 2 ? '#48bb78' : s.pain_score <= 3 ? '#ed8936' : '#ef4444';
                         const funColor  = s.enjoyment_score >= 4 ? '#48bb78' : s.enjoyment_score >= 3 ? '#ed8936' : '#ef4444';
                         return `

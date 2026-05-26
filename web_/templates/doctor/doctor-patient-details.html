@@ -434,10 +434,6 @@
                             <span class="patient-id" id="patientId">ID: -</span>
                         </div>
                     </div>
-                    <div class="progress-score">
-                        <div class="score-value" id="overallScore">0</div>
-                        <div style="color: #64748b;">Overall Score</div>
-                    </div>
                 </div>
 
                 <!-- Details Grid -->
@@ -453,15 +449,27 @@
 
                     <div class="info-card">
                         <h3><i class="fas fa-chart-line"></i> Therapy Progress</h3>
-                        <div class="info-row"><span class="info-label">Current Level</span><span class="info-value highlight" id="currentLevel">-</span></div>
-                        <div class="info-row"><span class="info-label">Total Score</span><span class="info-value" id="totalScore">-</span></div>
-                        <div class="info-row"><span class="info-label">Games Played</span><span class="info-value" id="gamesPlayed">-</span></div>
-                        <div class="info-row"><span class="info-label">Stars Collected</span><span class="info-value" id="starsCollected">-</span></div>
+                        <div class="info-row">
+                            <span class="info-label">Catching Stars Game</span>
+                            <span class="info-value" id="starsLevel" style="color: #345c9b;">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Catching Falling objects Game</span>
+                            <span class="info-value" id="fallingLevel" style="color: #345c9b;">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Matching Game</span>
+                            <span class="info-value " id="matchingLevel" style="color: #345c9b;">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Games Played</span>
+                            <span class="info-value" id="gamesPlayed" style="color: #345c9b;">-</span>
+                        </div>
                     </div>
 
                     <div class="info-card">
                         <h3><i class="fas fa-hospital"></i> Medical Information</h3>
-                        <div class="info-row"><span class="info-label">Condition</span><span class="info-value highlight" id="condition">-</span></div>
+                        <div class="info-row"><span class="info-label">Condition</span><span class="info-value " id="condition">-</span></div>
                         <div class="info-row"><span class="info-label">Affected Hand</span><span class="info-value" id="affectedHand">-</span></div>
                         <div class="info-row"><span class="info-label">Therapy Type</span><span class="info-value" id="therapyType">-</span></div>
                         <div class="info-row"><span class="info-label">Assessment</span><span class="info-value" id="assessmentStatus">-</span></div>
@@ -526,7 +534,6 @@
             document.getElementById('patientName').textContent = p.name;
             document.getElementById('patientStatus').textContent = p.assessment_completed ? 'Active' : 'Pending';
             document.getElementById('patientId').textContent = `ID: ${p.patient_id}`;
-            document.getElementById('overallScore').textContent = stats.total_score || 0;
             
             // Personal Information
             document.getElementById('fullName').textContent = p.name;
@@ -536,11 +543,10 @@
             document.getElementById('email').textContent = p.email;
             
             // Therapy Progress
-            document.getElementById('currentLevel').textContent = 
-                `Lv${p.stars_level || 1}  Lv${p.falling_level || 1} Lv${p.matching_level || 1}`;
-            document.getElementById('totalScore').textContent = stats.total_score || 0;
+            document.getElementById('starsLevel').textContent = `Level ${p.stars_level || 1}`;
+            document.getElementById('fallingLevel').textContent = `Level ${p.falling_level || 1}`;
+            document.getElementById('matchingLevel').textContent = `Level ${p.matching_level || 1}`;
             document.getElementById('gamesPlayed').textContent = stats.total_sessions || 0;
-            document.getElementById('starsCollected').textContent = stats.total_stars || 0;
             
             // Medical Information
             document.getElementById('condition').textContent = p.medical_condition || 'Not specified';

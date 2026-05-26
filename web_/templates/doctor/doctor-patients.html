@@ -223,12 +223,17 @@
             font-weight: bold;
             color: white;
         }
-        .status-badge
-        {
+        .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
+        }
+        .status-badge.completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-badge.in-progress {
             background: #dbeafe;
             color: #1d4ed8;
         }
@@ -645,7 +650,8 @@
             patients.forEach(p => {
                 const age = p.age ? `${p.age} years` : (p.date_of_birth ? calculateAge(p.date_of_birth) : '?');
                 const color = colors[p.name.charCodeAt(0) % colors.length];
-                const status = p.assessment_completed ? 'Completed' : 'Pending';
+                const status = p.assessment_completed ? 'completed' : 'in-progress';
+                const statusText = p.assessment_completed ? 'Completed' : 'In Progress'
                 const hand = p.affected_hand === 'right' ? 'Right' : 'Left';
                 const row = tbody.insertRow();
                 row.innerHTML = `
@@ -656,7 +662,7 @@
                     <td>${age}</td>
                     <td>${escapeHtml(p.medical_condition)}</td>
                     <td><span style="font-weight:600;color:#3b82f6;">${hand}</span></td>
-                    <td><span class="status-badge">${status}</span></td>
+                    <td><span class="status-badge ${status}">${statusText}</span></td>
                     <td>
                         <button class="btn-details" onclick="viewPatient(${p.id}, '${p.patient_id}')"><i class="fas fa-eye"></i> View</button>
                         <button class="btn-edit" onclick="openEditModal(${p.id}, '${p.patient_id}', '${p.name}', '${p.medical_condition}', '${p.affected_hand}', '${p.therapy_type}', '${p.date_of_birth}', '${p.gender}', '${p.phone || ''}', '${p.stars_level || 1}', '${p.falling_level || 1}', '${p.matching_level || 1}')"><i class="fas fa-edit"></i> Edit</button>
