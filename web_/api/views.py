@@ -174,96 +174,77 @@ def edit_doctor_profile(request):
 def game_catching_stars(request):
     print(f"\n{'='*50}")
     print(f"🎮 game_catching_stars CALLED")
-    
+
     user_id = request.GET.get('user_id', '').strip()
-    
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
         if not user_id:
             return redirect('/gamer-login/')
-    
+
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
-    
     print(f"✅ Final user_id: {user_id}")
 
     try:
         user = Users.objects.get(id=user_id)
         if user.role != 'patient':
             return redirect('/gamer-login/')
-        
         patient = Patients.objects.filter(user=user).first()
         if not patient:
             return HttpResponse("Your account is not linked to a patient record.", status=403)
-        
         patient_name = user.name
-        
     except Users.DoesNotExist:
         return redirect('/gamer-login/')
-    
+
     from .models import GameSessions
+
+    # ✅ Fix 1: اليد المصابة — URL له أولوية، بدون overwrite في النهاية
+    forced_hand   = request.GET.get('affected_hand', '').strip()
+    affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
+
+    # ── تحديد المستوى ──────────────────────────────────────────
     force_level = request.GET.get('force_level', '').strip()
-    forced_hand = request.GET.get('affected_hand')
-    if forced_hand in ['left', 'right']:
-        affected_hand = forced_hand
-    else:
-        affected_hand = patient.affected_hand
-        
+
     if force_level and force_level.isdigit():
-        current_level = int(force_level)
-        current_level = max(1, min(3, current_level))
-        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
+        # زر "Play Again" — يستخدم المستوى الحالي
+        current_level = max(1, min(3, int(force_level)))
+        print(f"🔁 force_level from URL: {current_level}")
+
+    elif patient.stars_level:
+        # ✅ Fix 2: الدكتور حدد مستوى (أو مستوى محفوظ سابقاً) — يُستخدم مباشرة
+        current_level = patient.stars_level
+        print(f"👨 Using saved/doctor level: {current_level}")
+
     else:
-        last_session = GameSessions.objects.filter(
-            patient=patient,
-            game_type='catching-stars'
-        ).order_by('-session_date').first()
-    
-        if last_session is None:
-            current_level = get_level_from_assessment(patient)
-            print("📊 No previous sessions")
-        else:
-            level_thresholds = {1: 8, 2: 16, 3: 999}
-            last_level = last_session.level
-            last_score = last_session.score
-        
-            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
-        
-            if last_level >= 3:
-                current_level = 3
-            elif last_score >= level_thresholds.get(last_level, 5):
-                current_level = last_level + 1
-            else:
-                current_level = last_level
-    
-    print(f"✅ Final level: {current_level}")
-    affected_hand = patient.affected_hand  # 'right' or 'left'
-    
+        # لا يوجد مستوى محفوظ — احسبه من التقييم الأولي
+        current_level = get_level_from_assessment(patient)
+        patient.stars_level = current_level
+        patient.save()
+        print(f"📊 Level from assessment: {current_level}")
+
+    current_level = max(1, min(3, current_level))
+    print(f"✅ Final level: {current_level} | affected_hand: {affected_hand}")
+
     file_path = os.path.join('static', 'Star_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
-    
-    html_content = html_content.replace('__USER_ID__', str(user_id))
-    html_content = html_content.replace('"__USER_ID__"', str(user_id))
+
+    html_content = html_content.replace('__USER_ID__',      str(user_id))
+    html_content = html_content.replace('"__USER_ID__"',    str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
-    html_content = html_content.replace('__LEVEL__', str(current_level))
-    
+    html_content = html_content.replace('__LEVEL__',        str(current_level))
+
     backup_script = f"""
     <script>
-        window.DJANGO_USER_ID = {user_id};
-        window.DJANGO_PATIENT_NAME = "{patient_name}";
-        window.DJANGO_LEVEL = {current_level};
+        window.DJANGO_USER_ID       = {user_id};
+        window.DJANGO_PATIENT_NAME  = "{patient_name}";
+        window.DJANGO_LEVEL         = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
-                    "Patient:", window.DJANGO_PATIENT_NAME, 
-                    "Level:", window.DJANGO_LEVEL,
-                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
+        console.log("✅ Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
     </script>
     """
-    
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    
     print(f"{'='*50}\n")
     return HttpResponse(html_content)
 
@@ -317,111 +298,76 @@ def game_catching_objects(request):
     print(f"\n{'='*50}")
     print(f"🎮 game_catching_objects CALLED")
     print(f"📥 GET params: {request.GET}")
-    print(f"📥 Session: {dict(request.session)}")
-    
+
     user_id = request.GET.get('user_id', '').strip()
-    print(f"📥 user_id from GET: '{user_id}'")
-    
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
-        print(f"📥 user_id from session: '{user_id}'")
-        
         if not user_id:
-            print("❌ No user_id found anywhere!")
             return redirect('/gamer-login/')
-    
+
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
-    
     print(f"✅ Final user_id: {user_id}")
 
     try:
         user = Users.objects.get(id=user_id)
-        print(f"✅ User found: {user.name} (role: {user.role})")
-        
         if user.role != 'patient':
-            print(f"❌ User is not patient, role: {user.role}")
             return redirect('/gamer-login/')
-        
         patient = Patients.objects.filter(user=user).first()
-        
+        if not patient:
+            return HttpResponse("Your account is not linked to a patient record.", status=403)
         patient_name = user.name
-        
     except Users.DoesNotExist:
-        print(f"❌ User {user_id} not found")
         return redirect('/gamer-login/')
-    
+
     from .models import GameSessions
+
+    # ✅ Fix 1: اليد المصابة
+    forced_hand   = request.GET.get('affected_hand', '').strip()
+    affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
+
+    # ── تحديد المستوى ──────────────────────────────────────────
     force_level = request.GET.get('force_level', '').strip()
-    forced_hand = request.GET.get('affected_hand')
-    if forced_hand in ['left', 'right']:
-        affected_hand = forced_hand
-    else:
-        affected_hand = patient.affected_hand
-        
+
     if force_level and force_level.isdigit():
-        current_level = int(force_level)
-        current_level = max(1, min(3, current_level))
-        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
+        current_level = max(1, min(3, int(force_level)))
+        print(f"🔁 force_level from URL: {current_level}")
+
+    elif patient.falling_level:
+        # ✅ Fix 2: مستوى الدكتور أو المحفوظ
+        current_level = patient.falling_level
+        print(f"👨‍⚕️ Using saved/doctor level: {current_level}")
+
     else:
-        last_session = GameSessions.objects.filter(
-            patient=patient,
-            game_type='catching-objects'
-        ).order_by('-session_date').first()
-    
-        if last_session is None:
-            current_level = get_level_from_assessment(patient)
-            print("📊 No previous sessions")
-        else:
-            level_thresholds = {1: 18, 2: 36, 3: 999}
-            last_level = last_session.level
-            last_score = last_session.score
-        
-            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
-        
-            if last_level >= 3:
-                current_level = 3
-            elif last_score >= level_thresholds.get(last_level, 5):
-                current_level = last_level + 1
-            else:
-                current_level = last_level
-    
-    print(f"✅ Final level: {current_level}")
-    affected_hand = patient.affected_hand  # 'right' or 'left'
+        current_level = get_level_from_assessment(patient)
+        patient.falling_level = current_level
+        patient.save()
+        print(f"📊 Level from assessment: {current_level}")
+
+    current_level = max(1, min(3, current_level))
+    print(f"✅ Final level: {current_level} | affected_hand: {affected_hand}")
+
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
-    
-    print(f"📝 Before replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
-    print(f"📝 Before replace - contains __PATIENT_NAME__: {'__PATIENT_NAME__' in html_content}")
-    print(f"📝 Before replace - contains __LEVEL__: {'__LEVEL__' in html_content}")
-    
-    html_content = html_content.replace('__USER_ID__', str(user_id))
-    html_content = html_content.replace('"__USER_ID__"', str(user_id))
+
+    html_content = html_content.replace('__USER_ID__',      str(user_id))
+    html_content = html_content.replace('"__USER_ID__"',    str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
-    html_content = html_content.replace('__LEVEL__', str(current_level))
-    
-    print(f"📝 After replace - contains __USER_ID__: {'__USER_ID__' in html_content}")
-    print(f"📝 Final check - user {user_id} in HTML: {str(user_id) in html_content}")
-    
+    html_content = html_content.replace('__LEVEL__',        str(current_level))
+
     backup_script = f"""
     <script>
-        window.DJANGO_USER_ID = {user_id};
-        window.DJANGO_PATIENT_NAME = "{patient_name}";
-        window.DJANGO_LEVEL = {current_level};
+        window.DJANGO_USER_ID       = {user_id};
+        window.DJANGO_PATIENT_NAME  = "{patient_name}";
+        window.DJANGO_LEVEL         = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
-                    "Patient:", window.DJANGO_PATIENT_NAME, 
-                    "Level:", window.DJANGO_LEVEL,
-                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
+        console.log("✅ Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
     </script>
     """
-
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    
     print(f"{'='*50}\n")
-    
     return HttpResponse(html_content)
     
 
@@ -1586,81 +1532,85 @@ def apple_game(request):
 def api_save_game_result(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-
+            data    = json.loads(request.body)
             user_id = data.get('user_id')
             if not user_id:
                 return JsonResponse({"success": False, "error": "No user_id"}, status=401)
 
             from .models import Patients, GameSessions, Users
-
             try:
-                user = Users.objects.get(id=user_id)
+                user    = Users.objects.get(id=user_id)
                 patient = Patients.objects.filter(user=user).first()
-
                 if not patient:
-                    return JsonResponse({
-                        "success": False,
-                        "error": "User is not linked to patient"
-                    }, status=403)
+                    return JsonResponse({"success": False, "error": "User is not linked to patient"}, status=403)
 
                 game_type_raw = data.get('game', '')
-
                 game_type_map = {
-                    "catching_stars": "catching-stars",
-                    "catching_objects": "catching-objects",
-                    "matching_game": "matching-game",
+                    "catching_stars":   "catching-stars",
+                    "catching_objects":  "catching-objects",
+                    "matching_game":    "matching-game",
                 }
-
-                game_type = game_type_map.get(game_type_raw, game_type_raw)
-
-                score = int(data.get('score', 0))
-                level = int(data.get('level', 1))
-                pain_score = data.get('pain_score', None)
+                game_type       = game_type_map.get(game_type_raw, game_type_raw)
+                score           = int(data.get('score', 0))
+                level           = int(data.get('level', 1))
+                pain_score      = data.get('pain_score',      None)
                 enjoyment_score = data.get('enjoyment_score', None)
-                accuracy = 0
-                objects_caught = score
 
+                accuracy       = data.get('accuracy', 0)
+                objects_caught = score
                 if game_type == "catching-stars":
-                    accuracy = data.get('grip_accuracy', 0)
                     objects_caught = data.get('stars_caught', score)
                 elif game_type == "catching-objects":
-                    accuracy = data.get('hand_stability', data.get('accuracy', 0))
                     objects_caught = data.get('objects_caught', score)
                 elif game_type == "matching-game":
-                    accuracy = data.get('grip_accuracy', data.get('accuracy', 0)) 
                     objects_caught = data.get('matches_made', score)
 
                 GameSessions.objects.create(
-                    patient=patient,
-                    game_type=game_type,
-                    level=level,
-                    player_name=patient.user.name,
-                    user_id=patient.user.id,
-                    score=score,
-                    pain_score = pain_score,
-                    enjoyment_score = enjoyment_score,
-                    duration=60,
-                    accuracy=accuracy,
-                    stars_caught=data.get('stars_caught', 0),
-                    matches_made=data.get('matches_made', 0),
-                    objects_caught=objects_caught,
-                    shoulder_activation=int(data.get('shoulder_activation', 0)),
-                    elbow_activation=int(data.get('elbow_activation', 0)),
-                    wrist_activation=int(data.get('wrist_activation', 0)),
-                    grip_activation=int(data.get('grip_activation', 0)),
-                    external_rotation=int(data.get('external_rotation', 0)),
-                    shoulder_shrug=int(data.get('shoulder_shrug', 0)),
-                    completed=1,
-                    session_date=timezone.now()
+                    patient           = patient,
+                    game_type         = game_type,
+                    level             = level,
+                    player_name       = patient.user.name,
+                    user_id           = patient.user.id,
+                    score             = score,
+                    pain_score        = pain_score,
+                    enjoyment_score   = enjoyment_score,
+                    duration          = 60,
+                    accuracy          = accuracy,
+                    stars_caught      = data.get('stars_caught',  0),
+                    matches_made      = data.get('matches_made',  0),
+                    objects_caught    = objects_caught,
+                    shoulder_activation = int(data.get('shoulder_activation', 0)),
+                    elbow_activation    = int(data.get('elbow_activation',    0)),
+                    wrist_activation    = int(data.get('wrist_activation',    0)),
+                    grip_activation     = int(data.get('grip_activation',     0)),
+                    external_rotation   = int(data.get('external_rotation',   0)),
+                    shoulder_shrug      = int(data.get('shoulder_shrug',      0)),
+                    completed           = 1,
+                    session_date        = timezone.now()
                 )
 
-                print(f"✅ SAVED | user:{user_id} | game:{game_type} | level:{level} | score:{score}")
+                # ✅ تحديث مستوى المريض تلقائياً بعد كل جلسة
+                stars_thresholds   = {1: 8,  2: 16}
+                objects_thresholds = {1: 18, 2: 36}
 
-                return JsonResponse({
-                    "success": True,
-                    "message": "Saved successfully"
-                })
+                if game_type == 'catching-stars':
+                    threshold = stars_thresholds.get(level, 999)
+                    if level < 3 and score >= threshold:
+                        patient.stars_level = level + 1
+                    else:
+                        patient.stars_level = level
+                    patient.save()
+
+                elif game_type == 'catching-objects':
+                    threshold = objects_thresholds.get(level, 999)
+                    if level < 3 and score >= threshold:
+                        patient.falling_level = level + 1
+                    else:
+                        patient.falling_level = level
+                    patient.save()
+
+                print(f"✅ SAVED | user:{user_id} | {game_type} | L{level} | score:{score}")
+                return JsonResponse({"success": True, "message": "Saved successfully"})
 
             except Users.DoesNotExist:
                 return JsonResponse({"success": False, "error": "User not found"}, status=404)
@@ -1669,11 +1619,7 @@ def api_save_game_result(request):
             import traceback
             print("🔥 API ERROR:", str(e))
             print(traceback.format_exc())
-
-            return JsonResponse({
-                "success": False,
-                "error": str(e)
-            }, status=500)
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
