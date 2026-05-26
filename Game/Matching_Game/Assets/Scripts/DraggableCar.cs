@@ -2,10 +2,10 @@
 
 public class DraggableCar : MonoBehaviour
 {
+    [Header("Color")]
     public ColorType color;
 
-    [Header("Grab / Drop Distance (world units)")]
-    public float grabDistance = 5f;
+    [Header("Drop Distance (world units)")]
     public float dropDistance = 2.5f;
 
     [Header("Spawn Protection")]
@@ -13,10 +13,11 @@ public class DraggableCar : MonoBehaviour
 
     private bool isHolding = false;
     private bool handClosed = false;
-    private bool prevHandClosed = false;  
+    private bool prevHandClosed = false;
     private float spawnTime;
     private Transform handPoint;
-    private Basket[] cachedBaskets;
+    private Collider2D carCollider;
+    private Rigidbody2D rb;
 
     void Start()
     {
@@ -25,10 +26,27 @@ public class DraggableCar : MonoBehaviour
         if (!gameObject.CompareTag("Car"))
             gameObject.tag = "Car";
 
+        // ✅ إيقاف الجاذبية
+        rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.gravityScale = 0;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        // الـ Collider
+        carCollider = GetComponent<Collider2D>();
+        if (carCollider == null)
+        {
+            BoxCollider2D box = gameObject.AddComponent<BoxCollider2D>();
+            box.size = new Vector2(7f, 5f);
+            carCollider = box;
+        }
+        // ✅ لا نغير isTrigger أبداً — نخليه ثابت
+        carCollider.isTrigger = false;
+
         GameObject hand = GameObject.FindGameObjectWithTag("Hand");
         if (hand != null) handPoint = hand.transform;
-
-        cachedBaskets = FindObjectsOfType<Basket>();
     }
 
     void Update()
@@ -40,49 +58,55 @@ public class DraggableCar : MonoBehaviour
             handPoint = hand.transform;
         }
 
-        float distanceToHand = Vector2.Distance(transform.position, handPoint.position);
         bool graceOver = (Time.time - spawnTime) > spawnGracePer;
-
+        bool handOverCar = carCollider != null && carCollider.OverlapPoint(handPoint.position);
         bool justClosed = handClosed && !prevHandClosed;
-        if (justClosed && graceOver && distanceToHand < grabDistance && !isHolding)
+
+        // ── الإمساك ──────────────────────────────────────────
+        if (justClosed && graceOver && handOverCar && !isHolding)
         {
             isHolding = true;
-            Debug.Log($"[DraggableCar] Grabbed {color} at dist {distanceToHand:F2}");
+            Debug.Log($"[DraggableCar] Grabbed {color}");
         }
 
+        // ── الإفلات ──────────────────────────────────────────
         if (!handClosed && isHolding)
         {
             isHolding = false;
-
-            if (IsOverMatchingBasket())
-            {
-                if (GameManager.Instance != null)
-                    GameManager.Instance.AddScore(1);
-                Destroy(gameObject);
-            }
+            CheckDrop();
         }
 
+        // ── ملاحقة اليد ──────────────────────────────────────
         if (isHolding)
-            transform.position = new Vector3(handPoint.position.x, handPoint.position.y, 0f);
+        {
+            transform.position = new Vector3(
+                handPoint.position.x,
+                handPoint.position.y,
+                0f);
+        }
 
         prevHandClosed = handClosed;
     }
 
-    public void SetHandClosed(bool closed) => handClosed = closed;
-    public bool IsHolding() => isHolding;
-
-    bool IsOverMatchingBasket()
+    void CheckDrop()
     {
-        if (cachedBaskets == null || cachedBaskets.Length == 0)
-            cachedBaskets = FindObjectsOfType<Basket>();
-
-        foreach (Basket basket in cachedBaskets)
+        Basket[] baskets = FindObjectsOfType<Basket>();
+        foreach (Basket basket in baskets)
         {
             if (basket == null) continue;
-            if (Vector2.Distance(transform.position, basket.transform.position) < dropDistance
-                && basket.color == color)
-                return true;
+
+            // ✅ هل السيارة داخل حدود السلة؟
+            if (basket.ContainsPoint(transform.position) && basket.color == color)
+            {
+                if (GameManager.Instance != null)
+                    GameManager.Instance.AddScore(1);
+                Debug.Log($"[DraggableCar] Matched {color} → +1");
+                Destroy(gameObject);
+                return;
+            }
         }
-        return false;
     }
+
+    public void SetHandClosed(bool closed) => handClosed = closed;
+    public bool IsHolding() => isHolding;
 }
