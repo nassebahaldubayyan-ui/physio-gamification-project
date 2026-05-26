@@ -172,9 +172,6 @@ def edit_doctor_profile(request):
 
 # Game Pages
 def game_catching_stars(request):
-    print(f"\n{'='*50}")
-    print(f"🎮 game_catching_stars CALLED")
-
     user_id = request.GET.get('user_id', '').strip()
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
@@ -184,7 +181,6 @@ def game_catching_stars(request):
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
-    print(f"✅ Final user_id: {user_id}")
 
     try:
         user = Users.objects.get(id=user_id)
@@ -199,32 +195,23 @@ def game_catching_stars(request):
 
     from .models import GameSessions
 
-    # ✅ Fix 1: اليد المصابة — URL له أولوية، بدون overwrite في النهاية
     forced_hand   = request.GET.get('affected_hand', '').strip()
     affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
 
-    # ── تحديد المستوى ──────────────────────────────────────────
     force_level = request.GET.get('force_level', '').strip()
 
     if force_level and force_level.isdigit():
-        # زر "Play Again" — يستخدم المستوى الحالي
         current_level = max(1, min(3, int(force_level)))
-        print(f"🔁 force_level from URL: {current_level}")
 
     elif patient.stars_level:
-        # ✅ Fix 2: الدكتور حدد مستوى (أو مستوى محفوظ سابقاً) — يُستخدم مباشرة
         current_level = patient.stars_level
-        print(f"👨 Using saved/doctor level: {current_level}")
 
     else:
-        # لا يوجد مستوى محفوظ — احسبه من التقييم الأولي
         current_level = get_level_from_assessment(patient)
         patient.stars_level = current_level
         patient.save()
-        print(f"📊 Level from assessment: {current_level}")
 
     current_level = max(1, min(3, current_level))
-    print(f"✅ Final level: {current_level} | affected_hand: {affected_hand}")
 
     file_path = os.path.join('static', 'Star_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -241,11 +228,10 @@ def game_catching_stars(request):
         window.DJANGO_PATIENT_NAME  = "{patient_name}";
         window.DJANGO_LEVEL         = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("✅ Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
+        console.log("Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
     </script>
     """
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    print(f"{'='*50}\n")
     return HttpResponse(html_content)
 
 
@@ -254,8 +240,6 @@ def get_level_from_assessment(patient):
     elbow = patient.elbow_strength or 0
     grip = patient.grip_strength or 0
     shoulder_external = patient.shoulder_external_strength or 0
-
-    print(f"📊 Assessment Values - Shoulder: {shoulder}, Elbow: {elbow}, Grip: {grip}, Shoulder_external: {shoulder_external}")
     
     if shoulder <= 35:
         shoulder_level = 1
@@ -285,19 +269,11 @@ def get_level_from_assessment(patient):
     else:
         shoulder_external_level = 3
     
-    print(f"📊 Levels - Shoulder: {shoulder_level}, Elbow: {elbow_level}, Grip: {grip_level}, Shoulder_external: {shoulder_external_level}")
-    
     current_level = min(shoulder_level, elbow_level, grip_level, shoulder_external_level)
-    
-    print(f"✅ Final Level from Assessment: {current_level}")
-    
     return current_level
 
     
 def game_catching_objects(request):
-    print(f"\n{'='*50}")
-    print(f"🎮 game_catching_objects CALLED")
-    print(f"📥 GET params: {request.GET}")
 
     user_id = request.GET.get('user_id', '').strip()
     if not user_id or not user_id.isdigit():
@@ -308,7 +284,6 @@ def game_catching_objects(request):
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
-    print(f"✅ Final user_id: {user_id}")
 
     try:
         user = Users.objects.get(id=user_id)
@@ -322,31 +297,23 @@ def game_catching_objects(request):
         return redirect('/gamer-login/')
 
     from .models import GameSessions
-
-    # ✅ Fix 1: اليد المصابة
     forced_hand   = request.GET.get('affected_hand', '').strip()
     affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
 
-    # ── تحديد المستوى ──────────────────────────────────────────
     force_level = request.GET.get('force_level', '').strip()
 
     if force_level and force_level.isdigit():
         current_level = max(1, min(3, int(force_level)))
-        print(f"🔁 force_level from URL: {current_level}")
 
     elif patient.falling_level:
-        # ✅ Fix 2: مستوى الدكتور أو المحفوظ
         current_level = patient.falling_level
-        print(f"👨‍⚕️ Using saved/doctor level: {current_level}")
 
     else:
         current_level = get_level_from_assessment(patient)
         patient.falling_level = current_level
         patient.save()
-        print(f"📊 Level from assessment: {current_level}")
 
     current_level = max(1, min(3, current_level))
-    print(f"✅ Final level: {current_level} | affected_hand: {affected_hand}")
 
     file_path = os.path.join('static', 'apple_build', 'index.html')
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -363,11 +330,10 @@ def game_catching_objects(request):
         window.DJANGO_PATIENT_NAME  = "{patient_name}";
         window.DJANGO_LEVEL         = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("✅ Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
+        console.log(" Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
     </script>
     """
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    print(f"{'='*50}\n")
     return HttpResponse(html_content)
     
 
@@ -408,7 +374,6 @@ def game_matching(request):
     if force_level and force_level.isdigit():
         current_level = int(force_level)
         current_level = max(1, min(3, current_level))
-        print(f"🔁 force_level used: {current_level} (PLAY AGAIN)")
     else:
         last_session = GameSessions.objects.filter(
             patient=patient,
@@ -417,7 +382,6 @@ def game_matching(request):
 
         if last_session is None:
             current_level = get_level_from_assessment(patient)
-            print("📊 No previous sessions")
         else:
             level_thresholds = {
                 1: 5,
@@ -427,17 +391,12 @@ def game_matching(request):
 
             last_level = last_session.level
             last_score = last_session.score
-
-            print(f"📊 Last session - Level: {last_level}, Score: {last_score}")
-
             if last_level >= 3:
                 current_level = 3
             elif last_score >= level_thresholds.get(last_level, 5):
                 current_level = last_level + 1
             else:
                 current_level = last_level
-
-    print(f"✅ Final level: {current_level}")
 
     affected_hand = patient.affected_hand if patient.affected_hand else 'right'
 
@@ -465,15 +424,13 @@ def game_matching(request):
         window.DJANGO_PATIENT_NAME = "{patient_name}";
         window.DJANGO_LEVEL = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("✅ Django Backup - UserID:", window.DJANGO_USER_ID, 
+        console.log("Django Backup - UserID:", window.DJANGO_USER_ID, 
                     "Patient:", window.DJANGO_PATIENT_NAME, 
                     "Level:", window.DJANGO_LEVEL,
                     "Affected Hand:", window.DJANGO_AFFECTED_HAND);
     </script>
     """
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    
-    print(f"🎮 Matching Game - User: {user_id}, Name: {patient_name}, Level: {current_level}")
     
     return HttpResponse(html_content)
 
@@ -579,18 +536,6 @@ def api_add_patient_details(request):
         phone = data.get("phone")
         name = data.get("name")
 
-        print("="*50)
-        print("📝 ADD/UPDATE PATIENT DETAILS")
-        print(f"user_id: {user_id}")
-        print(f"patient_id: {patient_id}")
-        print(f"date_of_birth: {date_of_birth}")
-        print(f"gender: {gender}")
-        print(f"medical_condition: {medical_condition}")
-        print(f"therapy_type: {therapy_type}")
-        print(f"affected_hand: {affected_hand}")
-        print(f"phone: {phone}")
-        print("="*50)
-
         # Update users table for phone and name if provided
         if phone is not None or name:
             try:
@@ -600,9 +545,8 @@ def api_add_patient_details(request):
                 if name:
                     user.name = name
                 user.save()
-                print("✅ Updated user phone/name")
             except Users.DoesNotExist:
-                print("⚠️ User not found for phone/name update")
+                print("User not found for phone/name update")
 
         from django.db import connection
 
@@ -628,7 +572,6 @@ def api_add_patient_details(request):
                 """, [patient_id, date_of_birth, gender, medical_condition,
                     therapy_type, stars_level, falling_level, matching_level,
                     affected_hand, assigned_doctor_id, user_id])
-                print("✅ Updated existing patient")
             else:
                 cursor.execute("""
                     INSERT INTO patients (
@@ -641,7 +584,6 @@ def api_add_patient_details(request):
                     medical_condition, therapy_type, stars_level,
                     falling_level, matching_level, affected_hand,
                     assigned_doctor_id])
-                print("✅ Inserted new patient")
 
         return JsonResponse({
             "success": True,
@@ -708,8 +650,6 @@ def api_delete_patient(request):
             patient_record.delete()
         
         user.delete()
-        
-        print(f"✅ Deleted patient: {user.name}")
         
         return JsonResponse({"success": True, "message": f"Deleted {user.name}"})
         
@@ -778,8 +718,6 @@ def api_patient_details(request):
         if not identifier:
             identifier = request.GET.get("patient")
         
-        print(f"🔍 Looking for patient with identifier: {identifier}")
-        
         if not identifier:
             return JsonResponse({"error": "user_id or patient required"}, status=400)
         
@@ -794,7 +732,7 @@ def api_patient_details(request):
             if str(identifier).isdigit():
                 user = Users.objects.filter(id=int(identifier), role='patient').first()
                 if user:
-                    print(f"✅ Found by user_id: {user.id}")
+                    print(f"Found by user_id: {user.id}")
         except:
             pass
         
@@ -803,7 +741,6 @@ def api_patient_details(request):
             patient_record = Patients.objects.filter(patient_id=identifier).first()
             if patient_record:
                 user = patient_record.user
-                print(f"✅ Found by patient_id: {patient_record.patient_id}")
         
         if not user:
             return JsonResponse({"error": f"No patient found with identifier: {identifier}"}, status=404)
@@ -1161,7 +1098,7 @@ def api_get_progress_data(request):
         from django.utils import timezone
 
         patient_id = request.GET.get('patient_id')
-        period = request.GET.get('period', 'week')  # week, month, year
+        period = request.GET.get('period', 'week')
 
         if not patient_id:
             return JsonResponse({"error": "patient_id required"}, status=400)
@@ -1608,8 +1545,6 @@ def api_save_game_result(request):
                     else:
                         patient.falling_level = level
                     patient.save()
-
-                print(f"✅ SAVED | user:{user_id} | {game_type} | L{level} | score:{score}")
                 return JsonResponse({"success": True, "message": "Saved successfully"})
 
             except Users.DoesNotExist:
@@ -1617,8 +1552,6 @@ def api_save_game_result(request):
 
         except Exception as e:
             import traceback
-            print("🔥 API ERROR:", str(e))
-            print(traceback.format_exc())
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)

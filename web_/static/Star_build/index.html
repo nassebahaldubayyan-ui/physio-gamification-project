@@ -1190,14 +1190,14 @@ function finalizeAndSave() {
         ratingsSubmitted = true;
         gameDataForSaving.pain_score      = getPainRating();
         gameDataForSaving.enjoyment_score = getEnjoymentRating();
-        console.log("💾 Final save with ratings:", gameDataForSaving);
+        console.log("Final save with ratings:", gameDataForSaving);
         fetch('/api/save-game-result/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(gameDataForSaving)
         }).then(r => r.json())
           .then(d => {
-              if (d.success) console.log("✅ Saved with ratings!");
+              if (d.success) console.log("Saved with ratings!");
               else console.error("❌ Save failed:", d.error);
           }).catch(err => console.error("Save error:", err));
     }
@@ -1354,7 +1354,7 @@ function waitForDjango(callback) {
         document.getElementById('levelValue').innerText        = currentLevel;
         document.getElementById('finalLevel').innerText        = currentLevel;
 
-        console.log(`✅ Game init — User:${userId} Level:${currentLevel} Hand:${affectedHand} MP:${targetMPLabel}`);
+        console.log(`Game init — User:${userId} Level:${currentLevel} Hand:${affectedHand} MP:${targetMPLabel}`);
         callback();
     }
 

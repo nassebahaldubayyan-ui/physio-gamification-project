@@ -1145,7 +1145,7 @@
             });
             await camera.start();
             mediaPipeActive = true;
-            console.log("✅ MediaPipe started - Tracking:", targetMPLabel);
+            console.log("MediaPipe started - Tracking:", targetMPLabel);
         }
 
         // ============================================================
@@ -1207,13 +1207,13 @@
                 ratingsSubmitted = true;
                 gameDataForSaving.pain_score = getPainRating();
                 gameDataForSaving.enjoyment_score = getEnjoymentRating();
-                console.log("💾 Final save with ratings:", gameDataForSaving);
+                console.log("Final save with ratings:", gameDataForSaving);
                 fetch('/api/save-game-result/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(gameDataForSaving)
                 }).then(r => r.json()).then(data => {
-                    if (data.success) console.log("✅ Saved with ratings!");
+                    if (data.success) console.log("Saved with ratings!");
                     else console.error("❌ Save failed:", data.error);
                 }).catch(err => console.error("Save error:", err));
             }
@@ -1288,17 +1288,17 @@
             }).then(instance => {
                 if (typeof instance.sendMessage === 'function') {
                     unityInstance = instance;
-                    console.log("✅ Unity ready - sendMessage direct");
+                    console.log("Unity ready - sendMessage direct");
                 } else if (instance.Module && typeof instance.Module.SendMessage === 'function') {
                     unityInstance = {
                         sendMessage: (obj, fn, val) => instance.Module.SendMessage(obj, fn, val)
                     };
-                    console.log("✅ Unity ready - sendMessage via Module");
+                    console.log("Unity ready - sendMessage via Module");
                 } else if (typeof instance.SendMessage === 'function') {
                     unityInstance = {
                         sendMessage: instance.SendMessage.bind(instance)
                     };
-                    console.log("✅ Unity ready - sendMessage via SendMessage");
+                    console.log("Unity ready - sendMessage via SendMessage");
                 } else {
                     console.error("❌ Cannot find sendMessage function");
                     showNotification("❌ Unity loaded but sendMessage missing");
@@ -1310,7 +1310,7 @@
                 // إرسال الإعدادات الأولية بعد تحميل Unity
                 setTimeout(() => {
                     sendConfigToUnity(currentLevel);
-                    console.log("✅ Initial config sent to Unity");
+                    console.log("Initial config sent to Unity");
                 }, 500);
 
                 showNotification('✅ Game ready! Click START!');

@@ -464,14 +464,13 @@ function saveGameWithRatings(saveData) {
     saveData.pain_score = getPainRating();
     saveData.enjoyment_score = getEnjoymentRating();
     
-    console.log("💾 Saving with ratings:", saveData);
     fetch('/api/save-game-result/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(saveData)
     }).then(r => r.json())
       .then(d => {
-          if (d.success) console.log("✅ Saved with ratings!");
+          if (d.success) console.log("Saved with ratings!");
           else console.error("❌ Save failed:", d.error);
       }).catch(err => console.error("Save error:", err));
 }
@@ -500,7 +499,6 @@ function initGame() {
     document.getElementById('levelValue').innerText         = currentLevel;
     document.getElementById('finalLevel').innerText         = currentLevel;
 
-    console.log("🎮 Affected Hand:", affectedHand, "| MP Label:", targetMPLabel, "| Level:", currentLevel);
 
     // ─── Level Configs ───
     const LEVEL_CONFIGS = {
@@ -718,7 +716,6 @@ function initGame() {
         });
         await camera.start();
         mediaPipeActive = true;
-        console.log("✅ MediaPipe started | tracking:", affectedHand, "| MP label:", targetMPLabel);
     }
 
     window.UpdateScoreFromUnity = function(score) {
@@ -788,14 +785,14 @@ function initGame() {
             ratingsSubmitted = true;
             gameDataForSaving.pain_score = getPainRating();
             gameDataForSaving.enjoyment_score = getEnjoymentRating();
-            console.log("💾 Final save with ratings:", gameDataForSaving);
+            console.log("Final save with ratings:", gameDataForSaving);
             fetch('/api/save-game-result/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(gameDataForSaving)
             }).then(r => r.json())
               .then(d => {
-                  if (d.success) console.log("✅ Saved with ratings!");
+                  if (d.success) console.log("Saved with ratings!");
                   else console.error("❌ Save failed:", d.error);
               }).catch(err => console.error("Save error:", err));
         }
@@ -849,7 +846,7 @@ function initGame() {
                 showNotification("❌ Unity loaded but sendMessage missing"); return;
             }
             window.unityInstance = unityInstance;
-            console.log("✅ Unity ready");
+            console.log("Unity ready");
 
             setTimeout(() => {
                 if (!unityInstance) return;
@@ -863,7 +860,7 @@ function initGame() {
                     timeBetweenApples: cfg.timeBetweenApples, basketSpeed: cfg.basketSpeed,
                     basketRightBound: cfg.basketRightBound, basketLeftBound: cfg.basketLeftBound
                 }));
-                console.log("✅ Config sent for level:", currentLevel);
+                console.log("Config sent for level:", currentLevel);
             }, 1000);
 
             showNotification(`✅ Game ready! Level ${currentLevel} — Click START.`, true);
@@ -910,7 +907,7 @@ function initGame() {
     };
 
     document.body.addEventListener('click', () => soundManager.resumeAudio(), { once: true });
-    console.log("✅ Game initialized | Level:", currentLevel, "| Affected Hand:", affectedHand);
+    console.log("Game initialized | Level:", currentLevel, "| Affected Hand:", affectedHand);
 }
 
 waitForDjangoBackup(initGame);
