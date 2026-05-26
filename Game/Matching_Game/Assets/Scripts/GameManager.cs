@@ -1,166 +1,112 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System.Collections;
-
+[System.Serializable]
+public class LevelConfig
+{
+    public int levelNumber;
+    public float gameDuration;
+    public int gripSensitivity;
+    public string levelName;
+    public float carSpeed;
+    public float spawnInterval;
+    public float grabDistance;
+    public float dropDistance;
+}
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;
-
-    public int score = 0;
-    public int matches = 0;           // <-- أضيفي هذا للمطابقات
+    public static GameManager Instance;
     public TMP_Text scoreText;
-    public TMP_Text matchesText;       // <-- أضيفي هذا (اختياري)
-
-    public float gameTime = 60f;       // تغيير إلى 60 ثانية
     public TMP_Text timerText;
-
-    public GameObject startPanel;
     public GameObject endPanel;
-
-    public TMP_Text finalScoreText;
-    public TMP_Text finalMatchesText;   // <-- أضيفي هذا
-
-    private bool isGameRunning = false;
-    private bool gameEnded = false;
-
+    public float timeLeft = 60f;
+    private int score = 0;
+    private int userID = 1;
+    private bool gameStarted = false;
     void Awake()
     {
-        if (instance == null)
-            instance = this;
+        if (Instance == null)
+            Instance = this;
         else
             Destroy(gameObject);
     }
-
-    void Update()
+    void Start()
     {
-        if (!isGameRunning) return;
-
-        gameTime -= Time.deltaTime;
-        if (timerText != null)
-            timerText.text = "Time: " + Mathf.Ceil(gameTime);
-
-        if (gameTime <= 0 && !gameEnded)
-        {
-            EndGame();
-        }
-    }
-
-    // ============================================
-    // دوال تُنادى من JavaScript
-    // ============================================
-
-    public void StartGameFromHTML()
-    {
-        StartGame();
-    }
-
-    public void ForceEndGame()
-    {
-        if (!gameEnded)
-            EndGame();
-    }
-
-    // ============================================
-    // دوال اللعبة الأساسية
-    // ============================================
-
-    public void StartGame()
-    {
-        score = 0;
-        matches = 0;
-        gameTime = 60f;
-        gameEnded = false;
-        isGameRunning = true;
-
-        if (startPanel != null)
-            startPanel.SetActive(false);
+        Time.timeScale = 0f;
+        UpdateUI();
         if (endPanel != null)
             endPanel.SetActive(false);
-
-        UpdateUI();
-
-        // إعلام HandController أن اللعبة بدأت
-        if (HandController.Instance != null)
-        {
-#if !UNITY_EDITOR && UNITY_WEBGL
-            HandController.Instance.SetGameRunning("1");
-#endif
-        }
     }
-
-    public void EndGame()
+    public void ApplyLevelConfig(string json)
     {
-        if (gameEnded) return;
-
-        isGameRunning = false;
-        gameEnded = true;
-
-        if (endPanel != null)
-            endPanel.SetActive(true);
-
-        if (finalScoreText != null)
-            finalScoreText.text = "Final Score: " + score;
-        if (finalMatchesText != null)
-            finalMatchesText.text = "Matches: " + matches;
-
-        // إرسال النتيجة إلى JavaScript
-#if !UNITY_EDITOR && UNITY_WEBGL
-        SendResultsToJS();
-#endif
-
-        // إعلام HandController أن اللعبة انتهت
-        if (HandController.Instance != null)
+        LevelConfig config = JsonUtility.FromJson<LevelConfig>(json);
+        if (config == null) return;
+        timeLeft = config.gameDuration;
+        SpawnCars spawner = FindObjectOfType<SpawnCars>();
+        if (spawner != null)
         {
-            HandController.Instance.SetGameRunning("0");
+            if (config.carSpeed > 0) spawner.carSpeed = config.carSpeed;
+            if (config.spawnInterval > 0) spawner.spawnInterval = config.spawnInterval;
+        }
+        if (config.grabDistance > 0 || config.dropDistance > 0)
+        {
+            DraggableCar[] cars = FindObjectsOfType<DraggableCar>();
+            foreach (DraggableCar car in cars)
+            {
+                if (config.grabDistance > 0) car.grabDistance = config.grabDistance;
+                if (config.dropDistance > 0) car.dropDistance = config.dropDistance;
+            }
+        }
+        Debug.Log($"Config applied: Level {config.levelNumber}, Speed {config.carSpeed}, Interval {config.spawnInterval}");
+        UpdateUI();
+    }
+    public void StartGameFromHTML()
+    {
+        gameStarted = true;
+        Time.timeScale = 1f;
+        Debug.Log("Game started from HTML!");
+    }
+    public void SetUserID(int id)
+    {
+        userID = id;
+        Debug.Log("User ID set: " + userID);
+    }
+    void Update()
+    {
+        if (!gameStarted || Time.timeScale == 0f) return;
+        timeLeft -= Time.deltaTime;
+        if (timerText != null)
+            timerText.text = "Time: " + Mathf.Ceil(timeLeft);
+#if UNITY_WEBGL && !UNITY_EDITOR
+    SendTimerToHTML(timeLeft);
+#endif
+        if (timeLeft <= 0f)
+        {
+            timeLeft = 0f;
+            gameStarted = false;
+            Time.timeScale = 0f;
+#if UNITY_WEBGL && !UNITY_EDITOR
+        SendEndGameToHTML(score);
+#endif
+            if (endPanel != null) endPanel.SetActive(true);
         }
     }
-
     public void AddScore(int value)
     {
-        if (!isGameRunning) return;
-
         score += value;
-        matches += 1;  // كل مرة نضيف سكور، يعني مطابقة صحيحة
         UpdateUI();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        SendScoreToHTML(score);
+#endif
     }
-
-    // للمطابقة الخاطئة (اختياري)
-    public void AddMiss()
-    {
-        if (!isGameRunning) return;
-        // تقدرين تسجلين الأخطاء هنا
-    }
-
-    private void UpdateUI()
+    void UpdateUI()
     {
         if (scoreText != null)
             scoreText.text = "Score: " + score;
-        if (matchesText != null)
-            matchesText.text = "Matches: " + matches;
     }
-
-    // ============================================
-    // إرسال النتائج إلى JavaScript
-    // ============================================
-
-    private void SendResultsToJS()
-    {
-#if !UNITY_EDITOR && UNITY_WEBGL
-        try
-        {
-            // استدعاء دوال JavaScript
-            WebGLBridge.SendResults(score, matches);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error sending results to JS: " + e.Message);
-        }
-#endif
-    }
-
-    public bool IsGameRunning()
-    {
-        return isGameRunning;
-    }
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void SendScoreToHTML(int score);
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void SendEndGameToHTML(int score);
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void SendTimerToHTML(float timer);
 }
