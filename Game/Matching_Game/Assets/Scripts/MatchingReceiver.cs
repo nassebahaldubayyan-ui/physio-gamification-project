@@ -1,4 +1,10 @@
-﻿using UnityEngine;
+﻿// ============================================================
+// MatchingReceiver.cs
+// يستقبل بيانات اليد من HTML (WebGL) أو UDP (Editor)
+// ويحرك نقطة اليد ويُبلّغ كل السيارات بحالة القبضة
+// ============================================================
+using UnityEngine;
+
 #if !UNITY_WEBGL || UNITY_EDITOR
 using System.Net;
 using System.Net.Sockets;
@@ -8,26 +14,30 @@ using System.Threading;
 
 public class MatchingReceiver : MonoBehaviour
 {
-    public int port = 5053;
+    [Header("Settings")]
+    public int       port      = 5053;
     public Transform handPoint;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private UdpClient udpClient;
-    private Thread receiveThread;
-    private bool isRunning = true;
+    private UdpClient  udpClient;
+    private Thread     receiveThread;
+    private bool       isRunning  = true;
     private TrackerPacket latestPacket;
-    private object packetLock = new object();
+    private readonly object packetLock = new object();
 #endif
 
+    // ─────────────────────────────────────────────────────────
     void Start()
     {
+        // أنشئ كائن اليد إذا لم يكن موجوداً
         if (handPoint == null)
         {
-            GameObject hand = GameObject.Find("Hand");
-            if (hand == null) hand = GameObject.FindGameObjectWithTag("Hand");
+            GameObject hand = GameObject.FindGameObjectWithTag("Hand")
+                           ?? GameObject.Find("Hand");
+
             if (hand == null)
             {
-                hand = new GameObject("Hand");
+                hand     = new GameObject("Hand");
                 hand.tag = "Hand";
             }
             handPoint = hand.transform;
@@ -36,35 +46,39 @@ public class MatchingReceiver : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
         try
         {
-            udpClient = new UdpClient(port);
-            receiveThread = new Thread(new ThreadStart(ReceiveData));
-            receiveThread.IsBackground = true;
+            udpClient     = new UdpClient(port);
+            receiveThread = new Thread(ReceiveData) { IsBackground = true };
             receiveThread.Start();
-            Debug.Log($"MatchingReceiver started on port {port}");
+            Debug.Log($"[MatchingReceiver] UDP started on port {port}");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("MatchingReceiver: UDP disabled - " + e.Message);
+            Debug.LogWarning("[MatchingReceiver] UDP disabled: " + e.Message);
         }
 #else
-        Debug.Log("MatchingReceiver: WebGL - waiting for JS packets.");
+        Debug.Log("[MatchingReceiver] WebGL mode — waiting for JS packets.");
 #endif
     }
 
+    // ─────────────────────────────────────────────────────────
 #if !UNITY_WEBGL || UNITY_EDITOR
+
     void ReceiveData()
     {
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+        IPEndPoint ep = new IPEndPoint(IPAddress.Any, port);
         while (isRunning)
         {
             try
             {
-                byte[] data = udpClient.Receive(ref remoteEP);
-                string json = Encoding.UTF8.GetString(data);
-                var packet = JsonUtility.FromJson<TrackerPacket>(json);
+                byte[]  data   = udpClient.Receive(ref ep);
+                string  json   = Encoding.UTF8.GetString(data);
+                var     packet = JsonUtility.FromJson<TrackerPacket>(json);
                 lock (packetLock) { latestPacket = packet; }
             }
-            catch (System.Exception e) { Debug.LogError("UDP Error: " + e.Message); }
+            catch (System.Exception e)
+            {
+                if (isRunning) Debug.LogError("[MatchingReceiver] UDP error: " + e.Message);
+            }
         }
     }
 
@@ -72,14 +86,14 @@ public class MatchingReceiver : MonoBehaviour
     {
         lock (packetLock)
         {
-            if (latestPacket != null)
-            {
-                UpdateGame(latestPacket);
-                latestPacket = null;
-            }
+            if (latestPacket == null) return;
+            UpdateGame(latestPacket);
+            latestPacket = null;
         }
     }
+
 #else
+    // WebGL: يُستدعى من JavaScript
     void Update() { }
 
     public void ReceivePacketFromJS(string json)
@@ -87,48 +101,54 @@ public class MatchingReceiver : MonoBehaviour
         try
         {
             TrackerPacket packet = JsonUtility.FromJson<TrackerPacket>(json);
-            if (packet != null)
-                UpdateGame(packet);
+            if (packet != null) UpdateGame(packet);
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("ReceivePacketFromJS parse error: " + e.Message);
+            Debug.LogWarning("[MatchingReceiver] Parse error: " + e.Message);
         }
     }
 #endif
 
+    // ─────────────────────────────────────────────────────────
+    // يُحدّث موقع اليد وحالة القبضة لكل السيارات
+    // ─────────────────────────────────────────────────────────
     void UpdateGame(TrackerPacket p)
     {
+        // حرّك نقطة اليد في فضاء Unity
         if (Camera.main != null && handPoint != null)
         {
-            Vector3 worldPos = Camera.main.ViewportToWorldPoint(new Vector3(p.palm_x, p.palm_y, 10f));
-            worldPos.z = 0f;
+            Vector3 worldPos = Camera.main.ViewportToWorldPoint(
+                new Vector3(p.palm_x, p.palm_y, 10f));
+            worldPos.z       = 0f;
             handPoint.position = worldPos;
         }
 
-        DraggableCar[] allCars = FindObjectsOfType<DraggableCar>();
-        foreach (DraggableCar car in allCars)
+        // أبلّغ كل السيارات بحالة القبضة
+        foreach (DraggableCar car in FindObjectsOfType<DraggableCar>())
         {
             if (car != null)
                 car.SetHandClosed(p.hand_closed);
         }
     }
 
+    // ─────────────────────────────────────────────────────────
     void OnDestroy()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
         isRunning = false;
-        receiveThread?.Join();
+        receiveThread?.Join(200);
         udpClient?.Close();
 #endif
     }
 
+    // ─────────────────────────────────────────────────────────
     [System.Serializable]
     public class TrackerPacket
     {
         public float palm_x;
         public float palm_y;
-        public bool hand_closed;
+        public bool  hand_closed;
         public float timestamp;
     }
 }
