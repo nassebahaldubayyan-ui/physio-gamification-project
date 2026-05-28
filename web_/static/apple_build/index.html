@@ -152,7 +152,7 @@
 
 <div class="ui-overlay">
     <div class="game-info">
-        ⭐ LVL: <span id="levelValue">1</span> &nbsp;|
+        ⭐ LEVEL: <span id="levelValue">1</span> &nbsp;|
         🍎 SCORE: <span id="scoreValue">0</span> &nbsp;|
         ⏱️ TIME: <span id="timerValue">60</span>s
     </div>
@@ -165,7 +165,6 @@
     </div>
 </div>
 
-<!-- Start Panel -->
 <div class="start-panel" id="startPanel">
     <h1>🍎 CATCHING FALLING OBJECTS 🧺</h1>
     <div class="level-info" id="startLevelInfo">⭐ Level 1</div>
@@ -198,7 +197,6 @@
     <button id="startBtn">START GAME</button>
 </div>
 
-<!-- End Panel with Rating -->
 <div class="end-panel" id="endPanel">
     <h2>🎮 GAME OVER 🎮</h2>
     <div class="final-score" id="finalScore">0</div>
@@ -233,7 +231,6 @@
         </div>
     </div>
 
-    <!-- ========== RATING SECTION ========== -->
     <div class="rating-section">
         <div class="rating-title">😖 How much pain did you feel during the game?</div>
         <div class="stars-container" id="painStarsContainer">
@@ -258,7 +255,6 @@
         <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
     </div>
     <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
-    <!-- =================================== -->
 
     <div class="button-group">
         <button id="nextLevelBtn">NEXT LEVEL</button>
@@ -270,9 +266,7 @@
 <script src="/static/apple_build/Build/apple_build.loader.js"></script>
 
 <script>
-// ============================================================
-// Sound Manager
-// ============================================================
+
 class SoundManager {
     constructor() {
         this.enabled = true;
@@ -334,17 +328,13 @@ class SoundManager {
 
 const soundManager = new SoundManager();
 
-// ============================================================
-// Rating System Variables
-// ============================================================
+
 let painRating = 0;
 let enjoymentRating = 0;
 let ratingsSubmitted = false;
 let gameDataForSaving = null;
 
-// ============================================================
-// انتظر Django Backup
-// ============================================================
+
 function waitForDjangoBackup(callback) {
     if (window.DJANGO_USER_ID) { callback(); return; }
     let attempts = 0;
@@ -355,9 +345,7 @@ function waitForDjangoBackup(callback) {
     }, 100);
 }
 
-// ============================================================
-// Star Rating Setup
-// ============================================================
+
 function setupStarRating(containerId, callback, ratingTextId) {
     const container = document.getElementById(containerId);
     const stars = container.querySelectorAll('.star');
@@ -422,7 +410,6 @@ function initRatingSystem() {
         checkRatingsComplete();
     }, 'enjoyRatingText');
     
-    // Reset ratings
     painRating = 0;
     enjoymentRating = 0;
     ratingsSubmitted = false;
@@ -451,16 +438,13 @@ function areRatingsComplete() {
 function getPainRating() { return painRating; }
 function getEnjoymentRating() { return enjoymentRating; }
 
-// ============================================================
-// Save Game with Ratings
-// ============================================================
+
 function saveGameWithRatings(saveData) {
     if (!userId) {
         console.warn("⚠️ No userId, cannot save");
         return;
     }
     
-    // Add ratings to save data
     saveData.pain_score = getPainRating();
     saveData.enjoyment_score = getEnjoymentRating();
     
@@ -476,7 +460,6 @@ function saveGameWithRatings(saveData) {
 }
 
 function initGame() {
-    // ─── User Info ───
     const urlParams = new URLSearchParams(window.location.search);
     let userId = parseInt(urlParams.get("user_id")) || null;
     if (!userId && window.DJANGO_USER_ID)                userId = window.DJANGO_USER_ID;
@@ -487,7 +470,6 @@ function initGame() {
                          ? window.DJANGO_PATIENT_NAME : "Guest";
     const currentLevel = window.DJANGO_LEVEL || 1;
 
-    // ─── Affected Hand ───
     const affectedHand        = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
     const affectedHandDisplay = affectedHand === "right" ? "Right" : "Left";
     const targetMPLabel = affectedHand === "right" ? "Left" : "Right";
@@ -500,7 +482,6 @@ function initGame() {
     document.getElementById('finalLevel').innerText         = currentLevel;
 
 
-    // ─── Level Configs ───
     const LEVEL_CONFIGS = {
         1: {
             scoreToAdvance: 18, fallSpeed: 1, appleScale: 0.3,
@@ -525,7 +506,6 @@ function initGame() {
         }
     };
 
-    // ─── Game State ───
     let unityInstance            = null;
     let gameActive               = false;
     let gameTime                 = 60;
@@ -537,7 +517,6 @@ function initGame() {
     let lastWrongHandNotif        = 0;
     let finalGameScore = 0;
 
-    // History for metrics
     let handInFrameHistory  = [];
     let handXHistory        = [];
     let handSpeedHistory    = [];
@@ -754,7 +733,6 @@ function initGame() {
                            && score >= cfg.scoreToAdvance && currentLevel < 3;
         document.getElementById('nextLevelBtn').style.display = canAdvance ? 'block' : 'none';
         
-        // Store game data for saving after ratings
         gameDataForSaving = {
             user_id: userId,
             game: 'catching-objects',
@@ -771,10 +749,8 @@ function initGame() {
             affected_hand: affectedHand
         };
         
-        // Show end panel with rating section
         document.getElementById('endPanel').style.display = 'flex';
         
-        // Initialize rating system
         initRatingSystem();
         
         if (camera) { camera.stop(); mediaPipeActive = false; }
@@ -800,7 +776,7 @@ function initGame() {
 
     function startGame() {
         if (!unityInstance) {
-            showNotification("⏳ Loading game, please wait...");
+            showNotification(" Loading game, please wait...");
             setTimeout(startGame, 500);
             return;
         }
@@ -818,11 +794,11 @@ function initGame() {
                 startTimer();
                 if (!mediaPipeActive) initMediaPipe();
                 soundManager.resumeAudio();
-                showNotification(`🎮 Game Started! Use your ${affectedHandDisplay} hand! 🍎`, true);
+                showNotification(` Game Started! Use your ${affectedHandDisplay} hand! `, true);
             })
             .catch(err => {
                 console.error("Camera error:", err);
-                showNotification("❌ Please allow camera access to play!");
+                showNotification("Please allow camera access to play!");
             });
     }
 
@@ -863,7 +839,7 @@ function initGame() {
                 console.log("Config sent for level:", currentLevel);
             }, 1000);
 
-            showNotification(`✅ Game ready! Level ${currentLevel} — Click START.`, true);
+            showNotification(`Game ready! Level ${currentLevel} — Click START.`, true);
         }).catch(err => console.error("Unity load error:", err));
     }
     waitForUnity();

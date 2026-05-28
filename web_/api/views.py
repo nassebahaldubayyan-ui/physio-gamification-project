@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
-from .models import Users, Messages, Patients, Doctors, GameSessions
+from .models import Users, Messages, Patients, Doctors, GameSessions 
 import json
 import os
 from datetime import datetime, date
@@ -193,7 +193,6 @@ def game_catching_stars(request):
     except Users.DoesNotExist:
         return redirect('/gamer-login/')
 
-    from .models import GameSessions
 
     forced_hand   = request.GET.get('affected_hand', '').strip()
     affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
@@ -1526,7 +1525,6 @@ def api_save_game_result(request):
                     session_date        = timezone.now()
                 )
 
-                # ✅ تحديث مستوى المريض تلقائياً بعد كل جلسة
                 stars_thresholds   = {1: 8,  2: 16}
                 objects_thresholds = {1: 18, 2: 36}
 
