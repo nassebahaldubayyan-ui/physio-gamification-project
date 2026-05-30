@@ -338,99 +338,70 @@ def game_catching_objects(request):
 
 
 def game_matching(request):
-    
+
     user_id = request.GET.get('user_id', '').strip()
-    
     if not user_id or not user_id.isdigit():
         user_id = request.session.get('user_id')
         if not user_id:
             return redirect('/gamer-login/')
-    
+
     user_id = int(user_id)
     request.session['user_id'] = user_id
     request.session.modified = True
 
     try:
         user = Users.objects.get(id=user_id)
-        
         if user.role != 'patient':
             return redirect('/gamer-login/')
-        
         patient = Patients.objects.filter(user=user).first()
         if not patient:
             return HttpResponse("Your account is not linked to a patient record.", status=403)
-        
         patient_name = user.name
-        side = patient.affected_hand if patient.affected_hand else 'right'
-        
     except Users.DoesNotExist:
         return redirect('/gamer-login/')
-    
-    from .models import GameSessions
+
+    forced_hand   = request.GET.get('affected_hand', '').strip()
+    affected_hand = forced_hand if forced_hand in ['left', 'right'] else patient.affected_hand
 
     force_level = request.GET.get('force_level', '').strip()
 
     if force_level and force_level.isdigit():
-        current_level = int(force_level)
-        current_level = max(1, min(3, current_level))
+        current_level = max(1, min(3, int(force_level)))
+
+    elif patient.matching_level:
+        current_level = patient.matching_level
+
     else:
-        last_session = GameSessions.objects.filter(
-            patient=patient,
-            game_type='matching-game'
-        ).order_by('-session_date').first()
+        current_level = get_level_from_assessment(patient)
+        patient.matching_level = current_level
+        patient.save()
 
-        if last_session is None:
-            current_level = get_level_from_assessment(patient)
-        else:
-            level_thresholds = {
-                1: 5,
-                2: 12,
-                3: 999
-            }
+    current_level = max(1, min(3, current_level))
 
-            last_level = last_session.level
-            last_score = last_session.score
-            if last_level >= 3:
-                current_level = 3
-            elif last_score >= level_thresholds.get(last_level, 5):
-                current_level = last_level + 1
-            else:
-                current_level = last_level
-
-    affected_hand = patient.affected_hand if patient.affected_hand else 'right'
-
-
-    
-    
     file_path = os.path.join('static', 'matching_build', 'index.html')
     if not os.path.exists(file_path):
         file_path = os.path.join(settings.BASE_DIR, 'static', 'matching_build', 'index.html')
     if not os.path.exists(file_path):
         return HttpResponse("Matching game not found.", status=404)
-    
+
     with open(file_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
-    
-    html_content = html_content.replace('__USER_ID__', str(user_id))
-    html_content = html_content.replace('"__USER_ID__"', str(user_id))
+
+    html_content = html_content.replace('__USER_ID__',      str(user_id))
+    html_content = html_content.replace('"__USER_ID__"',    str(user_id))
     html_content = html_content.replace('__PATIENT_NAME__', patient_name)
-    html_content = html_content.replace('__SIDE__', side)
-    html_content = html_content.replace('__LEVEL__', str(current_level))
-    
+    html_content = html_content.replace('__LEVEL__',        str(current_level))
+
     backup_script = f"""
     <script>
-        window.DJANGO_USER_ID = {user_id};
-        window.DJANGO_PATIENT_NAME = "{patient_name}";
-        window.DJANGO_LEVEL = {current_level};
+        window.DJANGO_USER_ID       = {user_id};
+        window.DJANGO_PATIENT_NAME  = "{patient_name}";
+        window.DJANGO_LEVEL         = {current_level};
         window.DJANGO_AFFECTED_HAND = "{affected_hand}";
-        console.log("Django Backup - UserID:", window.DJANGO_USER_ID, 
-                    "Patient:", window.DJANGO_PATIENT_NAME, 
-                    "Level:", window.DJANGO_LEVEL,
-                    "Affected Hand:", window.DJANGO_AFFECTED_HAND);
+        console.log("Django — User:{user_id} Level:{current_level} Hand:{affected_hand}");
     </script>
     """
     html_content = html_content.replace('</body>', backup_script + '\n</body>')
-    
     return HttpResponse(html_content)
 
 # Static Pages
@@ -1527,6 +1498,8 @@ def api_save_game_result(request):
 
                 stars_thresholds   = {1: 8,  2: 16}
                 objects_thresholds = {1: 18, 2: 36}
+                matching_thresholds = {1: 5, 2: 12}
+
 
                 if game_type == 'catching-stars':
                     threshold = stars_thresholds.get(level, 999)
@@ -1542,6 +1515,13 @@ def api_save_game_result(request):
                         patient.falling_level = level + 1
                     else:
                         patient.falling_level = level
+                    patient.save()
+                elif game_type == 'matching-game':
+                    threshold = matching_thresholds.get(level, 999)
+                    if level < 3 and score >= threshold:
+                        patient.matching_level = level + 1
+                    else:
+                        patient.matching_level = level
                     patient.save()
                 return JsonResponse({"success": True, "message": "Saved successfully"})
 

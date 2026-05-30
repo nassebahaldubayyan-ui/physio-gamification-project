@@ -433,7 +433,7 @@
 
     <div class="ui-overlay">
         <div class="game-info">
-            🎮 LVL: <span id="levelValue">1</span> &nbsp;|
+            🎮 LEVEL: <span id="levelValue">1</span> &nbsp;|
             🚗 SCORE: <span id="scoreValue">0</span> &nbsp;|
             ⏱️ TIME: <span id="timerValue">60</span>s
         </div>
@@ -441,12 +441,13 @@
         <div class="stats-panel" id="statsPanel">
             TRACKING: <span id="trackingHand">--</span><br>
             <span id="handStatus">WAITING</span><br>
-            HAND: X <span id="handXPos">--</span>% | Y <span id="handYPos">--</span>%<br>
+            HAND: X <span id="handX">--</span>% | Y <span id="handY">--</span>%<br>
             GRIP: <span id="gripStatus">OPEN</span><br>
+            SHOULDER: <span id="shoulderAct">--</span>%<br>
             ELBOW: <span id="elbowAngle">--</span>°<br>
             WRIST: <span id="wristAct">--</span>%<br>
             EXT ROT: <span id="externalRot">--</span>°<br>
-            SHRUG: <span id="shoulderShrug">--</span>%
+            ⬆ SHRUG: <span id="shoulderShrug">--</span>%
         </div>
 
         <div class="sensitivity-bar">
@@ -471,35 +472,43 @@
             <div class="instruction-line"><span>✋</span><span>Open hand over box → <span
                         class="instruction-highlight">RELEASE</span></span></div>
         </div>
-        <button id="startBtn">▶️ START GAME</button>
+        <button id="startBtn"> START GAME</button>
     </div>
 
     <div class="end-panel" id="endPanel">
-        <h2> GAME OVER </h2>
+        <h2>🎮 GAME OVER 🎮</h2>
         <div class="final-score" id="finalScore">0</div>
         <div class="accuracy-data">
-            <div class="data-row"><span class="data-label"> Level</span><span class="data-value"><span
-                        id="finalLevel">1</span></span></div>
-            <div class="data-row"><span class="data-label"> Cars Matched</span><span class="data-value"><span
-                        id="finalMatches">0</span></span></div>
-
-            <div class="data-row"><span class="data-label"> Accuracy</span><span class="data-value"><span
-                        id="finalAccuracy">--</span>%</span></div>
-            <div class="data-row"><span class="data-label"> Grip </span><span class="data-value"><span
-                        id="finalGrip">--</span>%</span></div>
-
-            <div class="data-row"><span class="data-label"> Elbow Angle</span><span class="data-value"><span
-                        id="avgElbowDisplay">--</span>°</span></div>
-            <div class="data-row"><span class="data-label"> Wrist Activation</span><span class="data-value"><span
-                        id="finalWrist">--</span>%</span></div>
-
-            <div class="data-row"><span class="data-label"> External Rotation</span><span class="data-value"><span
-                        id="finalExtRot">--</span>°</span></div>
-            <div class="data-row"><span class="data-label"> Shrug</span><span class="data-value"><span
-                        id="finalShrug">--</span>%</span></div>
-
-            <div class="data-row"> <span class="data-label">Affected Hand</span> <span class="data-value"
-                    id="finalAffectedHand">--</span></div>
+            <div class="data-row">
+                <span class="data-label">Level</span>
+                <span class="data-value"><span id="finalLevel">1</span></span>
+                <span class="data-label">Cars Matched</span>
+                <span class="data-value"><span id="finalMatches">0</span></span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Accuracy</span>
+                <span class="data-value"><span id="finalAccuracy">--</span>%</span>
+                <span class="data-label">Grip</span>
+                <span class="data-value"><span id="finalGrip">--</span>%</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Shoulder Act.</span>
+                <span class="data-value"><span id="finalShoulder">--</span>%</span>
+                <span class="data-label">Shrug</span>
+                <span class="data-value"><span id="finalShrug">--</span>%</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Elbow Angle</span>
+                <span class="data-value"><span id="avgElbowDisplay">--</span>°</span>
+                <span class="data-label">Wrist Activation</span>
+                <span class="data-value"><span id="finalWrist">--</span>%</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">External Rotation</span>
+                <span class="data-value"><span id="finalExtRot">--</span>°</span>
+                <span class="data-label">Affected Hand</span>
+                <span class="data-value" id="finalAffectedHand">--</span>
+            </div>
         </div>
 
         <div class="rating-section">
@@ -526,7 +535,6 @@
             <div class="rating-text" id="enjoyRatingText">Not at all → Very much</div>
         </div>
         <div class="rating-note" id="ratingNote">⭐ Please rate both before continuing ⭐</div>
-        <!-- ======================================================= -->
 
 
 
@@ -541,9 +549,7 @@
 
     <script>
 
-        // ============================================================
-        // Sound Manager  
-        // ============================================================
+
         class SoundManager {
             constructor() { this.enabled = true; this.initSounds(); }
             initSounds() {
@@ -552,6 +558,7 @@
                 this.buttonSound = this.createSound(600, 0.08);
                 this.matchSound = this.createSound(880, 0.15);
                 this.startSound = this.createStartSound();
+                this.warningSound = this.createWarningSound();
                 this.levelUpSound = this.createLevelUpSound();
             }
             createSound(freq, duration) {
@@ -591,6 +598,22 @@
                     }, 120);
                 };
             }
+            createWarningSound() {
+                return () => {
+                    if (!this.enabled || !this.audioContext) return;
+                    if (this.audioContext.state === 'suspended') this.audioContext.resume();
+                    const now = this.audioContext.currentTime;
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.audioContext.destination);
+                    osc.frequency.value = 300;
+                    gain.gain.value = 0.2;
+                    osc.start();
+                    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.3);
+                    osc.stop(now + 0.3);
+                };
+            }
             createLevelUpSound() {
                 return () => {
                     if (!this.enabled || !this.audioContext) return;
@@ -622,9 +645,7 @@
         const soundManager = new SoundManager();
 
 
-        // ============================================================
-        // Rating System 
-        // ============================================================
+
         let painRating = 0;
         let enjoymentRating = 0;
         let ratingsSubmitted = false;
@@ -636,7 +657,7 @@
             let currentRating = 0;
 
             function updateStars(rating) {
-                stars.forEach((star, index) => {
+                stars.forEach(star => {
                     const starValue = parseInt(star.dataset.value);
                     if (starValue <= rating) {
                         star.innerHTML = '★';
@@ -706,7 +727,7 @@
         function checkRatingsComplete() {
             const ratingNote = document.getElementById('ratingNote');
             if (painRating > 0 && enjoymentRating > 0 && !ratingsSubmitted) {
-                ratingNote.innerHTML = '✅ Ratings complete! You can now continue ✅';
+                ratingNote.innerHTML = '✅ Ratings complete! You can now continue ';
                 ratingNote.style.color = '#88ff88';
             } else {
                 ratingNote.innerHTML = '⭐ Please rate both pain level and enjoyment before continuing ⭐';
@@ -714,33 +735,30 @@
             }
         }
 
-        function areRatingsComplete() {
-            return painRating > 0 && enjoymentRating > 0;
-        }
-
+        function areRatingsComplete() { return painRating > 0 && enjoymentRating > 0; }
         function getPainRating() { return painRating; }
         function getEnjoymentRating() { return enjoymentRating; }
 
-        // ============================================================
-        // Angle Math  
-        // ============================================================
+
         const AngleMath = {
-            calculateAngle(p1, p2, p3) {
+            calculateAngle3D(p1, p2, p3) {
                 const v1 = { x: p1.x - p2.x, y: p1.y - p2.y, z: (p1.z || 0) - (p2.z || 0) };
                 const v2 = { x: p3.x - p2.x, y: p3.y - p2.y, z: (p3.z || 0) - (p2.z || 0) };
                 const dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
                 const mag1 = Math.hypot(v1.x, v1.y, v1.z);
                 const mag2 = Math.hypot(v2.x, v2.y, v2.z);
-                if (!mag1 || !mag2) return 0;
-                return Math.acos(Math.min(1, Math.max(-1, dot / (mag1 * mag2)))) * 180 / Math.PI;
+                if (mag1 === 0 || mag2 === 0) return 0;
+                const rad = Math.acos(Math.min(1, Math.max(-1, dot / (mag1 * mag2))));
+                return rad * 180 / Math.PI;
             }
         };
 
-        // ============================================================
-        // SmoothingFilter 
-        // ============================================================
+
         class SmoothingFilter {
-            constructor(windowSize = 5) { this.windowSize = windowSize; this.values = []; }
+            constructor(windowSize = 5) {
+                this.windowSize = windowSize;
+                this.values = [];
+            }
             filter(value) {
                 this.values.push(value);
                 if (this.values.length > this.windowSize) this.values.shift();
@@ -749,16 +767,13 @@
             reset() { this.values = []; }
         }
 
-        // ============================================================
-        // 🎮 Game Config
-        // ============================================================
+
         const GAME_CONFIG = {
             level1: {
                 levelNumber: 1,
                 gameDuration: 60,
                 gripSensitivity: 160,
                 levelName: "Easy",
-
                 carSpeed: 1.2,
                 spawnInterval: 2.5,
                 grabDistance: 5.0,
@@ -771,7 +786,6 @@
                 gameDuration: 55,
                 gripSensitivity: 130,
                 levelName: "Medium",
-
                 carSpeed: 1.8,
                 spawnInterval: 2.0,
                 grabDistance: 4.5,
@@ -783,7 +797,6 @@
                 gameDuration: 50,
                 gripSensitivity: 100,
                 levelName: "Hard",
-
                 carSpeed: 2.5,
                 spawnInterval: 1.5,
                 grabDistance: 4.0,
@@ -792,9 +805,7 @@
         };
         const LEVEL_THRESHOLDS = { level2: 5, level3: 12 };
 
-        // ============================================================
-        // Game Variables
-        // ============================================================
+
         let unityInstance = null;
         let gameActive = false;
         let gameScore = 0;
@@ -803,37 +814,32 @@
         let finalLevel = 1;
         let userId = null;
         let patientName = "Guest";
-        let gripHistory = [];
-        let elbowHistory = [];
-        let currentGripSensitivity = 75;
+        let affectedHand = "right";
+        let affectedHandDisplay = "Right";
+        let targetMPLabel = "left";
         let mediaPipeActive = false;
-        let hands = null;
-        let camera = null;
+        let hands = null, camera = null;
         let dataSaved = false;
         let gameEnded = false;
-
-        let affectedHand = "right";
-        let affectedHandDisplay = "RIGHT HAND";
-        let targetMPLabel = "left";
         let lastWrongHandTime = 0;
         let lastNotificationTime = 0;
+        let currentGripSensitivity = 75;
 
         let gripSuccessHistory = [];
+        let elbowHistory = [];
         let wristSpeedHistory = [];
         let externalRotHistory = [];
         let shoulderShrugHistory = [];
         let handInFrameHistory = [];
         let prevHandX = null;
-
         let lastGripState = false;
         let gripDebounceTimer = null;
         let currentGripState = false;
-
         let elbowFilter, extRotFilter, shrugFilter, wristFilter;
+        let handXMin = 1, handXMax = 0;
+        let handYMin = 1, handYMax = 0;
 
-        // ============================================================
-        // Unity Callbacks  
-        // ============================================================
+
         window.unityCallbacks = {
             onScore(score) {
                 if (score > gameScore) soundManager.playMatchSound();
@@ -855,7 +861,6 @@
             }
         };
 
-        // دعم الدوال المباشرة التي يناديها Unity
         window.UpdateScoreFromUnity = s => window.unityCallbacks.onScore(s);
         window.UpdateTimerFromUnity = t => window.unityCallbacks.onTimer(t);
         window.EndGameFromUnity = s => { if (!gameEnded) window.unityCallbacks.onGameEnd(s); };
@@ -868,22 +873,38 @@
             soundManager.playLevelUp();
         };
 
-        // ============================================================
-        // UI Functions
-        // ============================================================
         function updateUI() {
             document.getElementById('scoreValue').innerText = gameScore;
             document.getElementById('timerValue').innerText = gameTime;
             document.getElementById('levelValue').innerText = currentLevel;
         }
 
-        function showNotification(msg, isLevelUp = false) {
+        function showNotification(msg, isSuccess = false) {
             const panel = document.getElementById('notificationPanel');
             const div = document.createElement('div');
-            div.className = 'notification' + (isLevelUp ? ' level-up' : '');
-            div.innerHTML = msg;
+            div.className = 'notification';
+            div.style.borderLeftColor = isSuccess ? '#44ff44' : '#ff4444';
+            div.style.color = isSuccess ? '#88ff88' : '#ff8888';
+            div.innerText = msg;
             panel.appendChild(div);
             setTimeout(() => div.remove(), 2500);
+        }
+
+
+
+        function updateStatsDisplay(handX, handY, elbowAngle, shoulderAct, wristAct, externalRot, shrug, isGripping, isInside) {
+            document.getElementById('handX').innerHTML = Math.round(handX * 100);
+            document.getElementById('handY').innerHTML = Math.round(handY * 100);
+            document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
+            document.getElementById('shoulderAct').innerHTML = shoulderAct || 0;
+            document.getElementById('wristAct').innerHTML = wristAct || 0;
+            document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
+            document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
+            document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
+            document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
+            const gripSpan = document.getElementById('gripStatus');
+            gripSpan.innerHTML = isGripping ? "CLOSED ✊" : "OPEN ✋";
+            gripSpan.style.color = isGripping ? "#88ff88" : "#ff8888";
         }
 
         function updateHandCursor(handX, handY, isGripping) {
@@ -892,20 +913,6 @@
             cursor.style.top = (handY * 100) + '%';
             if (isGripping) cursor.classList.add('gripping');
             else cursor.classList.remove('gripping');
-        }
-
-        function updateStatsDisplay(handX, handY, elbowAngle, wristAct, externalRot, shrug, isGripping, isInside) {
-            document.getElementById('handXPos').innerHTML = Math.round(handX * 100);
-            document.getElementById('handYPos').innerHTML = Math.round(handY * 100);
-            document.getElementById('elbowAngle').innerHTML = Math.round(elbowAngle || 0);
-            document.getElementById('wristAct').innerHTML = wristAct || 0;
-            document.getElementById('externalRot').innerHTML = Math.round(externalRot || 0);
-            document.getElementById('shoulderShrug').innerHTML = Math.round(shrug || 0);
-            document.getElementById('handStatus').innerHTML = isInside ? '✅ INSIDE' : '⚠️ OUTSIDE';
-            document.getElementById('handStatus').style.color = isInside ? '#0f0' : '#ff8888';
-            const gripSpan = document.getElementById('gripStatus');
-            gripSpan.innerHTML = isGripping ? 'CLOSED ✊' : 'OPEN ✋';
-            gripSpan.style.color = isGripping ? '#88ff88' : '#ff8888';
         }
 
         function updateGripSensitivityDisplay(sensitivity) {
@@ -923,15 +930,9 @@
                 : "linear-gradient(90deg, #44ff44, #88ff88)";
         }
 
-       
 
-        
 
-        
 
-        // ============================================================
-        // Metric Calculations 
-        // ============================================================
         function calculateAccuracy() {
             if (handInFrameHistory.length === 0) return 100;
             return Math.round((handInFrameHistory.filter(v => v === 1).length / handInFrameHistory.length) * 100);
@@ -962,31 +963,42 @@
             if (shoulderShrugHistory.length === 0) return 0;
             return Math.round(shoulderShrugHistory.reduce((a, b) => a + b, 0) / shoulderShrugHistory.length);
         }
+        function calculateShoulderActivation() {
+            const xRange = Math.max(0, handXMax - handXMin);
+            const yRange = Math.max(0, handYMax - handYMin);
+            const combined = Math.sqrt(xRange * xRange + yRange * yRange);
+            return Math.min(100, Math.round(combined * 100));
+        }
 
-        // ============================================================
-        // Pose Calculations 
-        // ============================================================
+
         function calculateGripFromLandmarks(landmarks) {
-            const tips = [4, 8, 12, 16, 20], mcps = [1, 5, 9, 13, 17];
-            let total = 0;
-            for (let i = 0; i < tips.length; i++)
-                total += AngleMath.calculateAngle(landmarks[0], landmarks[mcps[i]], landmarks[tips[i]]);
-            const avg = total / tips.length;
-            updateSensitivityMeter(avg);
-            return avg < currentGripSensitivity;
+            const fingerTips = [4, 8, 12, 16, 20];
+            const fingerMCPs = [1, 5, 9, 13, 17];
+            let totalAngle = 0;
+            for (let i = 0; i < fingerTips.length; i++) {
+                const angle = AngleMath.calculateAngle3D(landmarks[0], landmarks[fingerMCPs[i]], landmarks[fingerTips[i]]);
+                totalAngle += angle;
+            }
+            const avgAngle = totalAngle / fingerTips.length;
+            updateSensitivityMeter(avgAngle);
+            return avgAngle < currentGripSensitivity;
         }
 
         function calculateElbowAngle(landmarks) {
             try {
-                const wrist = landmarks[0], indexMCP = landmarks[5], middleMCP = landmarks[9];
-                return AngleMath.calculateAngle(wrist, indexMCP, middleMCP);
+                const wrist = landmarks[0];
+                const indexMCP = landmarks[5];
+                const middleMCP = landmarks[9];
+                return AngleMath.calculateAngle3D(wrist, indexMCP, middleMCP);
             } catch (e) { return 90; }
         }
 
         function calculateExternalRotation(landmarks) {
             try {
-                const indexMCP = landmarks[5], pinkyMCP = landmarks[17];
-                const dx = indexMCP.x - pinkyMCP.x, dy = indexMCP.y - pinkyMCP.y;
+                const indexMCP = landmarks[5];
+                const pinkyMCP = landmarks[17];
+                const dx = indexMCP.x - pinkyMCP.x;
+                const dy = indexMCP.y - pinkyMCP.y;
                 return Math.atan2(-dy, dx) * 180 / Math.PI;
             } catch (e) { return 0; }
         }
@@ -995,9 +1007,7 @@
             return Math.min(100, Math.max(0, Math.round((1 - handY) * 100)));
         }
 
-        // ============================================================
-        // Send to Unity  
-        // ============================================================
+
         function sendToUnity(obj, method, value) {
             if (!unityInstance || typeof unityInstance.sendMessage !== 'function') return;
             try {
@@ -1032,9 +1042,7 @@
             } catch (e) { console.error("StartGameFromHTML error:", e); }
         }
 
-        // ============================================================
-        // MediaPipe  
-        // ============================================================
+
         async function initMediaPipe() {
             const video = document.createElement('video');
             video.style.display = 'none';
@@ -1090,16 +1098,15 @@
                 if (handInFrameHistory.length > 1800) handInFrameHistory.shift();
 
                 const rawGrip = calculateGripFromLandmarks(handLandmarks);
-                let isGripping = rawGrip;
-
                 if (rawGrip !== lastGripState) {
                     if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
                     gripDebounceTimer = setTimeout(() => { currentGripState = rawGrip; }, 100);
-                    isGripping = currentGripState;
                 } else {
-                    isGripping = currentGripState;
+                    currentGripState = rawGrip;
                 }
                 lastGripState = rawGrip;
+                const isGripping = currentGripState;
+
                 gripSuccessHistory.push(isGripping ? 1 : 0);
                 if (gripSuccessHistory.length > 1800) gripSuccessHistory.shift();
 
@@ -1127,7 +1134,15 @@
                 shoulderShrugHistory.push(smoothedShrug);
                 if (shoulderShrugHistory.length > 1800) shoulderShrugHistory.shift();
 
-                updateStatsDisplay(handX, handY, smoothedElbow, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
+                if (isInside) {
+                    if (handX < handXMin) handXMin = handX;
+                    if (handX > handXMax) handXMax = handX;
+                    if (handY < handYMin) handYMin = handY;
+                    if (handY > handYMax) handYMax = handY;
+                }
+                const shoulderActVal = calculateShoulderActivation();
+
+                updateStatsDisplay(handX, handY, smoothedElbow, shoulderActVal, Math.round(smoothedWrist * 100), smoothedExtRot, smoothedShrug, isGripping, isInside);
                 updateHandCursor(handX, handY, isGripping);
 
                 const packet = JSON.stringify({
@@ -1148,9 +1163,7 @@
             console.log("MediaPipe started - Tracking:", targetMPLabel);
         }
 
-        // ============================================================
-        // Game Control
-        // ============================================================
+
         function endGame(score) {
             gameActive = false;
             if (camera) { try { camera.stop(); } catch (e) { } mediaPipeActive = false; }
@@ -1159,27 +1172,33 @@
             const gripActivation = calculateGripActivation();
             const avgElbow = calculateAvgElbow();
             const avgWrist = calculateWristActivation();
-            const avgExtRot = calculateAvgExternalRot();
+            const avgExternalRot = calculateAvgExternalRot();
             const avgShrug = calculateAvgShrug();
+            const shoulderActFinal = calculateShoulderActivation();
 
             document.getElementById('finalScore').innerHTML = score;
             document.getElementById('finalMatches').innerHTML = score;
             document.getElementById('finalLevel').innerHTML = finalLevel;
             document.getElementById('finalAccuracy').innerHTML = accuracy;
             document.getElementById('finalGrip').innerHTML = gripActivation;
+            document.getElementById('finalShoulderAct').innerHTML = shoulderActFinal;
             document.getElementById('avgElbowDisplay').innerHTML = avgElbow;
             document.getElementById('finalWrist').innerHTML = avgWrist;
-            document.getElementById('finalExtRot').innerHTML = avgExtRot;
+            document.getElementById('finalExtRot').innerHTML = avgExternalRot;
             document.getElementById('finalShrug').innerHTML = avgShrug;
 
-            let canAdvance = (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2)
-                || (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3);
-            const nextBtn = document.getElementById('nextLevelBtn');
+            let canAdvance = false;
+            if (finalLevel === 1 && score >= LEVEL_THRESHOLDS.level2) canAdvance = true;
+            else if (finalLevel === 2 && score >= LEVEL_THRESHOLDS.level3) canAdvance = true;
+
             if (canAdvance && finalLevel < 3) {
-                nextBtn.style.display = 'block';
-                showNotification(`🎉 Congratulations! You reached Level ${finalLevel + 1}!`, true);
+                document.getElementById('nextLevelBtn').style.display = 'block';
+                showNotification(`Congratulations! You reached Level ${finalLevel + 1}! 🎉`, true);
             } else {
-                nextBtn.style.display = 'none';
+                document.getElementById('nextLevelBtn').style.display = 'none';
+                if (finalLevel < 3) {
+                    showNotification(`⚠️ Need ${finalLevel === 1 ? LEVEL_THRESHOLDS.level2 : LEVEL_THRESHOLDS.level3} stars for next level!`);
+                }
             }
 
             gameDataForSaving = {
@@ -1187,14 +1206,14 @@
                 game: 'matching-game',
                 level: finalLevel,
                 score: score,
-                matches_made: score,
+                stars_caught: score,
                 grip_activation: gripActivation,
                 accuracy: accuracy,
                 elbow_activation: avgElbow,
-                shoulder_activation: 0,
                 wrist_activation: avgWrist,
-                external_rotation: avgExtRot,
+                external_rotation: avgExternalRot,
                 shoulder_shrug: avgShrug,
+                shoulder_activation: shoulderActFinal,
                 affected_hand: affectedHand
             };
 
@@ -1220,9 +1239,7 @@
         }
 
 
-        // ============================================================
-        // Start Game 
-        // ============================================================
+
         function startGame() {
             if (!unityInstance) { showNotification('⏳ Loading game...'); setTimeout(startGame, 500); return; }
 
@@ -1249,9 +1266,16 @@
                     lastGripState = false; currentGripState = false;
                     if (gripDebounceTimer) clearTimeout(gripDebounceTimer);
 
-                    gripSuccessHistory = []; elbowHistory = []; wristSpeedHistory = [];
-                    externalRotHistory = []; shoulderShrugHistory = []; handInFrameHistory = [];
+                    gripSuccessHistory = [];
+                    elbowHistory = [];
+                    wristSpeedHistory = [];
+                    externalRotHistory = [];
+                    shoulderShrugHistory = [];
+                    handInFrameHistory = [];
                     prevHandX = null;
+
+                    handXMin = 1; handXMax = 0;
+                    handYMin = 1; handYMax = 0;
 
                     document.getElementById('sensitivityValue').innerText = currentGripSensitivity;
                     updateUI();
@@ -1262,14 +1286,12 @@
                     else mediaPipeActive = true;
 
                     soundManager.resumeAudio();
-                    showNotification(`🎮 GAME STARTED! Use your ${affectedHandDisplay}! 🎮`, true);
+                    showNotification(` GAME STARTED! Use your ${affectedHandDisplay}! `, true);
                 })
                 .catch(err => { console.error('Camera error:', err); showNotification('❌ Please allow camera access!'); });
         }
 
-        // ============================================================
-        // Unity Loader  
-        // ============================================================
+
         const canvas = document.querySelector('#unity-canvas');
 
         function waitForUnity() {
@@ -1307,7 +1329,6 @@
 
                 window.unityInstance = unityInstance;
 
-                // إرسال الإعدادات الأولية بعد تحميل Unity
                 setTimeout(() => {
                     sendConfigToUnity(currentLevel);
                     console.log("Initial config sent to Unity");
@@ -1320,57 +1341,62 @@
             });
         }
 
-        // ============================================================
-        // waitForDjango  
-        // ============================================================
-        function waitForDjango(callback) {
-            if (window.DJANGO_USER_ID) {
-                userId = window.DJANGO_USER_ID;
-                patientName = window.DJANGO_PATIENT_NAME || "Guest";
-                currentLevel = window.DJANGO_LEVEL || 1;
 
-                // ✅ جديد: اليد المصابة
-                affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
-                if (affectedHand !== 'left' && affectedHand !== 'right') affectedHand = 'right';
+        function waitForDjango(callback) {
+            let attempts = 0;
+
+            function check() {
+                attempts++;
+                if (window.DJANGO_USER_ID !== undefined) {
+                    userId = window.DJANGO_USER_ID;
+                    patientName = window.DJANGO_PATIENT_NAME || "Guest";
+                    currentLevel = window.DJANGO_LEVEL || 1;
+                    affectedHand = (window.DJANGO_AFFECTED_HAND || "right").toLowerCase();
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const forceLevel = urlParams.get("force_level");
+                    if (forceLevel) currentLevel = parseInt(forceLevel);
+                    finalize();
+                } else if (attempts > 50) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const urlUserId = urlParams.get("user_id");
+                    const urlHand = urlParams.get("affected_hand");
+                    const forceLevel = urlParams.get("force_level");
+                    if (urlUserId) userId = parseInt(urlUserId);
+                    if (urlHand && ['left', 'right'].includes(urlHand.toLowerCase()))
+                        affectedHand = urlHand.toLowerCase();
+                    if (forceLevel) currentLevel = parseInt(forceLevel);
+                    finalize();
+                } else {
+                    setTimeout(check, 100);
+                }
+            }
+
+            function finalize() {
+                if (!['left', 'right'].includes(affectedHand)) affectedHand = 'right';
                 affectedHandDisplay = affectedHand === "right" ? "RIGHT HAND" : "LEFT HAND";
                 targetMPLabel = affectedHand === "right" ? "left" : "right";
 
                 document.getElementById('handInstruction').innerHTML = affectedHandDisplay;
                 document.getElementById('trackingHand').innerHTML = affectedHandDisplay;
                 document.getElementById('finalAffectedHand').innerHTML = affectedHandDisplay;
-                document.getElementById('startLevelInfo').innerHTML =
-                    `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
+                document.getElementById('startLevelInfo').innerHTML = `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
                 document.getElementById('levelValue').innerText = currentLevel;
+                document.getElementById('finalLevel').innerText = currentLevel;
 
+                console.log(`Game init — User:${userId} Level:${currentLevel} Hand:${affectedHand} MP:${targetMPLabel}`);
                 callback();
-            } else {
-                const params = new URLSearchParams(window.location.search);
-                const urlUserId = params.get('user_id');
-                const forceLevel = params.get('force_level');
-                if (urlUserId) {
-                    userId = parseInt(urlUserId);
-                    if (forceLevel) currentLevel = parseInt(forceLevel);
-                    callback();
-                } else {
-                    setTimeout(() => waitForDjango(callback), 100);
-                }
             }
+
+            check();
         }
-        // ============================================================
-        // Initialization
-        // ============================================================
+
         waitForDjango(() => {
-            console.log("User:", userId, "Level:", currentLevel);
+            console.log("User:", userId, "Level:", currentLevel, "Affected Hand:", affectedHand);
             updateGripSensitivityDisplay(GAME_CONFIG[`level${currentLevel}`]?.gripSensitivity || 75);
-            document.getElementById('startLevelInfo').innerHTML =
-                `⭐ Level ${currentLevel} - ${GAME_CONFIG[`level${currentLevel}`]?.levelName || 'Easy'}`;
-            document.getElementById('levelValue').innerText = currentLevel;
             waitForUnity();
         });
 
-        // ============================================================
-        // Event Listeners 
-        // ============================================================
+
         document.getElementById('startBtn').onclick = () => { soundManager.playButtonClick(); startGame(); };
         document.getElementById('nextLevelBtn').onclick = () => {
             soundManager.playButtonClick();
@@ -1379,7 +1405,7 @@
                 return;
             }
             finalizeAndSave();
-            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel + 1}`;
+            window.location.href = `/games/matching/?user_id=${userId}&affected_hand=${affectedHand}`;
         };
         document.getElementById('restartBtn').onclick = () => {
             soundManager.playButtonClick();
@@ -1388,7 +1414,7 @@
                 return;
             }
             finalizeAndSave();
-            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}`;
+            window.location.href = `/games/matching/?user_id=${userId}&force_level=${finalLevel}&affected_hand=${affectedHand}`;
         };
         document.getElementById('exitBtn').onclick = () => {
             soundManager.playButtonClick();
@@ -1404,4 +1430,3 @@
 </body>
 
 </html>
-
