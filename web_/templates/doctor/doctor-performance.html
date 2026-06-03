@@ -267,6 +267,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 25px;
+            align-items: start;
         }
 
         .game-card {
@@ -276,6 +277,9 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border: 1px solid #e2e8f0;
             transition: all 0.3s;
+            display: flex;           
+            flex-direction: column;  
+            height: 100%; 
         }
 
         .game-card:hover {
@@ -317,6 +321,7 @@
             font-size: 14px;
             margin-bottom: 20px;
             line-height: 1.5;
+            min-height: 42px;
         }
 
         .muscle-groups {
@@ -324,6 +329,7 @@
             padding: 15px;
             background: #f8fafc;
             border-radius: 12px;
+            flex: 1;  
         }
 
         .muscle-group {
@@ -717,7 +723,7 @@
                             </div>
                             <div class="game-stat">
                                 <div class="game-stat-value" id="rotationPrevention">84%</div>
-                                <div class="game-stat-label">Contracture Prev</div>
+                                <div class="game-stat-label">Accuracy</div>
                             </div>
                         </div>
                     </div>

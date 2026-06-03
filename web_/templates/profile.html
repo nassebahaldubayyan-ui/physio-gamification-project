@@ -367,10 +367,6 @@
                             <div class="stat-label">Accuracy</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-value">Level {% if patient %}{{ patient.current_level|default:"0" }}{% else %}0{% endif %}</div>
-                            <div class="stat-label">Level</div>
-                        </div>
-                        <div class="stat-box">
                             <div class="stat-value">{{ total_sessions }}</div>
                             <div class="stat-label">Sessions</div>
                         </div>
@@ -428,10 +424,6 @@
                 <div class="info-row">
                     <span class="info-label">Affected Hand</span>
                     <span class="info-value">{% if patient and patient.affected_hand %}{{ patient.affected_hand|capfirst }} Hand{% else %}Not specified{% endif %}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Current Level</span>
-                    <span class="info-value">Level {% if patient %}{{ patient.current_level|default:"0" }}{% else %}0{% endif %}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Address</span>

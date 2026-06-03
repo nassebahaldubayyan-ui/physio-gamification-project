@@ -429,10 +429,6 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-chart-line"></i> Current Level</label>
-                    <input type="text" class="form-input" id="currentLevelInput" disabled>
-                </div>
-                <div class="form-group">
                     <label class="form-label"><i class="fas fa-map-marker-alt"></i> Address</label>
                     <input type="text" class="form-input" id="addressInput">
                 </div>
@@ -483,7 +479,6 @@
                     document.getElementById('genderInput').value = p.gender?.toLowerCase() === 'female' ? 'female' : 'male';
                     document.getElementById('conditionInput').value = p.medical_condition || '';
                     document.getElementById('affectedHandInput').value = p.affected_hand || 'right';
-                    document.getElementById('currentLevelInput').value = p.current_level || '1';
                     document.getElementById('addressInput').value = p.address || '';
 
                     const avatarText = document.getElementById('avatarText');
@@ -505,7 +500,6 @@
             document.getElementById('genderInput').value = patientData.gender;
             document.getElementById('conditionInput').value = patientData.condition;
             document.getElementById('affectedHandInput').value = patientData.affectedHand;
-            document.getElementById('currentLevelInput').value = patientData.currentLevel;
             document.getElementById('addressInput').value = patientData.address;
             
             // Update avatar text
